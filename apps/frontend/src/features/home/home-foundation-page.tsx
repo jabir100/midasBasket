@@ -16,6 +16,7 @@ import { Badge } from "../../shared/ui/badge.js";
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { Chip } from "../../shared/ui/chip.js";
+import { toAbsoluteUrl } from "../../shared/seo/seo.js";
 import { homepagePreviewData } from "./homepage.data.js";
 import type { HomepageProduct } from "./homepage.types.js";
 
@@ -27,9 +28,33 @@ const formatter = new Intl.NumberFormat("en-BD", {
 
 export function HomeFoundationPage(): ReactNode {
   const homepage = homepagePreviewData;
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Midas Basket",
+    url: toAbsoluteUrl("/"),
+    logo: toAbsoluteUrl("/favicon.svg"),
+  };
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Midas Basket",
+    url: toAbsoluteUrl("/"),
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${toAbsoluteUrl("/products")}?search={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
 
   return (
     <main>
+      <script type="application/ld+json">
+        {JSON.stringify(organizationJsonLd)}
+      </script>
+      <script type="application/ld+json">
+        {JSON.stringify(websiteJsonLd)}
+      </script>
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-copy">
           <Chip startContent={<Sparkles aria-hidden="true" size={16} />}>

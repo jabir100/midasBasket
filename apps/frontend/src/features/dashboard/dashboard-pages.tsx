@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { BellRing, FileText, Home, ShoppingBag, UserRound } from "lucide-react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 import { useState } from "react";
 
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -150,7 +150,7 @@ export function CustomerDashboardPage(): ReactNode {
             <h2>Profile</h2>
             <form
               className="auth-form"
-              onSubmit={(event: FormEvent<HTMLFormElement>) => {
+              onSubmit={(event: SyntheticEvent<HTMLFormElement>) => {
                 event.preventDefault();
                 const payload = {
                   ...(profileForm.name ? { name: profileForm.name } : {}),
@@ -166,24 +166,24 @@ export function CustomerDashboardPage(): ReactNode {
                 <span>Name</span>
                 <input
                   defaultValue={profile?.user.name}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setProfileForm((current) => ({
                       ...current,
                       name: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
                 <span>Phone</span>
                 <input
                   defaultValue={profile?.user.phone ?? ""}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setProfileForm((current) => ({
                       ...current,
                       phone: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <Button
@@ -212,11 +212,11 @@ export function CustomerDashboardPage(): ReactNode {
                     <input
                       type="checkbox"
                       checked={value}
-                      onChange={(event) =>
+                      onChange={(event) => {
                         updateNotificationsMutation.mutate({
                           [key]: event.target.checked,
-                        })
-                      }
+                        });
+                      }}
                     />
                     <span>{toPreferenceLabel(key)}</span>
                   </label>
@@ -247,7 +247,7 @@ export function CustomerDashboardPage(): ReactNode {
             <h2>Saved addresses</h2>
             <form
               className="auth-form"
-              onSubmit={(event: FormEvent<HTMLFormElement>) => {
+              onSubmit={(event: SyntheticEvent<HTMLFormElement>) => {
                 event.preventDefault();
                 createAddressMutation.mutate(addressForm);
               }}
@@ -257,12 +257,12 @@ export function CustomerDashboardPage(): ReactNode {
                 <input
                   required
                   value={addressForm.label}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setAddressForm((current) => ({
                       ...current,
                       label: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -270,12 +270,12 @@ export function CustomerDashboardPage(): ReactNode {
                 <input
                   required
                   value={addressForm.line1}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setAddressForm((current) => ({
                       ...current,
                       line1: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -283,12 +283,12 @@ export function CustomerDashboardPage(): ReactNode {
                 <input
                   required
                   value={addressForm.area}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setAddressForm((current) => ({
                       ...current,
                       area: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -296,12 +296,12 @@ export function CustomerDashboardPage(): ReactNode {
                 <input
                   required
                   value={addressForm.city}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setAddressForm((current) => ({
                       ...current,
                       city: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -309,12 +309,12 @@ export function CustomerDashboardPage(): ReactNode {
                 <input
                   required
                   value={addressForm.country}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setAddressForm((current) => ({
                       ...current,
                       country: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <Button
@@ -337,7 +337,9 @@ export function CustomerDashboardPage(): ReactNode {
                   </div>
                   <Button
                     tone="ghost"
-                    onClick={() => deleteAddressMutation.mutate(address.id)}
+                    onClick={() => {
+                      deleteAddressMutation.mutate(address.id);
+                    }}
                     disabled={deleteAddressMutation.isPending}
                   >
                     Remove

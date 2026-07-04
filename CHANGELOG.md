@@ -6,6 +6,18 @@ All notable changes to Midas Basket will be documented in this file.
 
 ### Added
 
+- Completed Phase 12 testing, deployment, and documentation baseline.
+- Added app-local Vitest test scripts and focused baseline tests for the backend health API and frontend SEO helpers.
+- Added GitHub Actions CI for independent backend and frontend lint, typecheck, test, and build jobs.
+- Added deployment, admin, and developer guides under `docs/`.
+- Completed Phase 11 SEO and performance optimization baseline across frontend and backend surfaces.
+- Added shared frontend SEO helpers for canonical URL generation, robots metadata profiles, and slug normalization.
+- Added public route metadata coverage for `/`, `/products`, `/products/:slug`, `/categories`, and `/brands` with canonical URLs and social tags.
+- Added noindex route metadata for private/authenticated and transactional pages (`/admin`, `/dashboard`, `/account`, `/orders`, `/checkout`, `/cart`, `/wishlist`, and auth routes).
+- Added JSON-LD structured data output for homepage Organization/WebSite schema and product detail Product/Offer schema.
+- Added frontend build-time SEO artifact generation (`public/sitemap.xml`, `public/robots.txt`) via `scripts/generate-seo-assets.mjs` and `prebuild`.
+- Tuned backend gzip compression options and added explicit `Cache-Control` policies for public catalog endpoints.
+- Added `X-Robots-Tag: noindex, nofollow` to API responses under the backend API base path.
 - Completed Phase 7 cart and wishlist foundations with backend schemas, validation, and APIs for guest/customer cart operations plus persistent customer wishlist.
 - Added optional access-token middleware to support mixed authenticated and guest cart behavior.
 - Added frontend cart and wishlist API adapters, pages, and routes (`/cart`, `/wishlist`) with catalog card actions and header navigation wiring.

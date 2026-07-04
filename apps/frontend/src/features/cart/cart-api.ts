@@ -121,7 +121,7 @@ function getOrCreateGuestCartId(): string {
   }
 
   const generated =
-    typeof window.crypto?.randomUUID === "function"
+    typeof window.crypto.randomUUID === "function"
       ? `guest_${window.crypto.randomUUID()}`
       : `guest_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 

@@ -18,11 +18,20 @@ export function createApp(): Express {
   app.use(requestIdMiddleware);
   app.use(httpLogger);
   app.use(securityMiddleware);
-  app.use(compression());
+  app.use(
+    compression({
+      level: 6,
+      threshold: 1024,
+    }),
+  );
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: false, limit: "1mb" }));
   app.use(cookieParser());
 
+  app.use(env.API_BASE_PATH, (_req, res, next) => {
+    res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    next();
+  });
   app.use(env.API_BASE_PATH, apiRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);

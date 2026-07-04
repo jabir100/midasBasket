@@ -4,9 +4,9 @@ Midas Basket is a modern ecommerce platform planned around performance, security
 
 ## Current Status
 
-Phase 1 is in progress: requirement analysis, architecture, technical decisions, and folder structure.
+Phase 12 is completed: testing, deployment, and documentation.
 
-No application code has been implemented yet. The next phase requires approval before backend foundation work begins.
+The platform now includes backend, frontend, SEO, checkout, dashboard, admin, test, and CI foundations. Phase progress is tracked in `TASKS.md`.
 
 ## Architecture Documents
 
@@ -24,10 +24,16 @@ No application code has been implemented yet. The next phase requires approval b
 - `docs/handoffs/phase-01-requirements-architecture.md`
 - `docs/handoffs/phase-02-backend-foundation.md`
 - `docs/handoffs/phase-03-frontend-foundation.md`
-- Backend: Node.js, Express.js, TypeScript, MongoDB, Mongoose, Redis.
-- Storage and images: Cloudinary and Sharp.
-- Authentication: JWT access token, refresh token rotation, HTTP-only cookies, Argon2 password hashing.
-- Tooling: pnpm, ESLint, Prettier, Husky, lint-staged, Commitlint, GitHub Actions.
+
+## Backend Stack
+
+- Node.js, Express.js, TypeScript, MongoDB, Mongoose, Redis.
+- JWT access tokens, refresh token rotation, HTTP-only cookies, Argon2 password hashing.
+- Helmet, CORS allowlists, rate limiting, request IDs, structured logs, and audit logs.
+
+## Tooling
+
+- pnpm, ESLint, Prettier, TypeScript, Vitest, Supertest, GitHub Actions.
 
 ## Repository Layout
 
@@ -55,6 +61,7 @@ Backend validation:
 cd apps/backend
 corepack pnpm lint
 corepack pnpm typecheck
+corepack pnpm test
 corepack pnpm build
 ```
 
@@ -72,5 +79,12 @@ Frontend validation:
 cd apps/frontend
 corepack pnpm lint
 corepack pnpm typecheck
+corepack pnpm test
 corepack pnpm build
 ```
+
+## Documentation
+
+- `docs/deployment-guide.md`
+- `docs/admin-guide.md`
+- `docs/developer-guide.md`

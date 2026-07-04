@@ -28,6 +28,15 @@ export const adminRouter: ExpressRouter = Router();
 
 adminRouter.use(authenticateAccessToken, requireRoles(["admin"]));
 
+type RevenueAggregateRow = {
+  value: number;
+};
+
+type OrderStatusAggregateRow = {
+  _id: OrderStatus;
+  count: number;
+};
+
 adminRouter.get("/dashboard/summary", async (_req, res, next) => {
   try {
     const [
@@ -49,10 +58,10 @@ adminRouter.get("/dashboard/summary", async (_req, res, next) => {
       OrderModel.countDocuments({
         createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
       }),
-      OrderModel.aggregate([
+      OrderModel.aggregate<RevenueAggregateRow>([
         { $group: { _id: null, value: { $sum: "$total" } } },
       ]),
-      OrderModel.aggregate([
+      OrderModel.aggregate<RevenueAggregateRow>([
         {
           $match: {
             createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
@@ -60,7 +69,7 @@ adminRouter.get("/dashboard/summary", async (_req, res, next) => {
         },
         { $group: { _id: null, value: { $sum: "$total" } } },
       ]),
-      OrderModel.aggregate([
+      OrderModel.aggregate<OrderStatusAggregateRow>([
         { $group: { _id: "$status", count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
       ]),
@@ -85,8 +94,8 @@ adminRouter.get("/dashboard/summary", async (_req, res, next) => {
         },
         revenue: {
           currency: "BDT",
-          lifetime: Number(totalRevenue[0]?.value ?? 0),
-          last7Days: Number(recentRevenue[0]?.value ?? 0),
+          lifetime: totalRevenue[0]?.value ?? 0,
+          last7Days: recentRevenue[0]?.value ?? 0,
         },
       },
       requestId: getRequestId(res),
@@ -285,7 +294,7 @@ adminRouter.patch("/dashboard/orders/:id/status", async (req, res, next) => {
       });
     }
 
-    if (!isValidStatusTransition(order.status as OrderStatus, input.status)) {
+    if (!isValidStatusTransition(order.status, input.status)) {
       throw new AppError({
         statusCode: 422,
         code: "INVALID_ORDER_STATUS_TRANSITION",
@@ -367,7 +376,7 @@ adminRouter.get("/dashboard/audit-logs", async (req, res, next) => {
           action: log.action,
           entityType: log.entityType,
           entityId: log.entityId,
-          metadata: log.metadata ?? null,
+          metadata: (log.metadata as unknown) ?? null,
           createdAt: log.createdAt,
         })),
       },
@@ -391,7 +400,7 @@ function requireAdminPrincipal(res: Parameters<typeof getPrincipal>[0]): {
 } {
   const principal = getPrincipal(res);
 
-  if (!principal || principal.role !== "admin") {
+  if (principal?.role !== "admin") {
     throw new AppError({
       statusCode: 403,
       code: "INSUFFICIENT_PERMISSIONS",

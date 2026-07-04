@@ -1,9 +1,8 @@
-import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import helmet from "helmet";
 import cors, { type CorsOptions } from "cors";
-import type { RequestHandler } from "express";
+import type { RequestHandler, Request } from "express";
 
 import { env } from "../config/env.js";
 import { AppError } from "../errors/app-error.js";
@@ -43,6 +42,46 @@ const contentSecurityPolicy = {
   },
 };
 
+function sanitizeKey(key: string): string {
+  return key.replace(/[$.]/g, "_");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function sanitizeValue(value: unknown): void {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      sanitizeValue(item);
+    }
+    return;
+  }
+
+  if (!isRecord(value)) {
+    return;
+  }
+
+  for (const key of Object.keys(value)) {
+    const sanitizedKey = sanitizeKey(key);
+    const nestedValue = value[key];
+
+    if (sanitizedKey !== key) {
+      Reflect.deleteProperty(value, key);
+      value[sanitizedKey] = nestedValue;
+    }
+
+    sanitizeValue(nestedValue);
+  }
+}
+
+const mongoSanitizeMiddleware: RequestHandler = (req: Request, _res, next) => {
+  sanitizeValue(req.body);
+  sanitizeValue(req.params);
+  sanitizeValue(req.query);
+  next();
+};
+
 export const securityMiddleware: RequestHandler[] = [
   helmet({
     contentSecurityPolicy,
@@ -64,5 +103,5 @@ export const securityMiddleware: RequestHandler[] = [
     delayAfter: 100,
     delayMs: () => 250,
   }),
-  mongoSanitize({ replaceWith: "_" }),
+  mongoSanitizeMiddleware,
 ];

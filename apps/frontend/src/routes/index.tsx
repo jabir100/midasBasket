@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { HomeFoundationPage } from "../features/home/home-foundation-page.js";
+import {
+  canonicalLink,
+  indexFollowMeta,
+  toAbsoluteUrl,
+} from "../shared/seo/seo.js";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,6 +21,7 @@ export const Route = createFileRoute("/")({
         content:
           "Midas Basket, ecommerce, online shopping, featured products, flash sale, Bangladesh",
       },
+      indexFollowMeta,
       {
         property: "og:title",
         content: "Midas Basket | Premium Online Shopping",
@@ -25,10 +31,11 @@ export const Route = createFileRoute("/")({
         content:
           "A fast, secure, mobile-first ecommerce experience for curated products and trusted brands.",
       },
+      { property: "og:url", content: toAbsoluteUrl("/") },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [canonicalLink("/")],
   }),
   component: HomeFoundationPage,
 });

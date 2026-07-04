@@ -8,6 +8,11 @@ import type { ReactNode } from "react";
 
 import { AppShell } from "../shared/layout/app-shell.js";
 import { Providers } from "../shared/providers/providers.js";
+import {
+  canonicalLink,
+  indexFollowMeta,
+  toAbsoluteUrl,
+} from "../shared/seo/seo.js";
 import "../styles/app.css";
 
 export const Route = createRootRoute({
@@ -21,8 +26,22 @@ export const Route = createRootRoute({
         content:
           "Midas Basket is being rebuilt as a premium, fast, secure, and SEO-friendly ecommerce experience.",
       },
+      indexFollowMeta,
+      { property: "og:site_name", content: "Midas Basket" },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "Midas Basket | Premium Ecommerce" },
+      {
+        property: "og:description",
+        content:
+          "Premium ecommerce storefront engineered for speed, trust, and mobile-first shopping.",
+      },
+      { property: "og:url", content: toAbsoluteUrl("/") },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }],
+    links: [
+      canonicalLink("/"),
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+    ],
   }),
   component: RootComponent,
 });

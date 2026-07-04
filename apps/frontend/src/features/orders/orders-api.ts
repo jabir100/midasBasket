@@ -6,12 +6,12 @@ export type OrderSummary = {
   id: string;
   orderNumber: string;
   status: string;
-  statusTimeline: Array<{
+  statusTimeline: {
     status: string;
     timestamp: string;
     updatedBy: string;
     note?: string | null;
-  }>;
+  }[];
   createdAt?: string;
   paymentMethod: string;
   paymentStatus: string;
@@ -22,7 +22,7 @@ export type OrderSummary = {
     total: number;
     currency: string;
   };
-  items: Array<{
+  items: {
     productId: string;
     title: string;
     slug: string;
@@ -30,7 +30,7 @@ export type OrderSummary = {
     quantity: number;
     unitPrice: number;
     lineTotal: number;
-  }>;
+  }[];
 };
 
 export type CheckoutInput = {
@@ -94,12 +94,12 @@ export async function trackOrder(
 ): Promise<{
   orderNumber: string;
   status: string;
-  statusTimeline: Array<{
+  statusTimeline: {
     status: string;
     timestamp: string;
     updatedBy: string;
     note?: string | null;
-  }>;
+  }[];
   createdAt: string;
   total: number;
   paymentMethod: string;
@@ -110,12 +110,12 @@ export async function trackOrder(
       order: {
         orderNumber: string;
         status: string;
-        statusTimeline: Array<{
+        statusTimeline: {
           status: string;
           timestamp: string;
           updatedBy: string;
           note?: string | null;
-        }>;
+        }[];
         createdAt: string;
         total: number;
         paymentMethod: string;

@@ -88,7 +88,7 @@ cartRouter.post("/items", async (req, res, next) => {
             "items.$[item].unitPrice": product.price,
             "items.$[item].title": product.name,
             "items.$[item].slug": product.slug,
-            "items.$[item].imageUrl": product.images?.[0]?.url ?? null,
+            "items.$[item].imageUrl": product.images[0]?.url ?? null,
           },
         },
         {
@@ -106,7 +106,7 @@ cartRouter.post("/items", async (req, res, next) => {
             unitPrice: product.price,
             title: product.name,
             slug: product.slug,
-            imageUrl: product.images?.[0]?.url ?? null,
+            imageUrl: product.images[0]?.url ?? null,
           },
         },
       });
@@ -302,14 +302,14 @@ function formatCart(
     guestCartId?: string | null;
     couponCode?: string | null;
     currency?: string | null;
-    items?: Array<{
+    items?: {
       productId: unknown;
       quantity: number;
       unitPrice: number;
       title: string;
       slug: string;
       imageUrl?: string | null;
-    }>;
+    }[];
   } | null,
 ) {
   const items = cart?.items ?? [];
@@ -319,7 +319,7 @@ function formatCart(
   );
 
   return {
-    id: cart?._id ? String(cart._id) : null,
+    id: cart ? String(cart._id) : null,
     guestCartId: cart?.guestCartId ?? null,
     currency: cart?.currency ?? "BDT",
     couponCode: cart?.couponCode ?? null,

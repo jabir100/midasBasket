@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { KeyRound, LogOut, Mail, ShieldCheck, UserPlus } from "lucide-react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 import { useState } from "react";
 
 import { Button } from "../../shared/ui/button.js";
@@ -32,7 +32,11 @@ export function RegisterPage(): ReactNode {
     >
       <form
         className="auth-form"
-        onSubmit={(event) => submitForm(event, () => mutation.mutate(form))}
+        onSubmit={(event) => {
+          submitForm(event, () => {
+            mutation.mutate(form);
+          });
+        }}
       >
         <label>
           <span>Name</span>
@@ -40,7 +44,9 @@ export function RegisterPage(): ReactNode {
             required
             minLength={2}
             value={form.name}
-            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            onChange={(event) => {
+              setForm({ ...form, name: event.target.value });
+            }}
           />
         </label>
         <label>
@@ -49,9 +55,9 @@ export function RegisterPage(): ReactNode {
             required
             type="email"
             value={form.email}
-            onChange={(event) =>
-              setForm({ ...form, email: event.target.value })
-            }
+            onChange={(event) => {
+              setForm({ ...form, email: event.target.value });
+            }}
           />
         </label>
         <label>
@@ -61,9 +67,9 @@ export function RegisterPage(): ReactNode {
             minLength={8}
             type="password"
             value={form.password}
-            onChange={(event) =>
-              setForm({ ...form, password: event.target.value })
-            }
+            onChange={(event) => {
+              setForm({ ...form, password: event.target.value });
+            }}
           />
         </label>
         <Button type="submit" tone="primary" disabled={mutation.isPending}>
@@ -95,7 +101,11 @@ export function LoginPage(): ReactNode {
     >
       <form
         className="auth-form"
-        onSubmit={(event) => submitForm(event, () => mutation.mutate(form))}
+        onSubmit={(event) => {
+          submitForm(event, () => {
+            mutation.mutate(form);
+          });
+        }}
       >
         <label>
           <span>Email</span>
@@ -103,9 +113,9 @@ export function LoginPage(): ReactNode {
             required
             type="email"
             value={form.email}
-            onChange={(event) =>
-              setForm({ ...form, email: event.target.value })
-            }
+            onChange={(event) => {
+              setForm({ ...form, email: event.target.value });
+            }}
           />
         </label>
         <label>
@@ -114,9 +124,9 @@ export function LoginPage(): ReactNode {
             required
             type="password"
             value={form.password}
-            onChange={(event) =>
-              setForm({ ...form, password: event.target.value })
-            }
+            onChange={(event) => {
+              setForm({ ...form, password: event.target.value });
+            }}
           />
         </label>
         <Button type="submit" tone="primary" disabled={mutation.isPending}>
@@ -145,7 +155,11 @@ export function ForgotPasswordPage(): ReactNode {
     >
       <form
         className="auth-form"
-        onSubmit={(event) => submitForm(event, () => mutation.mutate(email))}
+        onSubmit={(event) => {
+          submitForm(event, () => {
+            mutation.mutate(email);
+          });
+        }}
       >
         <label>
           <span>Email</span>
@@ -153,7 +167,9 @@ export function ForgotPasswordPage(): ReactNode {
             required
             type="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+            }}
           />
         </label>
         <Button type="submit" tone="primary" disabled={mutation.isPending}>
@@ -181,16 +197,20 @@ export function ResetPasswordPage(): ReactNode {
     >
       <form
         className="auth-form"
-        onSubmit={(event) => submitForm(event, () => mutation.mutate(form))}
+        onSubmit={(event) => {
+          submitForm(event, () => {
+            mutation.mutate(form);
+          });
+        }}
       >
         <label>
           <span>Reset token</span>
           <input
             required
             value={form.token}
-            onChange={(event) =>
-              setForm({ ...form, token: event.target.value })
-            }
+            onChange={(event) => {
+              setForm({ ...form, token: event.target.value });
+            }}
           />
         </label>
         <label>
@@ -200,9 +220,9 @@ export function ResetPasswordPage(): ReactNode {
             minLength={8}
             type="password"
             value={form.password}
-            onChange={(event) =>
-              setForm({ ...form, password: event.target.value })
-            }
+            onChange={(event) => {
+              setForm({ ...form, password: event.target.value });
+            }}
           />
         </label>
         <Button type="submit" tone="primary" disabled={mutation.isPending}>
@@ -252,7 +272,9 @@ export function AccountPage(): ReactNode {
               <Button
                 tone="secondary"
                 startContent={<LogOut size={18} />}
-                onClick={() => logoutMutation.mutate()}
+                onClick={() => {
+                  logoutMutation.mutate();
+                }}
               >
                 Log out
               </Button>
@@ -315,7 +337,7 @@ function FormStatus({
 }
 
 function submitForm(
-  event: FormEvent<HTMLFormElement>,
+  event: SyntheticEvent<HTMLFormElement>,
   action: () => void,
 ): void {
   event.preventDefault();

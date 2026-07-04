@@ -22,14 +22,54 @@ import {
 
 export const usersRouter: ExpressRouter = Router();
 
+type UserAddress = {
+  _id: unknown;
+  label: string;
+  line1: string;
+  line2?: string | null;
+  area: string;
+  city: string;
+  postalCode?: string | null;
+  country: string;
+  isDefault?: boolean;
+};
+
+type UserNotificationPreferences = {
+  emailOrders: boolean;
+  emailOffers: boolean;
+  smsOrders: boolean;
+  pushNotifications: boolean;
+};
+
+type LeanUserProfile = {
+  _id: unknown;
+  name: string;
+  email: string;
+  phone?: string | null;
+  role: string;
+  status: string;
+  createdAt?: Date;
+  addresses: UserAddress[];
+  notificationPreferences: UserNotificationPreferences;
+};
+
+type LeanUserAddresses = Pick<LeanUserProfile, "addresses">;
+
+type LeanUserNotificationPreferences = Pick<
+  LeanUserProfile,
+  "notificationPreferences"
+>;
+
 usersRouter.use(authenticateAccessToken, requireRoles(["customer", "admin"]));
 
 usersRouter.get("/me/profile", async (_req, res, next) => {
   try {
     const principal = requirePrincipal(res);
-    const user = await UserModel.findById(principal.userId).lean();
+    const user = await UserModel.findById(
+      principal.userId,
+    ).lean<LeanUserProfile | null>();
 
-    if (!user || user.status !== "active") {
+    if (user?.status !== "active") {
       throw new AppError({
         statusCode: 404,
         code: "USER_NOT_FOUND",
@@ -48,7 +88,7 @@ usersRouter.get("/me/profile", async (_req, res, next) => {
         summary: {
           ordersCount,
           wishlistItems: wishlist?.items.length ?? 0,
-          addressesCount: user.addresses?.length ?? 0,
+          addressesCount: user.addresses.length,
         },
       },
       requestId: getRequestId(res),
@@ -67,7 +107,7 @@ usersRouter.patch("/me/profile", async (req, res, next) => {
       principal.userId,
       { $set: input },
       { new: true },
-    ).lean();
+    ).lean<LeanUserProfile | null>();
 
     if (!user) {
       throw new AppError({
@@ -89,7 +129,9 @@ usersRouter.patch("/me/profile", async (req, res, next) => {
 usersRouter.get("/me/addresses", async (_req, res, next) => {
   try {
     const principal = requirePrincipal(res);
-    const user = await UserModel.findById(principal.userId).lean();
+    const user = await UserModel.findById(
+      principal.userId,
+    ).lean<LeanUserProfile | null>();
 
     if (!user) {
       throw new AppError({
@@ -101,9 +143,7 @@ usersRouter.get("/me/addresses", async (_req, res, next) => {
 
     sendSuccess(res, {
       data: {
-        addresses: (user.addresses ?? []).map((address) =>
-          serializeAddress(address),
-        ),
+        addresses: user.addresses.map((address) => serializeAddress(address)),
       },
       requestId: getRequestId(res),
     });
@@ -118,7 +158,7 @@ usersRouter.post("/me/addresses", async (req, res, next) => {
     const input = userAddressSchema.parse(req.body);
     const user = await UserModel.findById(principal.userId)
       .select("addresses")
-      .lean();
+      .lean<LeanUserAddresses | null>();
 
     if (!user) {
       throw new AppError({
@@ -129,8 +169,7 @@ usersRouter.post("/me/addresses", async (req, res, next) => {
     }
 
     const addressId = new Types.ObjectId();
-    const nextIsDefault =
-      input.isDefault ?? (user.addresses?.length ?? 0) === 0;
+    const nextIsDefault = input.isDefault ?? user.addresses.length === 0;
 
     if (nextIsDefault) {
       await UserModel.updateOne(
@@ -154,8 +193,8 @@ usersRouter.post("/me/addresses", async (req, res, next) => {
 
     const updated = await UserModel.findById(principal.userId)
       .select("addresses")
-      .lean();
-    const address = updated?.addresses?.find(
+      .lean<LeanUserAddresses | null>();
+    const address = updated?.addresses.find(
       (entry) => String(entry._id) === addressId.toString(),
     );
 
@@ -216,8 +255,8 @@ usersRouter.patch("/me/addresses/:addressId", async (req, res, next) => {
 
     const updated = await UserModel.findById(principal.userId)
       .select("addresses")
-      .lean();
-    const address = updated?.addresses?.find(
+      .lean<LeanUserAddresses | null>();
+    const address = updated?.addresses.find(
       (entry) => String(entry._id) === params.addressId,
     );
 
@@ -244,7 +283,7 @@ usersRouter.delete("/me/addresses/:addressId", async (req, res, next) => {
     const params = userAddressIdParamSchema.parse(req.params);
     const user = await UserModel.findById(principal.userId)
       .select("addresses")
-      .lean();
+      .lean<LeanUserAddresses | null>();
 
     if (!user) {
       throw new AppError({
@@ -254,7 +293,7 @@ usersRouter.delete("/me/addresses/:addressId", async (req, res, next) => {
       });
     }
 
-    const removedAddress = user.addresses?.find(
+    const removedAddress = user.addresses.find(
       (entry) => String(entry._id) === params.addressId,
     );
 
@@ -274,12 +313,14 @@ usersRouter.delete("/me/addresses/:addressId", async (req, res, next) => {
     if (removedAddress.isDefault) {
       const refreshed = await UserModel.findById(principal.userId)
         .select("addresses")
-        .lean();
-      if ((refreshed?.addresses.length ?? 0) > 0) {
+        .lean<LeanUserAddresses | null>();
+      const nextDefaultAddress = refreshed?.addresses[0];
+
+      if (nextDefaultAddress) {
         await UserModel.updateOne(
           {
             _id: principal.userId,
-            "addresses._id": refreshed?.addresses[0]?._id,
+            "addresses._id": nextDefaultAddress._id,
           },
           {
             $set: {
@@ -304,7 +345,7 @@ usersRouter.get("/me/notifications", async (_req, res, next) => {
     const principal = requirePrincipal(res);
     const user = await UserModel.findById(principal.userId)
       .select("notificationPreferences")
-      .lean();
+      .lean<LeanUserNotificationPreferences | null>();
 
     if (!user) {
       throw new AppError({
@@ -317,11 +358,10 @@ usersRouter.get("/me/notifications", async (_req, res, next) => {
     sendSuccess(res, {
       data: {
         notificationPreferences: {
-          emailOrders: user.notificationPreferences?.emailOrders ?? true,
-          emailOffers: user.notificationPreferences?.emailOffers ?? true,
-          smsOrders: user.notificationPreferences?.smsOrders ?? false,
-          pushNotifications:
-            user.notificationPreferences?.pushNotifications ?? false,
+          emailOrders: user.notificationPreferences.emailOrders,
+          emailOffers: user.notificationPreferences.emailOffers,
+          smsOrders: user.notificationPreferences.smsOrders,
+          pushNotifications: user.notificationPreferences.pushNotifications,
         },
       },
       requestId: getRequestId(res),
@@ -349,7 +389,7 @@ usersRouter.patch("/me/notifications", async (req, res, next) => {
       { new: true },
     )
       .select("notificationPreferences")
-      .lean();
+      .lean<LeanUserNotificationPreferences | null>();
 
     if (!user) {
       throw new AppError({
@@ -362,11 +402,10 @@ usersRouter.patch("/me/notifications", async (req, res, next) => {
     sendSuccess(res, {
       data: {
         notificationPreferences: {
-          emailOrders: user.notificationPreferences?.emailOrders ?? true,
-          emailOffers: user.notificationPreferences?.emailOffers ?? true,
-          smsOrders: user.notificationPreferences?.smsOrders ?? false,
-          pushNotifications:
-            user.notificationPreferences?.pushNotifications ?? false,
+          emailOrders: user.notificationPreferences.emailOrders,
+          emailOffers: user.notificationPreferences.emailOffers,
+          smsOrders: user.notificationPreferences.smsOrders,
+          pushNotifications: user.notificationPreferences.pushNotifications,
         },
       },
       requestId: getRequestId(res),
@@ -421,15 +460,7 @@ function requirePrincipal(res: Parameters<typeof getPrincipal>[0]): {
   return principal;
 }
 
-function serializeUserProfile(user: {
-  _id: unknown;
-  name: string;
-  email: string;
-  phone?: string | null;
-  role: string;
-  status: string;
-  createdAt?: Date;
-}) {
+function serializeUserProfile(user: LeanUserProfile) {
   return {
     id: String(user._id),
     name: user.name,
@@ -441,17 +472,7 @@ function serializeUserProfile(user: {
   };
 }
 
-function serializeAddress(address: {
-  _id: unknown;
-  label: string;
-  line1: string;
-  line2?: string | null;
-  area: string;
-  city: string;
-  postalCode?: string | null;
-  country: string;
-  isDefault?: boolean;
-}) {
+function serializeAddress(address: UserAddress) {
   return {
     id: String(address._id),
     label: address.label,

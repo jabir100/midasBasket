@@ -10,7 +10,7 @@ export type AdminSummary = {
   orders: {
     totalOrders: number;
     recentOrders: number;
-    statusBreakdown: Array<{ status: string; count: number }>;
+    statusBreakdown: { status: string; count: number }[];
   };
   revenue: {
     currency: string;

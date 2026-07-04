@@ -59,7 +59,7 @@ export function WishlistPage(): ReactNode {
                       tone="ghost"
                       aria-label="Remove from wishlist"
                       disabled={removeMutation.isPending}
-                      onClick={() => removeMutation.mutate(item.productId)}
+                      onClick={() => { removeMutation.mutate(item.productId); }}
                     >
                       <Trash2 size={16} />
                     </Button>

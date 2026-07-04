@@ -18,7 +18,7 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["eslint.config.mjs"],
+          allowDefaultProject: ["eslint.config.mjs", "scripts/*.mjs"],
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -40,6 +40,14 @@ export default tseslint.config(
     files: ["eslint.config.mjs"],
     rules: {
       "@typescript-eslint/no-deprecated": "off",
+    },
+  },
+  {
+    files: ["scripts/*.mjs"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+      },
     },
   },
 );

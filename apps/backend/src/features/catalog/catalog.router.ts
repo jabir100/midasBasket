@@ -1,4 +1,4 @@
-import { Router, type Router as ExpressRouter } from "express";
+import { Router, type Response, type Router as ExpressRouter } from "express";
 import { Types } from "mongoose";
 
 import { AppError } from "../../core/errors/app-error.js";
@@ -18,8 +18,18 @@ import {
 export const catalogRouter: ExpressRouter = Router();
 const adminRouter = Router();
 
+const listCacheControl =
+  "public, max-age=120, s-maxage=600, stale-while-revalidate=1800";
+const detailCacheControl =
+  "public, max-age=60, s-maxage=300, stale-while-revalidate=900";
+
+function setCatalogCacheHeader(res: Response, value: string): void {
+  res.setHeader("Cache-Control", value);
+}
+
 catalogRouter.get("/categories", async (_req, res, next) => {
   try {
+    setCatalogCacheHeader(res, listCacheControl);
     const categories = await CategoryModel.find({ isActive: true })
       .sort({ name: 1 })
       .lean();
@@ -31,6 +41,7 @@ catalogRouter.get("/categories", async (_req, res, next) => {
 
 catalogRouter.get("/brands", async (_req, res, next) => {
   try {
+    setCatalogCacheHeader(res, listCacheControl);
     const brands = await BrandModel.find({ isActive: true })
       .sort({ name: 1 })
       .lean();
@@ -42,6 +53,7 @@ catalogRouter.get("/brands", async (_req, res, next) => {
 
 catalogRouter.get("/products", async (req, res, next) => {
   try {
+    setCatalogCacheHeader(res, listCacheControl);
     const query = listQuerySchema.parse(req.query);
     const filter: Record<string, unknown> = { isPublished: true };
 
@@ -94,6 +106,7 @@ catalogRouter.get("/products", async (req, res, next) => {
 
 catalogRouter.get("/products/:slug", async (req, res, next) => {
   try {
+    setCatalogCacheHeader(res, detailCacheControl);
     const product = await ProductModel.findOne({
       slug: req.params.slug,
       isPublished: true,

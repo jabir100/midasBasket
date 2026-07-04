@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Clock3, Truck } from "lucide-react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 import { useMemo, useState } from "react";
 
 import { Button } from "../../shared/ui/button.js";
@@ -87,12 +87,12 @@ export function CheckoutPage(): ReactNode {
                 <input
                   required
                   value={hydratedForm.customerName}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setForm((current) => ({
                       ...current,
                       customerName: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -101,12 +101,12 @@ export function CheckoutPage(): ReactNode {
                   required
                   type="email"
                   value={hydratedForm.customerEmail}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setForm((current) => ({
                       ...current,
                       customerEmail: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -114,12 +114,12 @@ export function CheckoutPage(): ReactNode {
                 <input
                   required
                   value={hydratedForm.customerPhone}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setForm((current) => ({
                       ...current,
                       customerPhone: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -127,15 +127,15 @@ export function CheckoutPage(): ReactNode {
                 <input
                   required
                   value={hydratedForm.shippingAddress.line1}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setForm((current) => ({
                       ...current,
                       shippingAddress: {
                         ...current.shippingAddress,
                         line1: event.target.value,
                       },
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -143,15 +143,15 @@ export function CheckoutPage(): ReactNode {
                 <input
                   required
                   value={hydratedForm.shippingAddress.area}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setForm((current) => ({
                       ...current,
                       shippingAddress: {
                         ...current.shippingAddress,
                         area: event.target.value,
                       },
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -159,15 +159,15 @@ export function CheckoutPage(): ReactNode {
                 <input
                   required
                   value={hydratedForm.shippingAddress.city}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setForm((current) => ({
                       ...current,
                       shippingAddress: {
                         ...current.shippingAddress,
                         city: event.target.value,
                       },
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <label>
@@ -175,15 +175,15 @@ export function CheckoutPage(): ReactNode {
                 <input
                   required
                   value={hydratedForm.shippingAddress.country}
-                  onChange={(event) =>
+                  onChange={(event) => {
                     setForm((current) => ({
                       ...current,
                       shippingAddress: {
                         ...current.shippingAddress,
                         country: event.target.value,
                       },
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </label>
               <Button
@@ -310,7 +310,7 @@ export function OrdersPage(): ReactNode {
           <h2>Track an order</h2>
           <form
             className="track-order-form"
-            onSubmit={(event: FormEvent<HTMLFormElement>) => {
+            onSubmit={(event: SyntheticEvent<HTMLFormElement>) => {
               event.preventDefault();
               trackMutation.mutate({
                 orderNumber: trackForm.orderNumber,
@@ -322,23 +322,23 @@ export function OrdersPage(): ReactNode {
               placeholder="Order number"
               required
               value={trackForm.orderNumber}
-              onChange={(event) =>
+              onChange={(event) => {
                 setTrackForm((current) => ({
                   ...current,
                   orderNumber: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
             <input
               placeholder="Email (optional for guest lookup)"
               type="email"
               value={trackForm.email}
-              onChange={(event) =>
+              onChange={(event) => {
                 setTrackForm((current) => ({
                   ...current,
                   email: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
             <Button
               type="submit"

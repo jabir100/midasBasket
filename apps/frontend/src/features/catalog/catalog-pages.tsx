@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Badge } from "../../shared/ui/badge.js";
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
+import { toAbsoluteUrl } from "../../shared/seo/seo.js";
 import { addCartItem } from "../cart/cart-api.js";
 import { addWishlistItem } from "../wishlist/wishlist-api.js";
 import {
@@ -18,9 +19,7 @@ import {
 
 export function CatalogPage(): ReactNode {
   const queryClient = useQueryClient();
-  const search = useSearch({ from: "/products" }) as Partial<
-    Record<string, string>
-  >;
+  const search = useSearch({ from: "/products" });
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(search)) {
@@ -65,8 +64,8 @@ export function CatalogPage(): ReactNode {
       <ProductGrid
         products={productsQuery.data?.products ?? []}
         isLoading={productsQuery.isLoading}
-        onAddToCart={(productId) => addToCartMutation.mutate(productId)}
-        onAddToWishlist={(productId) => addToWishlistMutation.mutate(productId)}
+        onAddToCart={(productId) => { addToCartMutation.mutate(productId); }}
+        onAddToWishlist={(productId) => { addToWishlistMutation.mutate(productId); }}
         isMutating={
           addToCartMutation.isPending || addToWishlistMutation.isPending
         }
@@ -89,9 +88,31 @@ export function ProductDetailPage({
     queryFn: () => getProduct(slug),
   });
   const product = productQuery.data;
+  const productJsonLd = product
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.name,
+        sku: product.sku,
+        description: product.shortDescription ?? product.description,
+        image: product.images.map((image) => image.url),
+        offers: {
+          "@type": "Offer",
+          priceCurrency: "BDT",
+          price: product.price.toFixed(2),
+          availability: "https://schema.org/InStock",
+          url: toAbsoluteUrl(`/products/${slug}`),
+        },
+      }
+    : null;
 
   return (
     <main className="page-shell product-detail-page">
+      {productJsonLd ? (
+        <script type="application/ld+json">
+          {JSON.stringify(productJsonLd)}
+        </script>
+      ) : null}
       {product ? (
         <section className="product-detail">
           <div className="product-media">
@@ -233,14 +254,14 @@ function ProductGrid({
             <div className="catalog-card-actions">
               <Button
                 tone="secondary"
-                onClick={() => onAddToWishlist(product._id)}
+                onClick={() => { onAddToWishlist(product._id); }}
                 disabled={isMutating}
               >
                 Wishlist
               </Button>
               <Button
                 tone="primary"
-                onClick={() => onAddToCart(product._id)}
+                onClick={() => { onAddToCart(product._id); }}
                 disabled={isMutating}
               >
                 Add to cart

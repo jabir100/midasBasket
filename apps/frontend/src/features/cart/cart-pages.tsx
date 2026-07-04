@@ -89,10 +89,10 @@ export function CartPage(): ReactNode {
                         tone="ghost"
                         aria-label={`Decrease quantity for ${item.title}`}
                         onClick={() =>
-                          mutateCart.mutate({
+                          { mutateCart.mutate({
                             productId: item.productId,
                             quantity: Math.max(item.quantity - 1, 1),
-                          })
+                          }); }
                         }
                         disabled={mutateCart.isPending}
                       >
@@ -104,10 +104,10 @@ export function CartPage(): ReactNode {
                         tone="ghost"
                         aria-label={`Increase quantity for ${item.title}`}
                         onClick={() =>
-                          mutateCart.mutate({
+                          { mutateCart.mutate({
                             productId: item.productId,
                             quantity: Math.min(item.quantity + 1, 99),
-                          })
+                          }); }
                         }
                         disabled={mutateCart.isPending}
                       >
@@ -117,7 +117,7 @@ export function CartPage(): ReactNode {
                         iconOnly
                         tone="ghost"
                         aria-label={`Remove ${item.title} from cart`}
-                        onClick={() => deleteItem.mutate(item.productId)}
+                        onClick={() => { deleteItem.mutate(item.productId); }}
                         disabled={deleteItem.isPending}
                       >
                         <Trash2 size={16} />
@@ -174,7 +174,7 @@ export function CartPage(): ReactNode {
               <input
                 placeholder="Coupon code"
                 value={couponCode}
-                onChange={(event) => setCouponCode(event.target.value)}
+                onChange={(event) => { setCouponCode(event.target.value); }}
               />
               <Button
                 type="submit"
@@ -191,7 +191,7 @@ export function CartPage(): ReactNode {
               </Link>
               <Button
                 tone="ghost"
-                onClick={() => clearMutation.mutate()}
+                onClick={() => { clearMutation.mutate(); }}
                 disabled={
                   clearMutation.isPending || (cart?.items.length ?? 0) === 0
                 }
