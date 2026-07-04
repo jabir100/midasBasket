@@ -1,0 +1,45 @@
+{
+  "name": "@midas-basket/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite dev --port 3000",
+    "lint": "eslint .",
+    "preview": "vite preview --port 3000",
+    "test": "echo \"No frontend tests yet\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@heroui/react": "^3.2.1",
+    "@heroui/styles": "^3.2.1",
+    "@tanstack/react-query": "^5.90.12",
+    "@tanstack/react-router": "^1.139.12",
+    "@tanstack/react-start": "^1.139.12",
+    "axios": "^1.13.2",
+    "lucide-react": "^0.561.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "react-hook-form": "^7.68.0",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
+    "eslint": "^9.39.4",
+    "prettier": "^3.9.4",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.62.1",
+    "vite": "^7.3.0"
+  }
+}
