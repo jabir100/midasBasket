@@ -54,9 +54,8 @@ type ApiSuccess<TData> = {
 };
 
 export async function getDashboardProfile(): Promise<DashboardProfile> {
-  const response = await apiClient.get<ApiSuccess<DashboardProfile>>(
-    "/users/me/profile",
-  );
+  const response =
+    await apiClient.get<ApiSuccess<DashboardProfile>>("/users/me/profile");
   return response.data.data;
 }
 
@@ -71,9 +70,9 @@ export async function updateDashboardProfile(input: {
 }
 
 export async function listUserAddresses(): Promise<UserAddress[]> {
-  const response = await apiClient.get<ApiSuccess<{ addresses: UserAddress[] }>>(
-    "/users/me/addresses",
-  );
+  const response = await apiClient.get<
+    ApiSuccess<{ addresses: UserAddress[] }>
+  >("/users/me/addresses");
   return response.data.data.addresses;
 }
 
@@ -115,8 +114,9 @@ export async function updateNotificationPreferences(
 }
 
 export async function listInvoices(): Promise<DashboardInvoice[]> {
-  const response = await apiClient.get<ApiSuccess<{ invoices: DashboardInvoice[] }>>(
-    "/users/me/invoices",
-  );
+  const response =
+    await apiClient.get<ApiSuccess<{ invoices: DashboardInvoice[] }>>(
+      "/users/me/invoices",
+    );
   return response.data.data.invoices;
 }

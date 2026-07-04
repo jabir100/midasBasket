@@ -80,7 +80,8 @@ export function AdminDashboardPage(): ReactNode {
         <span className="eyebrow">Phase 10</span>
         <h1>Admin dashboard</h1>
         <p>
-          Review operational analytics, manage customer accounts, control order lifecycle, and inspect audit activity.
+          Review operational analytics, manage customer accounts, control order
+          lifecycle, and inspect audit activity.
         </p>
       </section>
 
@@ -169,7 +170,8 @@ export function AdminDashboardPage(): ReactNode {
                   <div>
                     <strong>{order.orderNumber}</strong>
                     <small>
-                      {order.customerName} · {order.status} · {order.currency} {order.total.toLocaleString("en-BD")}
+                      {order.customerName} · {order.status} · {order.currency}{" "}
+                      {order.total.toLocaleString("en-BD")}
                     </small>
                   </div>
                   <select

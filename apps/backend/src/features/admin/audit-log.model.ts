@@ -9,7 +9,13 @@ const auditLogSchema = new Schema(
       index: true,
     },
     actorEmail: { type: String, required: true, trim: true, maxlength: 180 },
-    action: { type: String, required: true, trim: true, maxlength: 120, index: true },
+    action: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 120,
+      index: true,
+    },
     entityType: {
       type: String,
       required: true,

@@ -5,7 +5,10 @@ import { AppError } from "../../core/errors/app-error.js";
 import { getRequestId } from "../../core/http/request-id.middleware.js";
 import { sendSuccess } from "../../core/http/send-response.js";
 import { authenticateAccessToken } from "../auth/authentication.middleware.js";
-import { getPrincipal, requireRoles } from "../auth/authorization.middleware.js";
+import {
+  getPrincipal,
+  requireRoles,
+} from "../auth/authorization.middleware.js";
 import { OrderModel } from "../orders/order.model.js";
 import { WishlistModel } from "../wishlist/wishlist.model.js";
 import { UserModel } from "./user.model.js";
@@ -98,7 +101,9 @@ usersRouter.get("/me/addresses", async (_req, res, next) => {
 
     sendSuccess(res, {
       data: {
-        addresses: (user.addresses ?? []).map((address) => serializeAddress(address)),
+        addresses: (user.addresses ?? []).map((address) =>
+          serializeAddress(address),
+        ),
       },
       requestId: getRequestId(res),
     });
@@ -111,7 +116,9 @@ usersRouter.post("/me/addresses", async (req, res, next) => {
   try {
     const principal = requirePrincipal(res);
     const input = userAddressSchema.parse(req.body);
-    const user = await UserModel.findById(principal.userId).select("addresses").lean();
+    const user = await UserModel.findById(principal.userId)
+      .select("addresses")
+      .lean();
 
     if (!user) {
       throw new AppError({
@@ -122,7 +129,8 @@ usersRouter.post("/me/addresses", async (req, res, next) => {
     }
 
     const addressId = new Types.ObjectId();
-    const nextIsDefault = input.isDefault ?? (user.addresses?.length ?? 0) === 0;
+    const nextIsDefault =
+      input.isDefault ?? (user.addresses?.length ?? 0) === 0;
 
     if (nextIsDefault) {
       await UserModel.updateOne(
@@ -144,7 +152,9 @@ usersRouter.post("/me/addresses", async (req, res, next) => {
       },
     );
 
-    const updated = await UserModel.findById(principal.userId).select("addresses").lean();
+    const updated = await UserModel.findById(principal.userId)
+      .select("addresses")
+      .lean();
     const address = updated?.addresses?.find(
       (entry) => String(entry._id) === addressId.toString(),
     );
@@ -204,7 +214,9 @@ usersRouter.patch("/me/addresses/:addressId", async (req, res, next) => {
       });
     }
 
-    const updated = await UserModel.findById(principal.userId).select("addresses").lean();
+    const updated = await UserModel.findById(principal.userId)
+      .select("addresses")
+      .lean();
     const address = updated?.addresses?.find(
       (entry) => String(entry._id) === params.addressId,
     );
@@ -308,7 +320,8 @@ usersRouter.get("/me/notifications", async (_req, res, next) => {
           emailOrders: user.notificationPreferences?.emailOrders ?? true,
           emailOffers: user.notificationPreferences?.emailOffers ?? true,
           smsOrders: user.notificationPreferences?.smsOrders ?? false,
-          pushNotifications: user.notificationPreferences?.pushNotifications ?? false,
+          pushNotifications:
+            user.notificationPreferences?.pushNotifications ?? false,
         },
       },
       requestId: getRequestId(res),
@@ -352,7 +365,8 @@ usersRouter.patch("/me/notifications", async (req, res, next) => {
           emailOrders: user.notificationPreferences?.emailOrders ?? true,
           emailOffers: user.notificationPreferences?.emailOffers ?? true,
           smsOrders: user.notificationPreferences?.smsOrders ?? false,
-          pushNotifications: user.notificationPreferences?.pushNotifications ?? false,
+          pushNotifications:
+            user.notificationPreferences?.pushNotifications ?? false,
         },
       },
       requestId: getRequestId(res),

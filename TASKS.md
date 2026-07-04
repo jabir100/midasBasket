@@ -10,20 +10,20 @@ Status: Awaiting approval
 
 ## Phase Plan
 
-| Phase | Name                                                                 | Status            | Exit Criteria                                                                                   |
-| ----- | -------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------- |
-| 1     | Requirement Analysis, Architecture, Tech Decisions, Folder Structure | Completed         | Living docs created, decisions recorded, folder skeleton ready, approval requested              |
-| 2     | Backend Foundation, Database, Authentication, Security               | Completed         | Express app, config validation, database connection, security middleware, auth foundation       |
-| 3     | Frontend Foundation, Theme, Layouts, Design System, Routing          | Completed         | TanStack Start app, theme, reusable UI primitives, base routing                                 |
-| 4     | Homepage                                                             | Completed         | SSR/static homepage, Redis-backed data strategy, sections implemented, cache invalidation paths |
-| 5     | Authentication                                                       | Completed         | Register, login, logout, refresh rotation, forgot/reset password, session management            |
-| 6     | Products, Categories, Brands                                         | Completed         | Catalog CRUD, public listing/detail pages, filters, images, SEO fields                          |
-| 7     | Cart, Wishlist                                                       | Completed         | Guest and customer carts, persistent wishlist, coupon readiness                                 |
-| 8     | Checkout, Orders                                                     | Completed         | Single-page checkout, COD, order creation, status timeline, tracking                            |
-| 9     | Customer Dashboard                                                   | Completed         | Profile, orders, invoices, addresses, wishlist, notifications                                   |
-| 10    | Admin Dashboard                                                      | Completed         | Management modules, analytics, audit logs, responsive admin UI                                  |
-| 11    | SEO, Performance, Optimization                                       | Not started       | Metadata, sitemap, JSON-LD, Core Web Vitals, compression, caching review                        |
-| 12    | Testing, Deployment, Documentation                                   | Not started       | Tests, GitHub Actions, deployment guide, admin guide, developer guide                           |
+| Phase | Name                                                                 | Status      | Exit Criteria                                                                                   |
+| ----- | -------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| 1     | Requirement Analysis, Architecture, Tech Decisions, Folder Structure | Completed   | Living docs created, decisions recorded, folder skeleton ready, approval requested              |
+| 2     | Backend Foundation, Database, Authentication, Security               | Completed   | Express app, config validation, database connection, security middleware, auth foundation       |
+| 3     | Frontend Foundation, Theme, Layouts, Design System, Routing          | Completed   | TanStack Start app, theme, reusable UI primitives, base routing                                 |
+| 4     | Homepage                                                             | Completed   | SSR/static homepage, Redis-backed data strategy, sections implemented, cache invalidation paths |
+| 5     | Authentication                                                       | Completed   | Register, login, logout, refresh rotation, forgot/reset password, session management            |
+| 6     | Products, Categories, Brands                                         | Completed   | Catalog CRUD, public listing/detail pages, filters, images, SEO fields                          |
+| 7     | Cart, Wishlist                                                       | Completed   | Guest and customer carts, persistent wishlist, coupon readiness                                 |
+| 8     | Checkout, Orders                                                     | Completed   | Single-page checkout, COD, order creation, status timeline, tracking                            |
+| 9     | Customer Dashboard                                                   | Completed   | Profile, orders, invoices, addresses, wishlist, notifications                                   |
+| 10    | Admin Dashboard                                                      | Completed   | Management modules, analytics, audit logs, responsive admin UI                                  |
+| 11    | SEO, Performance, Optimization                                       | Not started | Metadata, sitemap, JSON-LD, Core Web Vitals, compression, caching review                        |
+| 12    | Testing, Deployment, Documentation                                   | Not started | Tests, GitHub Actions, deployment guide, admin guide, developer guide                           |
 
 ## Phase 1 Tasks
 

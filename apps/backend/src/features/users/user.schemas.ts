@@ -27,7 +27,10 @@ export const userAddressUpdateSchema = userAddressSchema
   });
 
 export const userAddressIdParamSchema = z.object({
-  addressId: z.string().trim().regex(/^[a-f\d]{24}$/i, "Invalid address id"),
+  addressId: z
+    .string()
+    .trim()
+    .regex(/^[a-f\d]{24}$/i, "Invalid address id"),
 });
 
 export const notificationPreferencesUpdateSchema = z

@@ -58,7 +58,9 @@ export function CustomerDashboardPage(): ReactNode {
   const updateProfileMutation = useMutation({
     mutationFn: updateDashboardProfile,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "profile"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "profile"],
+      });
     },
   });
 
@@ -72,23 +74,33 @@ export function CustomerDashboardPage(): ReactNode {
         city: "",
         country: "Bangladesh",
       });
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "addresses"] });
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "profile"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "addresses"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "profile"],
+      });
     },
   });
 
   const deleteAddressMutation = useMutation({
     mutationFn: deleteUserAddress,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "addresses"] });
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "profile"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "addresses"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "profile"],
+      });
     },
   });
 
   const updateNotificationsMutation = useMutation({
     mutationFn: updateNotificationPreferences,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["dashboard", "notifications"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["dashboard", "notifications"],
+      });
     },
   });
 
@@ -100,7 +112,8 @@ export function CustomerDashboardPage(): ReactNode {
         <span className="eyebrow">Phase 9</span>
         <h1>Customer dashboard</h1>
         <p>
-          Manage profile, addresses, notifications, invoices, and review your account activity in one place.
+          Manage profile, addresses, notifications, invoices, and review your
+          account activity in one place.
         </p>
       </section>
 
@@ -112,12 +125,16 @@ export function CustomerDashboardPage(): ReactNode {
         />
         <MetricCard
           label="Wishlist"
-          value={profile?.summary.wishlistItems ?? wishlistQuery.data?.length ?? 0}
+          value={
+            profile?.summary.wishlistItems ?? wishlistQuery.data?.length ?? 0
+          }
           icon={<Home size={18} />}
         />
         <MetricCard
           label="Addresses"
-          value={profile?.summary.addressesCount ?? addressesQuery.data?.length ?? 0}
+          value={
+            profile?.summary.addressesCount ?? addressesQuery.data?.length ?? 0
+          }
           icon={<UserRound size={18} />}
         />
         <MetricCard
@@ -150,7 +167,10 @@ export function CustomerDashboardPage(): ReactNode {
                 <input
                   defaultValue={profile?.user.name}
                   onChange={(event) =>
-                    setProfileForm((current) => ({ ...current, name: event.target.value }))
+                    setProfileForm((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -159,15 +179,24 @@ export function CustomerDashboardPage(): ReactNode {
                 <input
                   defaultValue={profile?.user.phone ?? ""}
                   onChange={(event) =>
-                    setProfileForm((current) => ({ ...current, phone: event.target.value }))
+                    setProfileForm((current) => ({
+                      ...current,
+                      phone: event.target.value,
+                    }))
                   }
                 />
               </label>
-              <Button type="submit" tone="secondary" disabled={updateProfileMutation.isPending}>
+              <Button
+                type="submit"
+                tone="secondary"
+                disabled={updateProfileMutation.isPending}
+              >
                 Save profile
               </Button>
               {updateProfileMutation.error ? (
-                <p className="form-error">{updateProfileMutation.error.message}</p>
+                <p className="form-error">
+                  {updateProfileMutation.error.message}
+                </p>
               ) : null}
             </form>
           </CardBody>
@@ -184,7 +213,9 @@ export function CustomerDashboardPage(): ReactNode {
                       type="checkbox"
                       checked={value}
                       onChange={(event) =>
-                        updateNotificationsMutation.mutate({ [key]: event.target.checked })
+                        updateNotificationsMutation.mutate({
+                          [key]: event.target.checked,
+                        })
                       }
                     />
                     <span>{toPreferenceLabel(key)}</span>
@@ -198,10 +229,13 @@ export function CustomerDashboardPage(): ReactNode {
               <p className="form-muted">Saving preferences...</p>
             ) : null}
             {updateNotificationsMutation.error ? (
-              <p className="form-error">{updateNotificationsMutation.error.message}</p>
+              <p className="form-error">
+                {updateNotificationsMutation.error.message}
+              </p>
             ) : null}
             <p className="dashboard-helper-row">
-              <BellRing size={16} /> Transaction notifications stay enabled by default.
+              <BellRing size={16} /> Transaction notifications stay enabled by
+              default.
             </p>
           </CardBody>
         </Card>
@@ -224,7 +258,10 @@ export function CustomerDashboardPage(): ReactNode {
                   required
                   value={addressForm.label}
                   onChange={(event) =>
-                    setAddressForm((current) => ({ ...current, label: event.target.value }))
+                    setAddressForm((current) => ({
+                      ...current,
+                      label: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -234,7 +271,10 @@ export function CustomerDashboardPage(): ReactNode {
                   required
                   value={addressForm.line1}
                   onChange={(event) =>
-                    setAddressForm((current) => ({ ...current, line1: event.target.value }))
+                    setAddressForm((current) => ({
+                      ...current,
+                      line1: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -244,7 +284,10 @@ export function CustomerDashboardPage(): ReactNode {
                   required
                   value={addressForm.area}
                   onChange={(event) =>
-                    setAddressForm((current) => ({ ...current, area: event.target.value }))
+                    setAddressForm((current) => ({
+                      ...current,
+                      area: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -254,7 +297,10 @@ export function CustomerDashboardPage(): ReactNode {
                   required
                   value={addressForm.city}
                   onChange={(event) =>
-                    setAddressForm((current) => ({ ...current, city: event.target.value }))
+                    setAddressForm((current) => ({
+                      ...current,
+                      city: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -264,11 +310,18 @@ export function CustomerDashboardPage(): ReactNode {
                   required
                   value={addressForm.country}
                   onChange={(event) =>
-                    setAddressForm((current) => ({ ...current, country: event.target.value }))
+                    setAddressForm((current) => ({
+                      ...current,
+                      country: event.target.value,
+                    }))
                   }
                 />
               </label>
-              <Button type="submit" tone="secondary" disabled={createAddressMutation.isPending}>
+              <Button
+                type="submit"
+                tone="secondary"
+                disabled={createAddressMutation.isPending}
+              >
                 Add address
               </Button>
             </form>
@@ -278,7 +331,8 @@ export function CustomerDashboardPage(): ReactNode {
                   <div>
                     <strong>{address.label}</strong>
                     <small>
-                      {address.line1}, {address.area}, {address.city}, {address.country}
+                      {address.line1}, {address.area}, {address.city},{" "}
+                      {address.country}
                     </small>
                   </div>
                   <Button
@@ -303,7 +357,8 @@ export function CustomerDashboardPage(): ReactNode {
                   <div>
                     <strong>{invoice.invoiceNumber}</strong>
                     <small>
-                      {invoice.orderNumber} · {invoice.status} · {invoice.paymentStatus}
+                      {invoice.orderNumber} · {invoice.status} ·{" "}
+                      {invoice.paymentStatus}
                     </small>
                   </div>
                   <span>

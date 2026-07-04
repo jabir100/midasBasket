@@ -4,7 +4,10 @@ import { AppError } from "../../core/errors/app-error.js";
 import { getRequestId } from "../../core/http/request-id.middleware.js";
 import { sendSuccess } from "../../core/http/send-response.js";
 import { authenticateAccessToken } from "../auth/authentication.middleware.js";
-import { getPrincipal, requireRoles } from "../auth/authorization.middleware.js";
+import {
+  getPrincipal,
+  requireRoles,
+} from "../auth/authorization.middleware.js";
 import { UserModel } from "../users/user.model.js";
 import { AuditLogModel } from "./audit-log.model.js";
 import {
@@ -15,7 +18,11 @@ import {
   objectIdParamSchema,
   orderStatusUpdateSchema,
 } from "./admin.schemas.js";
-import { OrderModel, orderStatuses, type OrderStatus } from "../orders/order.model.js";
+import {
+  OrderModel,
+  orderStatuses,
+  type OrderStatus,
+} from "../orders/order.model.js";
 
 export const adminRouter: ExpressRouter = Router();
 
@@ -42,7 +49,9 @@ adminRouter.get("/dashboard/summary", async (_req, res, next) => {
       OrderModel.countDocuments({
         createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
       }),
-      OrderModel.aggregate([{ $group: { _id: null, value: { $sum: "$total" } } }]),
+      OrderModel.aggregate([
+        { $group: { _id: null, value: { $sum: "$total" } } },
+      ]),
       OrderModel.aggregate([
         {
           $match: {
@@ -70,7 +79,8 @@ adminRouter.get("/dashboard/summary", async (_req, res, next) => {
           recentOrders,
           statusBreakdown: orderStatuses.map((status) => ({
             status,
-            count: orderStatusRows.find((row) => row._id === status)?.count ?? 0,
+            count:
+              orderStatusRows.find((row) => row._id === status)?.count ?? 0,
           })),
         },
         revenue: {
@@ -157,7 +167,11 @@ adminRouter.patch("/dashboard/users/:id", async (req, res, next) => {
       });
     }
 
-    const user = await UserModel.findByIdAndUpdate(params.id, { $set: input }, { new: true })
+    const user = await UserModel.findByIdAndUpdate(
+      params.id,
+      { $set: input },
+      { new: true },
+    )
       .select("name email phone role status createdAt updatedAt")
       .lean();
 
@@ -259,7 +273,9 @@ adminRouter.patch("/dashboard/orders/:id/status", async (req, res, next) => {
     const input = orderStatusUpdateSchema.parse(req.body);
 
     const order = await OrderModel.findById(params.id);
-    const actor = await UserModel.findById(principal.userId).select("email").lean();
+    const actor = await UserModel.findById(principal.userId)
+      .select("email")
+      .lean();
 
     if (!order) {
       throw new AppError({
@@ -411,7 +427,10 @@ async function writeAuditLog(input: {
   });
 }
 
-function isValidStatusTransition(current: OrderStatus, next: OrderStatus): boolean {
+function isValidStatusTransition(
+  current: OrderStatus,
+  next: OrderStatus,
+): boolean {
   if (current === next) {
     return true;
   }

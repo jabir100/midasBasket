@@ -8,7 +8,10 @@ const paginationSchema = z.object({
 });
 
 export const objectIdParamSchema = z.object({
-  id: z.string().trim().regex(/^[a-f\d]{24}$/i, "Expected a MongoDB object id"),
+  id: z
+    .string()
+    .trim()
+    .regex(/^[a-f\d]{24}$/i, "Expected a MongoDB object id"),
 });
 
 export const adminUsersQuerySchema = paginationSchema.extend({
