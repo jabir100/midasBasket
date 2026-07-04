@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Router, type Router as ExpressRouter } from "express";
 import { randomUUID } from "node:crypto";
 import { Types } from "mongoose";
@@ -21,120 +22,131 @@ import {
 
 export const ordersRouter: ExpressRouter = Router();
 
-ordersRouter.post("/checkout", authenticateOptionalAccessToken, async (req, res, next) => {
-  try {
-    const input = checkoutSchema.parse(req.body);
-    const principal = getPrincipal(res);
+ordersRouter.post(
+  "/checkout",
+  authenticateOptionalAccessToken,
+  async (req, res, next) => {
+    try {
+      const input = checkoutSchema.parse(req.body);
+      const principal = getPrincipal(res);
 
-    const cart = await getCheckoutCart({
-      userId: principal?.userId,
-      guestCartId: input.guestCartId,
-    });
+      const cart = await getCheckoutCart(principal?.userId, input.guestCartId);
 
-    if (!cart || cart.items.length === 0) {
-      throw new AppError({
-        statusCode: 422,
-        code: "CART_EMPTY",
-        message: "Cart is empty",
+      if (!cart || cart.items.length === 0) {
+        throw new AppError({
+          statusCode: 422,
+          code: "CART_EMPTY",
+          message: "Cart is empty",
+        });
+      }
+
+      const productIds = cart.items.map((item) => item.productId.toString());
+      const products = await ProductModel.find({
+        _id: { $in: productIds },
+        isPublished: true,
+      }).lean();
+
+      const productsById = new Map(
+        products.map((product) => [String(product._id), product]),
+      );
+      const orderItems = cart.items.map((item) => {
+        const product = productsById.get(item.productId.toString());
+
+        if (!product) {
+          throw new AppError({
+            statusCode: 422,
+            code: "PRODUCT_UNAVAILABLE",
+            message: "One or more cart items are unavailable",
+          });
+        }
+
+        if (product.stockQuantity < item.quantity) {
+          throw new AppError({
+            statusCode: 422,
+            code: "INSUFFICIENT_STOCK",
+            message: `${product.name} does not have enough stock`,
+          });
+        }
+
+        return {
+          productId: product._id,
+          title: product.name,
+          slug: product.slug,
+          imageUrl: product.images[0]?.url,
+          quantity: item.quantity,
+          unitPrice: product.price,
+          lineTotal: product.price * item.quantity,
+        };
       });
-    }
 
-    const productIds = cart.items.map((item) => item.productId.toString());
-    const products = await ProductModel.find({
-      _id: { $in: productIds },
-      isPublished: true,
-    }).lean();
+      const subTotal = orderItems.reduce(
+        (total, item) => total + item.lineTotal,
+        0,
+      );
+      const shippingFee = subTotal >= 2_000 ? 0 : 120;
+      const discountTotal = 0;
+      const total = subTotal + shippingFee - discountTotal;
+      const orderNumber = createOrderNumber();
 
-    const productsById = new Map(products.map((product) => [String(product._id), product]));
-    const orderItems = cart.items.map((item) => {
-      const product = productsById.get(item.productId.toString());
+      const order = await OrderModel.create({
+        orderNumber,
+        ...(principal?.userId
+          ? { userId: new Types.ObjectId(principal.userId) }
+          : { guestCartId: cart.guestCartId }),
+        customerName: input.customerName,
+        customerEmail: input.customerEmail,
+        customerPhone: input.customerPhone,
+        shippingAddress: input.shippingAddress,
+        notes: input.notes,
+        paymentMethod: input.paymentMethod,
+        paymentStatus: "pending",
+        status: "placed",
+        statusTimeline: [
+          {
+            status: "placed",
+            timestamp: new Date(),
+            updatedBy: principal?.userId ?? "guest-checkout",
+            note: "Order created by checkout",
+          },
+        ],
+        items: orderItems,
+        currency: cart.currency ? cart.currency : "BDT",
+        couponCode: cart.couponCode,
+        subTotal,
+        shippingFee,
+        discountTotal,
+        total,
+      });
 
-      if (!product) {
-        throw new AppError({
-          statusCode: 422,
-          code: "PRODUCT_UNAVAILABLE",
-          message: "One or more cart items are unavailable",
-        });
-      }
-
-      if (product.stockQuantity < item.quantity) {
-        throw new AppError({
-          statusCode: 422,
-          code: "INSUFFICIENT_STOCK",
-          message: `${product.name} does not have enough stock`,
-        });
-      }
-
-      return {
-        productId: product._id,
-        title: product.name,
-        slug: product.slug,
-        imageUrl: product.images?.[0]?.url,
-        quantity: item.quantity,
-        unitPrice: product.price,
-        lineTotal: product.price * item.quantity,
-      };
-    });
-
-    const subTotal = orderItems.reduce((total, item) => total + item.lineTotal, 0);
-    const shippingFee = subTotal >= 2_000 ? 0 : 120;
-    const discountTotal = 0;
-    const total = subTotal + shippingFee - discountTotal;
-    const orderNumber = createOrderNumber();
-
-    const order = await OrderModel.create({
-      orderNumber,
-      userId: principal?.userId ? new Types.ObjectId(principal.userId) : undefined,
-      guestCartId: principal?.userId ? undefined : cart.guestCartId,
-      customerName: input.customerName,
-      customerEmail: input.customerEmail,
-      customerPhone: input.customerPhone,
-      shippingAddress: input.shippingAddress,
-      notes: input.notes,
-      paymentMethod: input.paymentMethod,
-      paymentStatus: "pending",
-      status: "placed",
-      statusTimeline: [
-        {
-          status: "placed",
-          timestamp: new Date(),
-          updatedBy: principal?.userId ?? "guest-checkout",
-          note: "Order created by checkout",
-        },
-      ],
-      items: orderItems,
-      currency: cart.currency ?? "BDT",
-      couponCode: cart.couponCode,
-      subTotal,
-      shippingFee,
-      discountTotal,
-      total,
-    });
-
-    await Promise.all(
-      orderItems.map((item) =>
-        ProductModel.updateOne(
-          { _id: item.productId },
-          { $inc: { stockQuantity: -item.quantity } },
+      await Promise.all(
+        orderItems.map((item) =>
+          ProductModel.updateOne(
+            { _id: item.productId },
+            { $inc: { stockQuantity: -item.quantity } },
+          ),
         ),
-      ),
-    );
+      );
 
-    cart.items = [];
-    cart.couponCode = undefined;
-    await cart.save();
+      await CartModel.updateOne(
+        { _id: cart._id },
+        {
+          $set: { items: [] },
+          $unset: { couponCode: "" },
+        },
+      );
 
-    sendSuccess(res, {
-      statusCode: 201,
-      data: {
-        order: serializeOrder(order.toObject()),
-      },
-      requestId: getRequestId(res),
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+      sendSuccess(res, {
+        statusCode: 201,
+        data: {
+          order: serializeOrder(order.toObject()),
+        },
+        requestId: getRequestId(res),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 ordersRouter.get("/me", authenticateAccessToken, async (_req, res, next) => {
   try {
@@ -239,12 +251,15 @@ function createOrderNumber(): string {
   return `MB-${datePart}-${randomPart}`;
 }
 
-async function getCheckoutCart(input: { userId?: string; guestCartId?: string }) {
-  if (input.userId) {
-    return CartModel.findOne({ userId: input.userId });
+async function getCheckoutCart(
+  userId: string | undefined,
+  guestCartId: string | undefined,
+) {
+  if (userId) {
+    return CartModel.findOne({ userId });
   }
 
-  if (!input.guestCartId) {
+  if (!guestCartId) {
     throw new AppError({
       statusCode: 422,
       code: "GUEST_CART_ID_REQUIRED",
@@ -252,19 +267,19 @@ async function getCheckoutCart(input: { userId?: string; guestCartId?: string })
     });
   }
 
-  return CartModel.findOne({ guestCartId: input.guestCartId });
+  return CartModel.findOne({ guestCartId });
 }
 
 function serializeOrder(order: {
   _id: unknown;
   orderNumber: string;
   status: string;
-  statusTimeline: Array<{
+  statusTimeline: {
     status: string;
     timestamp: Date;
     updatedBy: string;
-    note?: string;
-  }>;
+    note?: string | null;
+  }[];
   createdAt?: Date;
   paymentMethod: string;
   paymentStatus: string;
@@ -273,15 +288,15 @@ function serializeOrder(order: {
   discountTotal: number;
   total: number;
   currency: string;
-  items: Array<{
+  items: {
     productId: unknown;
     title: string;
     slug: string;
-    imageUrl?: string;
+    imageUrl?: string | null;
     quantity: number;
     unitPrice: number;
     lineTotal: number;
-  }>;
+  }[];
 }) {
   return {
     id: String(order._id),

@@ -65,7 +65,7 @@ catalogRouter.get("/products", async (req, res, next) => {
       filter.brandId = brand?._id ?? new Types.ObjectId();
     }
 
-    const sort =
+    const sort: Record<string, 1 | -1> =
       query.sort === "price-asc"
         ? { price: 1 }
         : query.sort === "price-desc"

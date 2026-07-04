@@ -4,10 +4,7 @@ import { Types } from "mongoose";
 import { AppError } from "../../core/errors/app-error.js";
 import { getRequestId } from "../../core/http/request-id.middleware.js";
 import { sendSuccess } from "../../core/http/send-response.js";
-import {
-  authenticateOptionalAccessToken,
-  authenticateAccessToken,
-} from "../auth/authentication.middleware.js";
+import { authenticateOptionalAccessToken } from "../auth/authentication.middleware.js";
 import { getPrincipal } from "../auth/authorization.middleware.js";
 import { ProductModel } from "../catalog/catalog.model.js";
 import { CartModel } from "./cart.model.js";
@@ -25,11 +22,11 @@ cartRouter.use(authenticateOptionalAccessToken);
 cartRouter.get("/", async (req, res, next) => {
   try {
     const query = cartQuerySchema.parse(req.query);
-    const cart = await getResolvedCart({
-      userId: getPrincipal(res)?.userId,
-      guestCartId: query.guestCartId,
-      createIfMissing: false,
-    });
+    const scope = resolveCartScope(
+      getPrincipal(res)?.userId,
+      query.guestCartId,
+    );
+    const cart = await CartModel.findOne(scope.filter).lean();
 
     sendSuccess(res, {
       data: { cart: formatCart(cart) },
@@ -56,41 +53,70 @@ cartRouter.post("/items", async (req, res, next) => {
       });
     }
 
-    const cart = await getResolvedCart({
-      userId: getPrincipal(res)?.userId,
-      guestCartId: input.guestCartId,
-      createIfMissing: true,
-    });
-
-    const itemIndex = cart.items.findIndex(
-      (item) => item.productId.toString() === input.productId,
+    const scope = resolveCartScope(
+      getPrincipal(res)?.userId,
+      input.guestCartId,
     );
 
-    if (itemIndex >= 0) {
-      cart.items[itemIndex].quantity = Math.min(
-        cart.items[itemIndex].quantity + input.quantity,
-        99,
-      );
-      cart.items[itemIndex].unitPrice = product.price;
-      cart.items[itemIndex].title = product.name;
-      cart.items[itemIndex].slug = product.slug;
-      cart.items[itemIndex].imageUrl = product.images?.[0]?.url;
-    } else {
-      cart.items.push({
-        productId: new Types.ObjectId(input.productId),
-        quantity: input.quantity,
-        unitPrice: product.price,
-        title: product.name,
-        slug: product.slug,
-        imageUrl: product.images?.[0]?.url,
+    await CartModel.updateOne(
+      scope.filter,
+      { $setOnInsert: scope.setOnInsert },
+      { upsert: true },
+    );
+
+    const cart = await CartModel.findOne(scope.filter).lean();
+
+    if (!cart) {
+      throw new AppError({
+        statusCode: 500,
+        code: "CART_RESOLUTION_FAILED",
+        message: "Cart could not be resolved",
       });
     }
 
-    await cart.save();
+    const existing = cart.items.find(
+      (item) => String(item.productId) === input.productId,
+    );
+
+    if (existing) {
+      const nextQuantity = Math.min(existing.quantity + input.quantity, 99);
+      await CartModel.updateOne(
+        scope.filter,
+        {
+          $set: {
+            "items.$[item].quantity": nextQuantity,
+            "items.$[item].unitPrice": product.price,
+            "items.$[item].title": product.name,
+            "items.$[item].slug": product.slug,
+            "items.$[item].imageUrl": product.images?.[0]?.url ?? null,
+          },
+        },
+        {
+          arrayFilters: [
+            { "item.productId": new Types.ObjectId(input.productId) },
+          ],
+        },
+      );
+    } else {
+      await CartModel.updateOne(scope.filter, {
+        $push: {
+          items: {
+            productId: new Types.ObjectId(input.productId),
+            quantity: input.quantity,
+            unitPrice: product.price,
+            title: product.name,
+            slug: product.slug,
+            imageUrl: product.images?.[0]?.url ?? null,
+          },
+        },
+      });
+    }
+
+    const updated = await CartModel.findOne(scope.filter).lean();
 
     sendSuccess(res, {
       statusCode: 201,
-      data: { cart: formatCart(cart.toObject()) },
+      data: { cart: formatCart(updated) },
       requestId: getRequestId(res),
     });
   } catch (error) {
@@ -101,13 +127,26 @@ cartRouter.post("/items", async (req, res, next) => {
 cartRouter.patch("/items/:productId", async (req, res, next) => {
   try {
     const input = updateCartItemSchema.parse(req.body);
-    const cart = await getResolvedCart({
-      userId: getPrincipal(res)?.userId,
-      guestCartId: input.guestCartId,
-      createIfMissing: false,
-    });
+    const scope = resolveCartScope(
+      getPrincipal(res)?.userId,
+      input.guestCartId,
+    );
 
-    if (!cart) {
+    const updateResult = await CartModel.updateOne(
+      scope.filter,
+      {
+        $set: {
+          "items.$[item].quantity": input.quantity,
+        },
+      },
+      {
+        arrayFilters: [
+          { "item.productId": new Types.ObjectId(req.params.productId) },
+        ],
+      },
+    );
+
+    if (updateResult.matchedCount === 0) {
       throw new AppError({
         statusCode: 404,
         code: "CART_NOT_FOUND",
@@ -115,11 +154,7 @@ cartRouter.patch("/items/:productId", async (req, res, next) => {
       });
     }
 
-    const item = cart.items.find(
-      (candidate) => candidate.productId.toString() === req.params.productId,
-    );
-
-    if (!item) {
+    if (updateResult.modifiedCount === 0) {
       throw new AppError({
         statusCode: 404,
         code: "CART_ITEM_NOT_FOUND",
@@ -127,11 +162,10 @@ cartRouter.patch("/items/:productId", async (req, res, next) => {
       });
     }
 
-    item.quantity = input.quantity;
-    await cart.save();
+    const updated = await CartModel.findOne(scope.filter).lean();
 
     sendSuccess(res, {
-      data: { cart: formatCart(cart.toObject()) },
+      data: { cart: formatCart(updated) },
       requestId: getRequestId(res),
     });
   } catch (error) {
@@ -142,13 +176,18 @@ cartRouter.patch("/items/:productId", async (req, res, next) => {
 cartRouter.delete("/items/:productId", async (req, res, next) => {
   try {
     const query = cartQuerySchema.parse(req.query);
-    const cart = await getResolvedCart({
-      userId: getPrincipal(res)?.userId,
-      guestCartId: query.guestCartId,
-      createIfMissing: false,
+    const scope = resolveCartScope(
+      getPrincipal(res)?.userId,
+      query.guestCartId,
+    );
+
+    const updateResult = await CartModel.updateOne(scope.filter, {
+      $pull: {
+        items: { productId: new Types.ObjectId(req.params.productId) },
+      },
     });
 
-    if (!cart) {
+    if (updateResult.matchedCount === 0) {
       throw new AppError({
         statusCode: 404,
         code: "CART_NOT_FOUND",
@@ -156,15 +195,10 @@ cartRouter.delete("/items/:productId", async (req, res, next) => {
       });
     }
 
-    const nextItems = cart.items.filter(
-      (item) => item.productId.toString() !== req.params.productId,
-    );
-
-    cart.items = nextItems;
-    await cart.save();
+    const updated = await CartModel.findOne(scope.filter).lean();
 
     sendSuccess(res, {
-      data: { cart: formatCart(cart.toObject()) },
+      data: { cart: formatCart(updated) },
       requestId: getRequestId(res),
     });
   } catch (error) {
@@ -175,18 +209,27 @@ cartRouter.delete("/items/:productId", async (req, res, next) => {
 cartRouter.put("/coupon", async (req, res, next) => {
   try {
     const input = couponSchema.parse(req.body);
-    const cart = await getResolvedCart({
-      userId: getPrincipal(res)?.userId,
-      guestCartId: input.guestCartId,
-      createIfMissing: true,
-    });
+    const scope = resolveCartScope(
+      getPrincipal(res)?.userId,
+      input.guestCartId,
+    );
 
-    cart.couponCode = input.couponCode;
-    await cart.save();
+    await CartModel.updateOne(
+      scope.filter,
+      {
+        $setOnInsert: scope.setOnInsert,
+        ...(input.couponCode
+          ? { $set: { couponCode: input.couponCode } }
+          : { $unset: { couponCode: "" } }),
+      },
+      { upsert: true },
+    );
+
+    const updated = await CartModel.findOne(scope.filter).lean();
 
     sendSuccess(res, {
       data: {
-        cart: formatCart(cart.toObject()),
+        cart: formatCart(updated),
         couponReady: true,
       },
       requestId: getRequestId(res),
@@ -199,13 +242,17 @@ cartRouter.put("/coupon", async (req, res, next) => {
 cartRouter.delete("/", async (req, res, next) => {
   try {
     const query = cartQuerySchema.parse(req.query);
-    const cart = await getResolvedCart({
-      userId: getPrincipal(res)?.userId,
-      guestCartId: query.guestCartId,
-      createIfMissing: false,
+    const scope = resolveCartScope(
+      getPrincipal(res)?.userId,
+      query.guestCartId,
+    );
+
+    const updateResult = await CartModel.updateOne(scope.filter, {
+      $set: { items: [] },
+      $unset: { couponCode: "" },
     });
 
-    if (!cart) {
+    if (updateResult.matchedCount === 0) {
       sendSuccess(res, {
         data: { cart: null, cleared: true },
         requestId: getRequestId(res),
@@ -213,12 +260,10 @@ cartRouter.delete("/", async (req, res, next) => {
       return;
     }
 
-    cart.items = [];
-    cart.couponCode = undefined;
-    await cart.save();
+    const updated = await CartModel.findOne(scope.filter).lean();
 
     sendSuccess(res, {
-      data: { cart: formatCart(cart.toObject()), cleared: true },
+      data: { cart: formatCart(updated), cleared: true },
       requestId: getRequestId(res),
     });
   } catch (error) {
@@ -226,39 +271,18 @@ cartRouter.delete("/", async (req, res, next) => {
   }
 });
 
-export async function requireCustomerCart(res: Parameters<typeof getPrincipal>[0]) {
-  const principal = getPrincipal(res);
-
-  if (!principal) {
-    throw new AppError({
-      statusCode: 401,
-      code: "AUTHENTICATION_REQUIRED",
-      message: "Authentication is required",
-    });
+function resolveCartScope(
+  userId: string | undefined,
+  guestCartId: string | undefined,
+) {
+  if (userId) {
+    return {
+      filter: { userId },
+      setOnInsert: { userId: new Types.ObjectId(userId) },
+    };
   }
 
-  return getResolvedCart({
-    userId: principal.userId,
-    createIfMissing: false,
-  });
-}
-
-async function getResolvedCart(input: {
-  userId?: string;
-  guestCartId?: string;
-  createIfMissing: boolean;
-}) {
-  if (input.userId) {
-    const cart = await CartModel.findOne({ userId: input.userId });
-
-    if (!cart && input.createIfMissing) {
-      return CartModel.create({ userId: new Types.ObjectId(input.userId) });
-    }
-
-    return cart;
-  }
-
-  if (!input.guestCartId) {
+  if (!guestCartId) {
     throw new AppError({
       statusCode: 422,
       code: "GUEST_CART_ID_REQUIRED",
@@ -266,56 +290,40 @@ async function getResolvedCart(input: {
     });
   }
 
-  const cart = await CartModel.findOne({ guestCartId: input.guestCartId });
-
-  if (!cart && input.createIfMissing) {
-    return CartModel.create({ guestCartId: input.guestCartId });
-  }
-
-  return cart;
+  return {
+    filter: { guestCartId },
+    setOnInsert: { guestCartId },
+  };
 }
 
-function formatCart(cart: {
-  _id?: unknown;
-  guestCartId?: string | null;
-  couponCode?: string | null;
-  currency?: string | null;
-  items: Array<{
-    productId: unknown;
-    quantity: number;
-    unitPrice: number;
-    title: string;
-    slug: string;
-    imageUrl?: string | null;
-  }>;
-} | null) {
-  if (!cart) {
-    return {
-      id: null,
-      guestCartId: null,
-      currency: "BDT",
-      couponCode: null,
-      items: [],
-      summary: {
-        itemCount: 0,
-        subTotal: 0,
-        discountTotal: 0,
-        total: 0,
-      },
-    };
-  }
-
-  const subTotal = cart.items.reduce(
+function formatCart(
+  cart: {
+    _id?: unknown;
+    guestCartId?: string | null;
+    couponCode?: string | null;
+    currency?: string | null;
+    items?: Array<{
+      productId: unknown;
+      quantity: number;
+      unitPrice: number;
+      title: string;
+      slug: string;
+      imageUrl?: string | null;
+    }>;
+  } | null,
+) {
+  const items = cart?.items ?? [];
+  const subTotal = items.reduce(
     (total, item) => total + item.quantity * item.unitPrice,
     0,
   );
 
   return {
-    id: cart._id ? String(cart._id) : null,
-    guestCartId: cart.guestCartId ?? null,
-    currency: cart.currency ?? "BDT",
-    couponCode: cart.couponCode ?? null,
-    items: cart.items.map((item) => ({
+    id: cart?._id ? String(cart._id) : null,
+    guestCartId: cart?.guestCartId ?? null,
+    currency: cart?.currency ?? "BDT",
+    couponCode: cart?.couponCode ?? null,
+    items: items.map((item) => ({
       productId: String(item.productId),
       quantity: item.quantity,
       unitPrice: item.unitPrice,
@@ -325,7 +333,7 @@ function formatCart(cart: {
       imageUrl: item.imageUrl ?? null,
     })),
     summary: {
-      itemCount: cart.items.reduce((total, item) => total + item.quantity, 0),
+      itemCount: items.reduce((total, item) => total + item.quantity, 0),
       subTotal,
       discountTotal: 0,
       total: subTotal,

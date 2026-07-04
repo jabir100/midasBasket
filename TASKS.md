@@ -4,7 +4,7 @@ This file tracks phase progress and must be updated as work proceeds. Phases mus
 
 ## Current Phase
 
-Phase 7: Cart, Wishlist
+Phase 9 and Phase 10: Customer Dashboard, Admin Dashboard
 
 Status: Awaiting approval
 
@@ -18,10 +18,10 @@ Status: Awaiting approval
 | 4     | Homepage                                                             | Completed         | SSR/static homepage, Redis-backed data strategy, sections implemented, cache invalidation paths |
 | 5     | Authentication                                                       | Completed         | Register, login, logout, refresh rotation, forgot/reset password, session management            |
 | 6     | Products, Categories, Brands                                         | Completed         | Catalog CRUD, public listing/detail pages, filters, images, SEO fields                          |
-| 7     | Cart, Wishlist                                                       | Awaiting approval | Guest and customer carts, persistent wishlist, coupon readiness                                 |
-| 8     | Checkout, Orders                                                     | Not started       | Single-page checkout, COD, order creation, status timeline, tracking                            |
-| 9     | Customer Dashboard                                                   | Not started       | Profile, orders, invoices, addresses, wishlist, notifications                                   |
-| 10    | Admin Dashboard                                                      | Not started       | Management modules, analytics, audit logs, responsive admin UI                                  |
+| 7     | Cart, Wishlist                                                       | Completed         | Guest and customer carts, persistent wishlist, coupon readiness                                 |
+| 8     | Checkout, Orders                                                     | Completed         | Single-page checkout, COD, order creation, status timeline, tracking                            |
+| 9     | Customer Dashboard                                                   | Completed         | Profile, orders, invoices, addresses, wishlist, notifications                                   |
+| 10    | Admin Dashboard                                                      | Completed         | Management modules, analytics, audit logs, responsive admin UI                                  |
 | 11    | SEO, Performance, Optimization                                       | Not started       | Metadata, sitemap, JSON-LD, Core Web Vitals, compression, caching review                        |
 | 12    | Testing, Deployment, Documentation                                   | Not started       | Tests, GitHub Actions, deployment guide, admin guide, developer guide                           |
 
@@ -89,6 +89,47 @@ Status: Awaiting approval
 - [x] Create frontend catalog listing, product detail, category, and brand browsing surfaces.
 - [x] Add focused validation for catalog models, APIs, cache invalidation, and frontend rendering.
 - [x] Generate Phase 6 handoff summary and request approval before Phase 7.
+
+## Phase 7 Tasks
+
+- [x] Define cart persistence model for guest and authenticated customer ownership.
+- [x] Implement cart APIs for item add/update/remove, cart retrieval, clear, and coupon readiness.
+- [x] Define and implement persistent wishlist APIs for authenticated customers.
+- [x] Add frontend cart and wishlist API clients with guest cart identity handling.
+- [x] Create frontend cart and wishlist pages/routes and wire primary navigation/actions.
+- [x] Validate backend and frontend build/typecheck for cart and wishlist implementation.
+- [x] Generate Phase 7 handoff summary and proceed to Phase 8 implementation.
+
+## Phase 8 Tasks
+
+- [x] Define order schema with status timeline and COD payment metadata.
+- [x] Implement checkout API to create orders from cart state and clear cart on success.
+- [x] Implement customer order history/detail APIs and tracking endpoint.
+- [x] Create frontend single-page checkout flow with COD order submission.
+- [x] Create frontend orders/tracking page with status timeline rendering.
+- [x] Validate backend and frontend build/typecheck for checkout and orders implementation.
+- [x] Generate Phase 8 handoff summary and request approval before Phase 9.
+
+## Phase 9 Tasks
+
+- [x] Implement backend customer profile APIs for dashboard summary and profile updates.
+- [x] Implement backend customer address book APIs (list, create, update, delete).
+- [x] Implement backend customer notification preferences APIs.
+- [x] Implement backend customer invoice listing from order history.
+- [x] Create frontend customer dashboard route and UI for profile, addresses, invoices, and preferences.
+- [x] Wire customer dashboard navigation and account shortcuts.
+- [x] Validate backend and frontend build/typecheck for customer dashboard implementation.
+- [x] Generate Phase 9 handoff summary and request approval for Phase 9 closure.
+
+## Phase 10 Tasks
+
+- [x] Implement backend admin dashboard analytics summary API.
+- [x] Implement backend admin user management APIs.
+- [x] Implement backend admin order lifecycle status update API with transition guardrails.
+- [x] Implement backend audit log model and admin audit log listing API.
+- [x] Create frontend admin dashboard route and responsive UI for analytics, user management, order management, and audit feed.
+- [x] Validate backend and frontend build/typecheck for admin dashboard implementation.
+- [x] Generate Phase 10 handoff summary and request approval before Phase 11.
 
 ## Backlog
 

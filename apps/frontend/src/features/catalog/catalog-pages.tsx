@@ -1,10 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
 import { Search, SlidersHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Badge } from "../../shared/ui/badge.js";
+import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
+import { addCartItem } from "../cart/cart-api.js";
+import { addWishlistItem } from "../wishlist/wishlist-api.js";
 import {
   getProduct,
   listBrands,
@@ -14,6 +17,7 @@ import {
 } from "./catalog-api.js";
 
 export function CatalogPage(): ReactNode {
+  const queryClient = useQueryClient();
   const search = useSearch({ from: "/products" }) as Partial<
     Record<string, string>
   >;
@@ -28,6 +32,20 @@ export function CatalogPage(): ReactNode {
   const productsQuery = useQuery({
     queryKey: ["catalog", "products", params.toString()],
     queryFn: () => listProducts(params),
+  });
+
+  const addToCartMutation = useMutation({
+    mutationFn: (productId: string) => addCartItem({ productId, quantity: 1 }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
+  });
+
+  const addToWishlistMutation = useMutation({
+    mutationFn: (productId: string) => addWishlistItem(productId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+    },
   });
 
   return (
@@ -47,9 +65,17 @@ export function CatalogPage(): ReactNode {
       <ProductGrid
         products={productsQuery.data?.products ?? []}
         isLoading={productsQuery.isLoading}
+        onAddToCart={(productId) => addToCartMutation.mutate(productId)}
+        onAddToWishlist={(productId) => addToWishlistMutation.mutate(productId)}
+        isMutating={
+          addToCartMutation.isPending || addToWishlistMutation.isPending
+        }
       />
       {productsQuery.error ? (
         <p className="form-error">Unable to load products from the API.</p>
+      ) : null}
+      {addToWishlistMutation.error ? (
+        <p className="form-error">{addToWishlistMutation.error.message}</p>
       ) : null}
     </main>
   );
@@ -109,7 +135,9 @@ export function CategoriesPage(): ReactNode {
             key={category._id}
             name={category.name}
             slug={category.slug}
-            description={category.description}
+            {...(category.description
+              ? { description: category.description }
+              : {})}
           />
         ))}
       </div>
@@ -138,7 +166,7 @@ export function BrandsPage(): ReactNode {
             key={brand._id}
             name={brand.name}
             slug={brand.slug}
-            description={brand.description}
+            {...(brand.description ? { description: brand.description } : {})}
           />
         ))}
       </div>
@@ -165,7 +193,16 @@ function CatalogHeader({
 function ProductGrid({
   isLoading,
   products,
-}: Readonly<{ isLoading: boolean; products: CatalogProduct[] }>): ReactNode {
+  onAddToCart,
+  onAddToWishlist,
+  isMutating,
+}: Readonly<{
+  isLoading: boolean;
+  products: CatalogProduct[];
+  onAddToCart: (productId: string) => void;
+  onAddToWishlist: (productId: string) => void;
+  isMutating: boolean;
+}>): ReactNode {
   if (isLoading) {
     return <p>Loading products...</p>;
   }
@@ -193,6 +230,22 @@ function ProductGrid({
             </Link>
             <p>{product.shortDescription ?? product.description}</p>
             <strong>৳{product.price.toLocaleString("en-BD")}</strong>
+            <div className="catalog-card-actions">
+              <Button
+                tone="secondary"
+                onClick={() => onAddToWishlist(product._id)}
+                disabled={isMutating}
+              >
+                Wishlist
+              </Button>
+              <Button
+                tone="primary"
+                onClick={() => onAddToCart(product._id)}
+                disabled={isMutating}
+              >
+                Add to cart
+              </Button>
+            </div>
           </CardBody>
         </Card>
       ))}

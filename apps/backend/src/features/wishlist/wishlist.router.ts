@@ -73,7 +73,9 @@ wishlistRouter.post("/items", async (req, res, next) => {
 
     const wishlist =
       (await WishlistModel.findOne({ userId: principal.userId })) ??
-      (await WishlistModel.create({ userId: new Types.ObjectId(principal.userId) }));
+      (await WishlistModel.create({
+        userId: new Types.ObjectId(principal.userId),
+      }));
 
     const hasItem = wishlist.items.some(
       (item) => item.productId.toString() === input.productId,
@@ -113,9 +115,16 @@ wishlistRouter.delete("/items/:productId", async (req, res, next) => {
       });
     }
 
-    const wishlist = await WishlistModel.findOne({ userId: principal.userId });
+    const updateResult = await WishlistModel.updateOne(
+      { userId: principal.userId },
+      {
+        $pull: {
+          items: { productId: new Types.ObjectId(req.params.productId) },
+        },
+      },
+    );
 
-    if (!wishlist) {
+    if (updateResult.matchedCount === 0) {
       sendSuccess(res, {
         data: { deleted: true, wishlist: { items: [] } },
         requestId: getRequestId(res),
@@ -123,16 +132,13 @@ wishlistRouter.delete("/items/:productId", async (req, res, next) => {
       return;
     }
 
-    wishlist.items = wishlist.items.filter(
-      (item) => item.productId.toString() !== req.params.productId,
-    );
-    await wishlist.save();
+    const wishlist = await WishlistModel.findOne({ userId: principal.userId });
 
     sendSuccess(res, {
       data: {
         deleted: true,
         wishlist: {
-          items: wishlist.items.map((item) => ({
+          items: (wishlist?.items ?? []).map((item) => ({
             productId: String(item.productId),
             addedAt: item.addedAt,
           })),

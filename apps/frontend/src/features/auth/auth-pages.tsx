@@ -244,6 +244,10 @@ export function AccountPage(): ReactNode {
                 <strong>{userQuery.data.name}</strong>
                 <span>{userQuery.data.email}</span>
                 <small>{userQuery.data.role}</small>
+                <p className="form-link">
+                  <Link to="/dashboard">Customer dashboard</Link> ·{" "}
+                  <Link to="/admin">Admin dashboard</Link>
+                </p>
               </div>
               <Button
                 tone="secondary"

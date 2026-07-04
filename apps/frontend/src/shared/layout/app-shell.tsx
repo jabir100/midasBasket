@@ -5,10 +5,13 @@ import type { ReactNode } from "react";
 import { Button } from "../ui/button.js";
 
 const navItems = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/categories", label: "Categories" },
   { href: "/brands", label: "Brands" },
   { href: "/products", label: "Products" },
-  { href: "/", label: "Offers" },
+  { href: "/wishlist", label: "Wishlist" },
+  { href: "/orders", label: "Orders" },
+  { href: "/admin", label: "Admin" },
 ] as const;
 
 export function AppShell({
@@ -33,15 +36,19 @@ export function AppShell({
             <Search size={20} />
           </Button>
           <Link
-            to="/account"
+            to="/dashboard"
             className="ui-button ui-button-ghost ui-button-icon"
             aria-label="Customer account"
           >
             <UserRound size={20} />
           </Link>
-          <Button iconOnly tone="primary" aria-label="Shopping cart">
+          <Link
+            to="/cart"
+            className="ui-button ui-button-primary ui-button-icon"
+            aria-label="Shopping cart"
+          >
             <ShoppingBag size={20} />
-          </Button>
+          </Link>
           <Button
             iconOnly
             tone="ghost"

@@ -2,6 +2,18 @@
 
 All notable changes to Midas Basket will be documented in this file.
 
+## 2026-07-05
+
+### Added
+
+- Completed Phase 7 cart and wishlist foundations with backend schemas, validation, and APIs for guest/customer cart operations plus persistent customer wishlist.
+- Added optional access-token middleware to support mixed authenticated and guest cart behavior.
+- Added frontend cart and wishlist API adapters, pages, and routes (`/cart`, `/wishlist`) with catalog card actions and header navigation wiring.
+- Completed Phase 8 checkout and orders foundations with COD checkout flow, order creation from cart snapshots, stock decrement, and order status timeline persistence.
+- Added backend order history and tracking APIs (`/orders/me`, `/orders/me/:id`, `/orders/track/:orderNumber`).
+- Added frontend checkout and orders pages/routes (`/checkout`, `/orders`) with customer order listing and timeline-based tracking UI.
+- Added Phase 7 and Phase 8 handoff summaries under `docs/handoffs/phase-07-cart-wishlist.md` and `docs/handoffs/phase-08-checkout-orders.md`.
+
 ## 2026-07-04
 
 ### Added
