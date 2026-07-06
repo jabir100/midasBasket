@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { KeyRound, LogOut, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useState } from "react";
+import { Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -20,7 +21,13 @@ export function RegisterPage(): ReactNode {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const mutation = useMutation({
     mutationFn: registerCustomer,
-    onSuccess: async () => navigate({ to: "/account" }),
+    onSuccess: async (data) => {
+      if (data.user.role === "admin") {
+        await navigate({ to: "/admin" });
+      } else {
+        await navigate({ to: "/dashboard" });
+      }
+    },
   });
 
   return (
@@ -29,6 +36,7 @@ export function RegisterPage(): ReactNode {
       title="Start your Midas Basket profile"
       description="Use one customer account for checkout, wishlist, order history, and future dashboard features."
       icon={<UserPlus size={22} />}
+      animationType="register"
     >
       <form
         className="auth-form"
@@ -89,7 +97,13 @@ export function LoginPage(): ReactNode {
   const [form, setForm] = useState({ email: "", password: "" });
   const mutation = useMutation({
     mutationFn: loginCustomer,
-    onSuccess: async () => navigate({ to: "/account" }),
+    onSuccess: async (data) => {
+      if (data.user.role === "admin") {
+        await navigate({ to: "/admin" });
+      } else {
+        await navigate({ to: "/dashboard" });
+      }
+    },
   });
 
   return (
@@ -98,6 +112,7 @@ export function LoginPage(): ReactNode {
       title="Log in to continue shopping"
       description="Access your session with rotating refresh cookies and backend-enforced account permissions."
       icon={<ShieldCheck size={22} />}
+      animationType="login"
     >
       <form
         className="auth-form"
@@ -152,6 +167,7 @@ export function ForgotPasswordPage(): ReactNode {
       title="Request a reset link"
       description="If an active account exists, the backend accepts the request without exposing account presence."
       icon={<Mail size={22} />}
+      animationType="forgot"
     >
       <form
         className="auth-form"
@@ -194,6 +210,7 @@ export function ResetPasswordPage(): ReactNode {
       title="Reset your password"
       description="Password reset consumes the token and revokes active sessions for the account."
       icon={<KeyRound size={22} />}
+      animationType="reset"
     >
       <form
         className="auth-form"
@@ -252,66 +269,89 @@ export function AccountPage(): ReactNode {
   return (
     <main className="page-shell account-page">
       <section className="section-heading">
-        <span className="eyebrow">Customer session</span>
-        <h1>Account dashboard</h1>
+        <h3 style={{ margin: 0 }}>Account dashboard</h3>
       </section>
-      <Card className="account-card">
-        <CardBody>
-          {userQuery.isLoading ? <p>Loading account...</p> : null}
-          {userQuery.data ? (
-            <div className="account-summary">
-              <div>
-                <strong>{userQuery.data.name}</strong>
-                <span>{userQuery.data.email}</span>
-                <small>{userQuery.data.role}</small>
-                <p className="form-link">
-                  <Link to="/dashboard">Customer dashboard</Link> ·{" "}
-                  <Link to="/admin">Admin dashboard</Link>
-                </p>
+      <div style={{ marginTop: "1rem" }}>
+        <Card className="account-card">
+          <CardBody>
+            {userQuery.isLoading ? (
+              <div style={{ display: "grid", gap: "0.5rem" }}>
+                <Skeleton className="h-6 w-1/3 rounded-lg" />
+                <Skeleton className="h-4 w-1/2 rounded-lg" />
+                <Skeleton className="h-4 w-1/4 rounded-lg" />
               </div>
-              <Button
-                tone="secondary"
-                startContent={<LogOut size={18} />}
-                onClick={() => {
-                  logoutMutation.mutate();
-                }}
-              >
-                Log out
-              </Button>
-            </div>
-          ) : null}
-          {userQuery.error ? (
-            <p className="form-error">
-              Please log in again to view your account.
-            </p>
-          ) : null}
-        </CardBody>
-      </Card>
+            ) : null}
+            {userQuery.data ? (
+              <div className="account-summary">
+                <div>
+                  <strong>{userQuery.data.name}</strong>
+                  <span>{userQuery.data.email}</span>
+                  <small>{userQuery.data.role}</small>
+                  <p className="form-link">
+                    <Link to="/dashboard">Customer dashboard</Link> ·{" "}
+                    <Link to="/admin">Admin dashboard</Link>
+                  </p>
+                </div>
+                <Button
+                  tone="secondary"
+                  startContent={<LogOut size={18} />}
+                  onClick={() => {
+                    logoutMutation.mutate();
+                  }}
+                >
+                  Log out
+                </Button>
+              </div>
+            ) : null}
+            {userQuery.error ? (
+              <p className="form-error">
+                Please log in again to view your account.
+              </p>
+            ) : null}
+          </CardBody>
+        </Card>
+      </div>
     </main>
   );
 }
 
 function AuthFrame({
   children,
-  description,
-  eyebrow,
+  description: _description,
+  eyebrow: _eyebrow,
   icon,
   title,
+  animationType = "login",
 }: Readonly<{
   children: ReactNode;
   description: string;
   eyebrow: string;
   icon: ReactNode;
   title: string;
+  animationType?: "login" | "register" | "forgot" | "reset";
 }>): ReactNode {
   return (
     <main className="auth-page">
       <section className="auth-panel">
         <div className="auth-copy">
-          <span className="auth-icon">{icon}</span>
-          <span className="eyebrow">{eyebrow}</span>
-          <h1>{title}</h1>
-          <p>{description}</p>
+          <div className="auth-header-info">
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+              <span className="auth-icon" style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.75rem" }}>{icon}</span>
+              <h3 style={{ margin: 0, fontSize: "1.75rem", fontWeight: 600 }}>{title}</h3>
+            </div>
+          </div>
+          <div className="auth-visual-container">
+            <div className={`auth-animation-graphic type-${animationType}`}>
+              <div className="graphic-circle-bg">
+                {animationType === "login" && <ShieldCheck className="animated-icon-main" size={54} />}
+                {animationType === "register" && <UserPlus className="animated-icon-main" size={54} />}
+                {animationType === "forgot" && <Mail className="animated-icon-main" size={54} />}
+                {animationType === "reset" && <KeyRound className="animated-icon-main" size={54} />}
+              </div>
+              <div className="decorative-ring ring-1"></div>
+              <div className="decorative-ring ring-2"></div>
+            </div>
+          </div>
         </div>
         <Card className="auth-card">
           <CardBody>{children}</CardBody>

@@ -82,7 +82,18 @@ export type HomepagePromoBanner = {
   action: HomepageLink;
 };
 
+export type HomepageCarouselSlide = {
+  id: string;
+  image: HomepageImage;
+  linkHref: string;
+  title?: string;
+  description?: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
 export type HomepagePayload = {
+  carousel: HomepageCarouselSlide[];
   hero: HomepageHeroBanner;
   metrics: HomepageMetric[];
   featuredCategories: HomepageCategory[];

@@ -1,11 +1,12 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
 export function Card({
   children,
   className,
-}: Readonly<{ children: ReactNode; className?: string }>): ReactNode {
+  ...props
+}: Readonly<HTMLAttributes<HTMLElement> & { children: ReactNode }>): ReactNode {
   return (
-    <article className={["ui-card", className].filter(Boolean).join(" ")}>
+    <article className={["ui-card", className].filter(Boolean).join(" ")} {...props}>
       {children}
     </article>
   );
@@ -13,6 +14,7 @@ export function Card({
 
 export function CardBody({
   children,
-}: Readonly<{ children: ReactNode }>): ReactNode {
-  return <div className="ui-card-body">{children}</div>;
+  ...props
+}: Readonly<HTMLAttributes<HTMLDivElement> & { children: ReactNode }>): ReactNode {
+  return <div className="ui-card-body" {...props}>{children}</div>;
 }

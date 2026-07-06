@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "../../shared/ui/badge.js";
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -19,6 +20,8 @@ import { Chip } from "../../shared/ui/chip.js";
 import { toAbsoluteUrl } from "../../shared/seo/seo.js";
 import { homepagePreviewData } from "./homepage.data.js";
 import type { HomepageProduct } from "./homepage.types.js";
+import { HomeCarousel } from "./home-carousel.js";
+import { fetchHomepage } from "./homepage-api.js";
 
 const formatter = new Intl.NumberFormat("en-BD", {
   currency: "BDT",
@@ -27,7 +30,10 @@ const formatter = new Intl.NumberFormat("en-BD", {
 });
 
 export function HomeFoundationPage(): ReactNode {
-  const homepage = homepagePreviewData;
+  const { data: homepage = homepagePreviewData } = useQuery({
+    queryKey: ["homepage"],
+    queryFn: fetchHomepage,
+  });
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -55,58 +61,62 @@ export function HomeFoundationPage(): ReactNode {
       <script type="application/ld+json">
         {JSON.stringify(websiteJsonLd)}
       </script>
-      <section className="home-hero" aria-labelledby="home-title">
-        <div className="home-hero-copy">
-          <Chip startContent={<Sparkles aria-hidden="true" size={16} />}>
-            {homepage.hero.eyebrow}
-          </Chip>
-          <h1 id="home-title">{homepage.hero.title}</h1>
-          <p>{homepage.hero.description}</p>
-          <div className="hero-actions">
-            <a
-              className="ui-button ui-button-primary"
-              href={homepage.hero.primaryAction.href}
-            >
-              {homepage.hero.primaryAction.label}
-              <ArrowRight aria-hidden="true" size={18} />
-            </a>
-            <a
-              className="ui-button ui-button-secondary"
-              href={homepage.hero.secondaryAction.href}
-            >
-              {homepage.hero.secondaryAction.label}
-            </a>
+      {homepage.carousel && homepage.carousel.length > 0 ? (
+        <HomeCarousel slides={homepage.carousel} />
+      ) : (
+        <section className="home-hero" aria-labelledby="home-title">
+          <div className="home-hero-copy">
+            <Chip startContent={<Sparkles aria-hidden="true" size={16} />}>
+              {homepage.hero.eyebrow}
+            </Chip>
+            <h1 id="home-title">{homepage.hero.title}</h1>
+            <p>{homepage.hero.description}</p>
+            <div className="hero-actions">
+              <a
+                className="ui-button ui-button-primary"
+                href={homepage.hero.primaryAction.href}
+              >
+                {homepage.hero.primaryAction.label}
+                <ArrowRight aria-hidden="true" size={18} />
+              </a>
+              <a
+                className="ui-button ui-button-secondary"
+                href={homepage.hero.secondaryAction.href}
+              >
+                {homepage.hero.secondaryAction.label}
+              </a>
+            </div>
+            <dl className="home-metrics" aria-label="Midas Basket highlights">
+              {homepage.metrics.map((metric) => (
+                <div key={metric.label}>
+                  <dt>{metric.label}</dt>
+                  <dd>{metric.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <dl className="home-metrics" aria-label="Midas Basket highlights">
-            {homepage.metrics.map((metric) => (
-              <div key={metric.label}>
-                <dt>{metric.label}</dt>
-                <dd>{metric.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
 
-        <aside className="home-hero-panel" aria-label="Featured shopping tools">
-          <div className="hero-search-card">
-            <Search aria-hidden="true" size={20} />
-            <span>Search products, categories, and brands</span>
-          </div>
-          <div className="hero-product-card">
-            <Badge>Featured</Badge>
-            <strong>{homepage.featuredProducts[0]?.name}</strong>
-            <span>{formatPrice(homepage.featuredProducts[0])}</span>
-          </div>
-          <div className="hero-service-row">
-            <span>
-              <Truck aria-hidden="true" size={18} /> Fast dispatch
-            </span>
-            <span>
-              <BadgeCheck aria-hidden="true" size={18} /> Secure checkout
-            </span>
-          </div>
-        </aside>
-      </section>
+          <aside className="home-hero-panel" aria-label="Featured shopping tools">
+            <div className="hero-search-card">
+              <Search aria-hidden="true" size={20} />
+              <span>Search products, categories, and brands</span>
+            </div>
+            <div className="hero-product-card">
+              <Badge>Featured</Badge>
+              <strong>{homepage.featuredProducts[0]?.name}</strong>
+              <span>{formatPrice(homepage.featuredProducts[0])}</span>
+            </div>
+            <div className="hero-service-row">
+              <span>
+                <Truck aria-hidden="true" size={18} /> Fast dispatch
+              </span>
+              <span>
+                <BadgeCheck aria-hidden="true" size={18} /> Secure checkout
+              </span>
+            </div>
+          </aside>
+        </section>
+      )}
 
       <section
         className="home-section"
@@ -353,7 +363,11 @@ function ProductRail({
         {products.map((product) => (
           <article className="product-card" key={product.id}>
             <div className="product-media" aria-hidden="true">
-              <PackageSearch size={28} />
+              {product.image?.src ? (
+                <img src={product.image.src} alt={product.image.alt} />
+              ) : (
+                <PackageSearch size={28} />
+              )}
             </div>
             <div className="product-content">
               {product.badge ? <Badge>{product.badge}</Badge> : null}

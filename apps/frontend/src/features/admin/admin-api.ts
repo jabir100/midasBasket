@@ -123,3 +123,104 @@ export async function listAuditLogs(input?: {
   );
   return response.data.data.logs;
 }
+
+export type AdminCarouselSlide = {
+  id: string;
+  image: {
+    url: string;
+    alt: string;
+    publicId?: string;
+  };
+  linkHref: string;
+  title?: string;
+  description?: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export async function getAdminCarouselSlides(): Promise<AdminCarouselSlide[]> {
+  const response = await apiClient.get<ApiSuccess<{ slides: AdminCarouselSlide[] }>>(
+    "/homepage/admin/carousel"
+  );
+  return response.data.data.slides;
+}
+
+export async function createCarouselSlide(formData: FormData): Promise<AdminCarouselSlide> {
+  const response = await apiClient.post<ApiSuccess<{ slide: AdminCarouselSlide }>> (
+    "/homepage/admin/carousel",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data.data.slide;
+}
+
+export async function deleteCarouselSlide(slideId: string): Promise<void> {
+  await apiClient.delete(`/homepage/admin/carousel/${slideId}`);
+}
+
+export async function toggleCarouselSlideActive(
+  slideId: string,
+  isActive: boolean
+): Promise<AdminCarouselSlide> {
+  const response = await apiClient.patch<ApiSuccess<{ slide: AdminCarouselSlide }>>(
+    `/homepage/admin/carousel/${slideId}/toggle`,
+    { isActive }
+  );
+  return response.data.data.slide;
+}
+
+export type AdminProduct = {
+  _id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  description: string;
+  shortDescription?: string;
+  categoryId: string;
+  brandId: string;
+  price: number;
+  compareAtPrice?: number;
+  stockQuantity: number;
+  images: { url: string; alt: string; publicId?: string }[];
+  tags: string[];
+  isFeatured: boolean;
+  isPublished: boolean;
+  publishedAt?: string;
+};
+
+export async function listAdminProducts(): Promise<AdminProduct[]> {
+  const response = await apiClient.get<ApiSuccess<{ products: AdminProduct[] }>>(
+    "/catalog/admin/products"
+  );
+  return response.data.data.products;
+}
+
+export async function createAdminProduct(input: Partial<AdminProduct>): Promise<AdminProduct> {
+  const response = await apiClient.post<ApiSuccess<{ product: AdminProduct }>>(
+    "/catalog/admin/products",
+    input
+  );
+  return response.data.data.product;
+}
+
+export async function updateAdminProduct(
+  productId: string,
+  input: Partial<AdminProduct>
+): Promise<AdminProduct> {
+  const response = await apiClient.patch<ApiSuccess<{ product: AdminProduct }>>(
+    `/catalog/admin/products/${productId}`,
+    input
+  );
+  return response.data.data.product;
+}
+
+export async function deleteAdminProduct(productId: string): Promise<void> {
+  await apiClient.delete(`/catalog/admin/products/${productId}`);
+}
+

@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Clock3, Truck } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useMemo, useState } from "react";
+import { Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -58,11 +59,9 @@ export function CheckoutPage(): ReactNode {
   return (
     <main className="page-shell checkout-page">
       <section className="section-heading catalog-heading">
-        <span className="eyebrow">Phase 8</span>
-        <h1>Single-page checkout</h1>
-        <p>
-          Cash on delivery is enabled. Order creation writes a status timeline
-          and decrements stock.
+        <h3 style={{ margin: 0 }}>Single-page checkout</h3>
+        <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
+          Confirm your details and place your order using Cash on Delivery.
         </p>
       </section>
 
@@ -267,10 +266,9 @@ export function OrdersPage(): ReactNode {
   return (
     <main className="page-shell orders-page">
       <section className="section-heading catalog-heading">
-        <span className="eyebrow">Phase 8</span>
-        <h1>Orders and tracking</h1>
-        <p>
-          Review your order timeline, status progression, and COD payment state.
+        <h3 style={{ margin: 0 }}>Orders and tracking</h3>
+        <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
+          Review your order timeline, status progression, and payment state.
         </p>
       </section>
 
@@ -278,7 +276,12 @@ export function OrdersPage(): ReactNode {
         <Card className="orders-card">
           <CardBody>
             <h2>My orders</h2>
-            {ordersQuery.isLoading ? <p>Loading orders...</p> : null}
+            {ordersQuery.isLoading ? (
+              <div style={{ display: "grid", gap: "0.5rem", marginTop: "1rem" }}>
+                <Skeleton className="h-12 w-full rounded-lg" />
+                <Skeleton className="h-12 w-full rounded-lg" />
+              </div>
+            ) : null}
             {ordersQuery.data && ordersQuery.data.length > 0 ? (
               <ul className="orders-list">
                 {ordersQuery.data.map((order) => (

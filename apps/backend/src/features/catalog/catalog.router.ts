@@ -208,6 +208,15 @@ adminRouter.patch("/brands/:id", async (req, res, next) => {
   }
 });
 
+adminRouter.get("/products", async (_req, res, next) => {
+  try {
+    const products = await ProductModel.find().sort({ createdAt: -1 }).lean();
+    sendSuccess(res, { data: { products }, requestId: getRequestId(res) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 adminRouter.delete("/brands/:id", async (req, res, next) => {
   try {
     await BrandModel.findByIdAndDelete(req.params.id);

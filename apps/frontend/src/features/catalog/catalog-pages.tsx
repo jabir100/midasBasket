@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
 import { Search, SlidersHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
+import { Skeleton } from "@heroui/react";
 
 import { Badge } from "../../shared/ui/badge.js";
 import { Button } from "../../shared/ui/button.js";
@@ -16,6 +17,49 @@ import {
   listProducts,
   type CatalogProduct,
 } from "./catalog-api.js";
+
+function ProductSkeletonGrid(): ReactNode {
+  return (
+    <div className="catalog-grid">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i} className="catalog-product-card">
+          <div className="catalog-product-media" style={{ padding: 0 }}>
+            <Skeleton className="w-full h-full aspect-square" />
+          </div>
+          <CardBody>
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              <Skeleton className="h-6 w-3/4 rounded-lg" />
+              <Skeleton className="h-4 w-full rounded-lg" />
+              <Skeleton className="h-5 w-1/3 rounded-lg" />
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+                <Skeleton className="h-10 flex-1 rounded-full" />
+                <Skeleton className="h-10 flex-1 rounded-full" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function TaxonomySkeletonGrid(): ReactNode {
+  return (
+    <div className="taxonomy-grid">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i} className="taxonomy-card">
+          <CardBody>
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              <Skeleton className="h-4 w-1/4 rounded-lg" />
+              <Skeleton className="h-6 w-3/4 rounded-lg" />
+              <Skeleton className="h-4 w-full rounded-lg" />
+            </div>
+          </CardBody>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
 export function CatalogPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -51,25 +95,23 @@ export function CatalogPage(): ReactNode {
     <main className="page-shell catalog-page">
       <CatalogHeader
         title="Products"
-        description="Browse published products with search, category, brand, and price sorting backed by the catalog API."
+        description="Browse our selection of premium quality groceries and everyday essentials."
       />
-      <div className="catalog-toolbar">
-        <span>
-          <Search size={18} /> Search-ready API
-        </span>
-        <span>
-          <SlidersHorizontal size={18} /> Filter and sort contracts
-        </span>
-      </div>
-      <ProductGrid
-        products={productsQuery.data?.products ?? []}
-        isLoading={productsQuery.isLoading}
-        onAddToCart={(productId) => { addToCartMutation.mutate(productId); }}
-        onAddToWishlist={(productId) => { addToWishlistMutation.mutate(productId); }}
-        isMutating={
-          addToCartMutation.isPending || addToWishlistMutation.isPending
-        }
-      />
+      
+      {productsQuery.isLoading ? (
+        <ProductSkeletonGrid />
+      ) : (
+        <ProductGrid
+          products={productsQuery.data?.products ?? []}
+          isLoading={false}
+          onAddToCart={(productId) => { addToCartMutation.mutate(productId); }}
+          onAddToWishlist={(productId) => { addToWishlistMutation.mutate(productId); }}
+          isMutating={
+            addToCartMutation.isPending || addToWishlistMutation.isPending
+          }
+        />
+      )}
+
       {productsQuery.error ? (
         <p className="form-error">Unable to load products from the API.</p>
       ) : null}
@@ -124,13 +166,20 @@ export function ProductDetailPage({
           </div>
           <div className="product-detail-copy">
             <Badge>{product.sku}</Badge>
-            <h1>{product.name}</h1>
+            <h3>{product.name}</h3>
             <p>{product.description}</p>
             <strong>৳{product.price.toLocaleString("en-BD")}</strong>
           </div>
         </section>
       ) : null}
-      {productQuery.isLoading ? <p>Loading product...</p> : null}
+      {productQuery.isLoading ? (
+        <div style={{ display: "grid", gap: "1rem" }}>
+          <Skeleton className="h-6 w-1/4 rounded-lg" />
+          <Skeleton className="h-10 w-3/4 rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-8 w-1/4 rounded-lg" />
+        </div>
+      ) : null}
       {productQuery.error ? (
         <p className="form-error">Product was not found.</p>
       ) : null}
@@ -148,20 +197,24 @@ export function CategoriesPage(): ReactNode {
     <main className="page-shell catalog-page">
       <CatalogHeader
         title="Categories"
-        description="Active category browsing surface connected to the public catalog category endpoint."
+        description="Explore our wide range of categories for a complete grocery solution."
       />
-      <div className="taxonomy-grid">
-        {(categoriesQuery.data ?? []).map((category) => (
-          <TaxonomyCard
-            key={category._id}
-            name={category.name}
-            slug={category.slug}
-            {...(category.description
-              ? { description: category.description }
-              : {})}
-          />
-        ))}
-      </div>
+      {categoriesQuery.isLoading ? (
+        <TaxonomySkeletonGrid />
+      ) : (
+        <div className="taxonomy-grid">
+          {(categoriesQuery.data ?? []).map((category) => (
+            <TaxonomyCard
+              key={category._id}
+              name={category.name}
+              slug={category.slug}
+              {...(category.description
+                ? { description: category.description }
+                : {})}
+            />
+          ))}
+        </div>
+      )}
       {categoriesQuery.error ? (
         <p className="form-error">Unable to load categories.</p>
       ) : null}
@@ -179,18 +232,22 @@ export function BrandsPage(): ReactNode {
     <main className="page-shell catalog-page">
       <CatalogHeader
         title="Brands"
-        description="Active brand browsing surface connected to the public catalog brand endpoint."
+        description="Choose premium groceries from our certified and trusted partner brands."
       />
-      <div className="taxonomy-grid">
-        {(brandsQuery.data ?? []).map((brand) => (
-          <TaxonomyCard
-            key={brand._id}
-            name={brand.name}
-            slug={brand.slug}
-            {...(brand.description ? { description: brand.description } : {})}
-          />
-        ))}
-      </div>
+      {brandsQuery.isLoading ? (
+        <TaxonomySkeletonGrid />
+      ) : (
+        <div className="taxonomy-grid">
+          {(brandsQuery.data ?? []).map((brand) => (
+            <TaxonomyCard
+              key={brand._id}
+              name={brand.name}
+              slug={brand.slug}
+              {...(brand.description ? { description: brand.description } : {})}
+            />
+          ))}
+        </div>
+      )}
       {brandsQuery.error ? (
         <p className="form-error">Unable to load brands.</p>
       ) : null}
@@ -204,9 +261,8 @@ function CatalogHeader({
 }: Readonly<{ description: string; title: string }>): ReactNode {
   return (
     <section className="section-heading catalog-heading">
-      <span className="eyebrow">Catalog</span>
-      <h1>{title}</h1>
-      <p>{description}</p>
+      <h3 style={{ margin: 0 }}>{title}</h3>
+      <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>{description}</p>
     </section>
   );
 }
@@ -225,7 +281,7 @@ function ProductGrid({
   isMutating: boolean;
 }>): ReactNode {
   if (isLoading) {
-    return <p>Loading products...</p>;
+    return <ProductSkeletonGrid />;
   }
 
   if (products.length === 0) {
@@ -289,3 +345,4 @@ function TaxonomyCard({
     </Card>
   );
 }
+

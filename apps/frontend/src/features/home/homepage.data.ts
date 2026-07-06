@@ -60,6 +60,7 @@ const products = [
 ] as const;
 
 export const homepagePreviewData: HomepagePayload = {
+  carousel: [],
   hero: {
     eyebrow: "Premium essentials, delivered fast",
     title: "Modern shopping for everyday wins",

@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -17,14 +18,16 @@ import {
 export function CartPage(): ReactNode {
   const queryClient = useQueryClient();
   const [couponCode, setCouponCode] = useState("");
-  const cartQuery = useQuery({
-    queryKey: ["cart"],
-    queryFn: getCart,
-  });
+  const cartQuery = useQuery({ queryKey: ["cart"], queryFn: getCart });
 
   const mutateCart = useMutation({
-    mutationFn: async (input: { productId: string; quantity: number }) =>
-      updateCartItem(input),
+    mutationFn: ({
+      productId,
+      quantity,
+    }: {
+      productId: string;
+      quantity: number;
+    }) => updateCartItem({ productId, quantity }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
@@ -57,15 +60,19 @@ export function CartPage(): ReactNode {
   return (
     <main className="page-shell cart-page">
       <section className="section-heading catalog-heading">
-        <span className="eyebrow">Phase 7</span>
-        <h1>Shopping cart</h1>
-        <p>
-          Guest and customer carts are active. Coupon submission is ready for
-          future discount validation rules.
+        <h3 style={{ margin: 0 }}>Shopping cart</h3>
+        <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
+          Review your items and proceed to checkout.
         </p>
       </section>
 
-      {cartQuery.isLoading ? <p>Loading cart...</p> : null}
+      {cartQuery.isLoading ? (
+        <div style={{ display: "grid", gap: "1rem", marginTop: "1.5rem" }}>
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <Skeleton className="h-10 w-48 rounded-lg" />
+        </div>
+      ) : null}
       {cartQuery.error ? (
         <p className="form-error">Unable to load cart right now.</p>
       ) : null}
@@ -95,8 +102,9 @@ export function CartPage(): ReactNode {
                           }); }
                         }
                         disabled={mutateCart.isPending}
+                        startContent={<Minus size={16} />}
                       >
-                        <Minus size={16} />
+                        Decrease
                       </Button>
                       <span>{item.quantity}</span>
                       <Button
@@ -110,8 +118,9 @@ export function CartPage(): ReactNode {
                           }); }
                         }
                         disabled={mutateCart.isPending}
+                        startContent={<Plus size={16} />}
                       >
-                        <Plus size={16} />
+                        Increase
                       </Button>
                       <Button
                         iconOnly
@@ -119,8 +128,9 @@ export function CartPage(): ReactNode {
                         aria-label={`Remove ${item.title} from cart`}
                         onClick={() => { deleteItem.mutate(item.productId); }}
                         disabled={deleteItem.isPending}
+                        startContent={<Trash2 size={16} />}
                       >
-                        <Trash2 size={16} />
+                        Remove
                       </Button>
                     </div>
                   </li>
