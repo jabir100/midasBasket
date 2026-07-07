@@ -6,6 +6,10 @@ import {
   Eye,
   EyeOff,
   Trash2,
+  Tags,
+  BadgeCheck,
+  MessageSquareQuote,
+  Home,
   LayoutGrid,
   Users,
   ShoppingCart,
@@ -19,12 +23,15 @@ import {
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
-import { Skeleton } from "@heroui/react";
+import { Input, Skeleton, TextArea, Toast } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
-import { getCurrentUser, getStoredAccessToken, logoutCustomer } from "../auth/auth-api.js";
-import { listCategories, listBrands } from "../catalog/catalog-api.js";
+import {
+  getCurrentUser,
+  getStoredAccessToken,
+  logoutCustomer,
+} from "../auth/auth-api.js";
 import {
   getAdminSummary,
   listAdminOrders,
@@ -40,8 +47,38 @@ import {
   createAdminProduct,
   updateAdminProduct,
   deleteAdminProduct,
-  type AdminProduct,
+  listAdminCategories,
+  createAdminCategory,
+  updateAdminCategory,
+  deleteAdminCategory,
+  listAdminBrands,
+  createAdminBrand,
+  updateAdminBrand,
+  deleteAdminBrand,
+  getHomepageSettings,
+  updateHomepageSettings,
+  listAdminTestimonials,
+  createAdminTestimonial,
+  updateAdminTestimonial,
+  deleteAdminTestimonial,
+  type AdminTaxonomy,
+  type HomepageSettings,
 } from "./admin-api.js";
+import {
+  AdminField,
+  AdminSelect,
+  AdminSwitch,
+  RepeaterFields,
+} from "./admin-form-controls.js";
+import {
+  defaultHomepageForm,
+  emptyTaxonomyForm,
+  slugify,
+  toTaxonomyPayload,
+  type AdminPanel,
+  type TaxonomyForm,
+} from "./admin-types.js";
+import { TaxonomyPanel } from "./taxonomy-panel.js";
 
 const statusOptions = [
   "placed",
@@ -52,8 +89,6 @@ const statusOptions = [
   "delivered",
   "cancelled",
 ] as const;
-
-type AdminPanel = "overview" | "users" | "orders" | "carousel" | "products";
 
 export function AdminDashboardPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -69,9 +104,9 @@ export function AdminDashboardPage(): ReactNode {
 
   useEffect(() => {
     if (!token) {
-      navigate({ to: "/login" });
+      void navigate({ to: "/login" });
     } else if (userQuery.data && userQuery.data.role !== "admin") {
-      navigate({ to: "/" });
+      void navigate({ to: "/" });
     }
   }, [token, userQuery.data, navigate]);
 
@@ -81,6 +116,18 @@ export function AdminDashboardPage(): ReactNode {
   const [userFilter, setUserFilter] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("");
   const [productSearch, setProductSearch] = useState("");
+  const [categoryForm, setCategoryForm] =
+    useState<TaxonomyForm>(emptyTaxonomyForm);
+  const [brandForm, setBrandForm] = useState<TaxonomyForm>(emptyTaxonomyForm);
+  const [homepageForm, setHomepageForm] =
+    useState<HomepageSettings>(defaultHomepageForm);
+  const [testimonialForm, setTestimonialForm] = useState({
+    customerName: "",
+    quote: "",
+    rating: 5,
+    sortOrder: 0,
+    isActive: true,
+  });
 
   const isAdmin = token ? userQuery.data?.role === "admin" : false;
 
@@ -91,12 +138,16 @@ export function AdminDashboardPage(): ReactNode {
   });
   const usersQuery = useQuery({
     queryKey: ["admin", "users", userFilter],
-    queryFn: () => listAdminUsers(userFilter ? { search: userFilter } : undefined),
+    queryFn: () =>
+      listAdminUsers(userFilter ? { search: userFilter } : undefined),
     enabled: isAdmin,
   });
   const ordersQuery = useQuery({
     queryKey: ["admin", "orders", orderStatusFilter],
-    queryFn: () => listAdminOrders(orderStatusFilter ? { status: orderStatusFilter } : undefined),
+    queryFn: () =>
+      listAdminOrders(
+        orderStatusFilter ? { status: orderStatusFilter } : undefined,
+      ),
     enabled: isAdmin,
   });
   const auditQuery = useQuery({
@@ -116,14 +167,68 @@ export function AdminDashboardPage(): ReactNode {
   });
   const categoriesQuery = useQuery({
     queryKey: ["admin", "categories"],
-    queryFn: listCategories,
+    queryFn: listAdminCategories,
     enabled: isAdmin,
   });
   const brandsQuery = useQuery({
     queryKey: ["admin", "brands"],
-    queryFn: listBrands,
+    queryFn: listAdminBrands,
     enabled: isAdmin,
   });
+  const homepageSettingsQuery = useQuery({
+    queryKey: ["admin", "homepage", "settings"],
+    queryFn: getHomepageSettings,
+    enabled: isAdmin,
+  });
+  const testimonialsQuery = useQuery({
+    queryKey: ["admin", "homepage", "testimonials"],
+    queryFn: listAdminTestimonials,
+    enabled: isAdmin,
+  });
+
+  useEffect(() => {
+    if (homepageSettingsQuery.data) {
+      setHomepageForm({
+        ...defaultHomepageForm,
+        ...homepageSettingsQuery.data,
+        hero: {
+          ...defaultHomepageForm.hero,
+          ...homepageSettingsQuery.data.hero,
+          title:
+            homepageSettingsQuery.data.hero?.title ??
+            "Modern shopping for everyday wins",
+          primaryAction: {
+            ...(defaultHomepageForm.hero?.primaryAction ?? {
+              href: "/products",
+              label: "Shop products",
+            }),
+            ...homepageSettingsQuery.data.hero?.primaryAction,
+          },
+          secondaryAction: {
+            ...(defaultHomepageForm.hero?.secondaryAction ?? {
+              href: "/categories",
+              label: "Browse categories",
+            }),
+            ...homepageSettingsQuery.data.hero?.secondaryAction,
+          },
+        },
+        promoBanner: {
+          ...defaultHomepageForm.promoBanner,
+          ...homepageSettingsQuery.data.promoBanner,
+          title:
+            homepageSettingsQuery.data.promoBanner?.title ??
+            "Weekend essentials, sharper prices",
+          action: {
+            ...(defaultHomepageForm.promoBanner?.action ?? {
+              href: "/products",
+              label: "Explore offers",
+            }),
+            ...homepageSettingsQuery.data.promoBanner?.action,
+          },
+        },
+      });
+    }
+  }, [homepageSettingsQuery.data]);
 
   const logoutMutation = useMutation({
     mutationFn: logoutCustomer,
@@ -134,11 +239,17 @@ export function AdminDashboardPage(): ReactNode {
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ userId, status }: { userId: string; status: "active" | "blocked" }) =>
-      updateAdminUser(userId, { status }),
+    mutationFn: ({
+      userId,
+      status,
+    }: {
+      userId: string;
+      status: "active" | "blocked";
+    }) => updateAdminUser(userId, { status }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "summary"] });
+      Toast.toast.success("User status updated");
     },
   });
 
@@ -149,6 +260,7 @@ export function AdminDashboardPage(): ReactNode {
       await queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "summary"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "audit"] });
+      Toast.toast.success("Order status updated");
     },
   });
 
@@ -171,14 +283,21 @@ export function AdminDashboardPage(): ReactNode {
         brandId: "",
         isPublished: true,
       });
+      Toast.toast.success("Product created");
     },
   });
 
   const toggleProductPublishMutation = useMutation({
-    mutationFn: ({ productId, isPublished }: { productId: string; isPublished: boolean }) =>
-      updateAdminProduct(productId, { isPublished }),
+    mutationFn: ({
+      productId,
+      isPublished,
+    }: {
+      productId: string;
+      isPublished: boolean;
+    }) => updateAdminProduct(productId, { isPublished }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      Toast.toast.success("Product visibility updated");
     },
   });
 
@@ -186,6 +305,138 @@ export function AdminDashboardPage(): ReactNode {
     mutationFn: deleteAdminProduct,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
+      Toast.toast.success("Product deleted");
+    },
+  });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: createAdminCategory,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "categories"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      setCategoryForm(emptyTaxonomyForm);
+      Toast.toast.success("Category created");
+    },
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: ({
+      categoryId,
+      input,
+    }: {
+      categoryId: string;
+      input: Partial<AdminTaxonomy>;
+    }) => updateAdminCategory(categoryId, input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "categories"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      Toast.toast.success("Category updated");
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: deleteAdminCategory,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "categories"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      Toast.toast.success("Category deleted");
+    },
+  });
+
+  const createBrandMutation = useMutation({
+    mutationFn: createAdminBrand,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "brands"] });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      setBrandForm(emptyTaxonomyForm);
+      Toast.toast.success("Brand created");
+    },
+  });
+
+  const updateBrandMutation = useMutation({
+    mutationFn: ({
+      brandId,
+      input,
+    }: {
+      brandId: string;
+      input: Partial<AdminTaxonomy>;
+    }) => updateAdminBrand(brandId, input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "brands"] });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      Toast.toast.success("Brand updated");
+    },
+  });
+
+  const deleteBrandMutation = useMutation({
+    mutationFn: deleteAdminBrand,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin", "brands"] });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      Toast.toast.success("Brand deleted");
+    },
+  });
+
+  const updateHomepageMutation = useMutation({
+    mutationFn: updateHomepageSettings,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "homepage", "settings"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      Toast.toast.success("Homepage settings saved");
+    },
+  });
+
+  const createTestimonialMutation = useMutation({
+    mutationFn: createAdminTestimonial,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "homepage", "testimonials"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      setTestimonialForm({
+        customerName: "",
+        quote: "",
+        rating: 5,
+        sortOrder: 0,
+        isActive: true,
+      });
+      Toast.toast.success("Testimonial added");
+    },
+  });
+
+  const updateTestimonialMutation = useMutation({
+    mutationFn: ({
+      testimonialId,
+      input,
+    }: {
+      testimonialId: string;
+      input: { isActive?: boolean };
+    }) => updateAdminTestimonial(testimonialId, input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "homepage", "testimonials"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      Toast.toast.success("Testimonial updated");
+    },
+  });
+
+  const deleteTestimonialMutation = useMutation({
+    mutationFn: deleteAdminTestimonial,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "homepage", "testimonials"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["homepage"] });
+      Toast.toast.success("Testimonial deleted");
     },
   });
 
@@ -202,10 +453,19 @@ export function AdminDashboardPage(): ReactNode {
     mutationFn: createCarouselSlide,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "carousel"] });
-      setSlideForm({ linkHref: "", title: "", description: "", imageAlt: "", sortOrder: 0 });
+      setSlideForm({
+        linkHref: "",
+        title: "",
+        description: "",
+        imageAlt: "",
+        sortOrder: 0,
+      });
       setFile(null);
-      const fileInput = document.getElementById("slide-file-input") as HTMLInputElement;
+      const fileInput = document.getElementById(
+        "slide-file-input",
+      ) as HTMLInputElement | null;
       if (fileInput) fileInput.value = "";
+      Toast.toast.success("Carousel slide uploaded");
     },
   });
 
@@ -213,14 +473,21 @@ export function AdminDashboardPage(): ReactNode {
     mutationFn: deleteCarouselSlide,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "carousel"] });
+      Toast.toast.success("Carousel slide deleted");
     },
   });
 
   const toggleSlideMutation = useMutation({
-    mutationFn: ({ slideId, isActive }: { slideId: string; isActive: boolean }) =>
-      toggleCarouselSlideActive(slideId, isActive),
+    mutationFn: ({
+      slideId,
+      isActive,
+    }: {
+      slideId: string;
+      isActive: boolean;
+    }) => toggleCarouselSlideActive(slideId, isActive),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "carousel"] });
+      Toast.toast.success("Carousel visibility updated");
     },
   });
 
@@ -244,32 +511,85 @@ export function AdminDashboardPage(): ReactNode {
     return null;
   }
 
-  const adminName = userQuery.data?.name ?? "Admin";
+  const adminName = userQuery.data.name;
 
-  const navItems: { id: AdminPanel; label: string; icon: ReactNode; badge?: number }[] = [
+  const navItems: {
+    id: AdminPanel;
+    label: string;
+    icon: ReactNode;
+    badge?: number;
+  }[] = [
     { id: "overview", label: "Overview", icon: <LayoutGrid size={18} /> },
-    { id: "products", label: "Products", icon: <Package size={18} />, badge: (productsQuery.data ?? []).length },
-    { id: "users", label: "Users", icon: <Users size={18} />, badge: (usersQuery.data ?? []).length },
-    { id: "orders", label: "Orders", icon: <ShoppingCart size={18} />, badge: (ordersQuery.data ?? []).length },
-    { id: "carousel", label: "Carousel", icon: <Image size={18} />, badge: (carouselQuery.data ?? []).length },
+    {
+      id: "products",
+      label: "Products",
+      icon: <Package size={18} />,
+      badge: (productsQuery.data ?? []).length,
+    },
+    {
+      id: "categories",
+      label: "Categories",
+      icon: <Tags size={18} />,
+      badge: (categoriesQuery.data ?? []).length,
+    },
+    {
+      id: "brands",
+      label: "Brands",
+      icon: <BadgeCheck size={18} />,
+      badge: (brandsQuery.data ?? []).length,
+    },
+    {
+      id: "homepage",
+      label: "Homepage",
+      icon: <Home size={18} />,
+      badge: (testimonialsQuery.data ?? []).length,
+    },
+    {
+      id: "users",
+      label: "Users",
+      icon: <Users size={18} />,
+      badge: (usersQuery.data ?? []).length,
+    },
+    {
+      id: "orders",
+      label: "Orders",
+      icon: <ShoppingCart size={18} />,
+      badge: (ordersQuery.data ?? []).length,
+    },
+    {
+      id: "carousel",
+      label: "Carousel",
+      icon: <Image size={18} />,
+      badge: (carouselQuery.data ?? []).length,
+    },
   ];
 
   const filteredProducts = (productsQuery.data ?? []).filter(
     (p) =>
       p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-      p.sku.toLowerCase().includes(productSearch.toLowerCase())
+      p.sku.toLowerCase().includes(productSearch.toLowerCase()),
   );
 
   return (
     <div className="dashboard-wrapper">
       {/* ── Sidebar ────────────────────────────────────────────────────────── */}
-      <aside className={`dashboard-sidebar admin-sidebar ${isSidebarCollapsed ? "collapsed" : ""}`}>
+      <aside
+        className={`dashboard-sidebar admin-sidebar ${isSidebarCollapsed ? "collapsed" : ""}`}
+      >
         <button
-          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onClick={() => {
+            setIsSidebarCollapsed(!isSidebarCollapsed);
+          }}
           className="sidebar-toggle-btn"
-          aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={
+            isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+          }
         >
-          {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {isSidebarCollapsed ? (
+            <ChevronRight size={16} />
+          ) : (
+            <ChevronLeft size={16} />
+          )}
         </button>
 
         {/* Brand */}
@@ -293,7 +613,9 @@ export function AdminDashboardPage(): ReactNode {
               {item.icon}
               {!isSidebarCollapsed && (
                 <>
-                  <span style={{ flex: 1, textAlign: "left" }}>{item.label}</span>
+                  <span style={{ flex: 1, textAlign: "left" }}>
+                    {item.label}
+                  </span>
                   {item.badge !== undefined && item.badge > 0 && (
                     <span className="admin-nav-badge">{item.badge}</span>
                   )}
@@ -304,18 +626,37 @@ export function AdminDashboardPage(): ReactNode {
         </nav>
 
         {/* Identity & Logout at the bottom */}
-        <div className="admin-sidebar-footer" style={{ borderTop: "1px solid var(--color-midas-border)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+          className="admin-sidebar-footer"
+          style={{
+            borderTop: "1px solid var(--color-midas-border)",
+            paddingTop: "1rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+          }}
+        >
           {!isSidebarCollapsed && (
-            <div className="admin-sidebar-identity" style={{ padding: "0 0.5rem" }}>
+            <div
+              className="admin-sidebar-identity"
+              style={{ padding: "0 0.5rem" }}
+            >
               <small className="admin-sidebar-role-label">Administration</small>
-              <p className="admin-sidebar-name" style={{ margin: 0, fontSize: "0.85rem" }}>
+              <p
+                className="admin-sidebar-name"
+                style={{ margin: 0, fontSize: "0.85rem" }}
+              >
                 Hi, <strong>{adminName}</strong>
               </p>
             </div>
           )}
-          
+
           {!isSidebarCollapsed && (
-            <Link to="/" className="admin-sidebar-footer-link" style={{ fontSize: "0.8rem", color: "var(--color-midas-gray)" }}>
+            <Link
+              to="/"
+              className="admin-sidebar-footer-link"
+              style={{ fontSize: "0.8rem", color: "var(--color-midas-gray)" }}
+            >
               ← Exit to store
             </Link>
           )}
@@ -324,7 +665,9 @@ export function AdminDashboardPage(): ReactNode {
             className="sidebar-nav-btn admin-logout-btn"
             title="Log out"
             disabled={logoutMutation.isPending}
-            onClick={() => logoutMutation.mutate()}
+            onClick={() => {
+              logoutMutation.mutate();
+            }}
           >
             <LogOut size={18} />
             {!isSidebarCollapsed && <span>Log out</span>}
@@ -340,14 +683,23 @@ export function AdminDashboardPage(): ReactNode {
             <div className="section-heading">
               <div>
                 <h3 style={{ margin: 0 }}>Admin dashboard</h3>
-                <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
-                  Operational analytics, account management, order lifecycle, and homepage settings.
+                <p
+                  style={{
+                    color: "var(--color-midas-gray)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
+                  Operational analytics, account management, order lifecycle,
+                  and homepage settings.
                 </p>
               </div>
             </div>
 
             {summaryQuery.data ? (
-              <section className="admin-summary-grid" style={{ marginTop: "1.5rem" }}>
+              <section
+                className="admin-summary-grid"
+                style={{ marginTop: "1.5rem" }}
+              >
                 <SummaryCard
                   icon={<BarChart3 size={18} />}
                   label="Revenue (lifetime)"
@@ -366,7 +718,10 @@ export function AdminDashboardPage(): ReactNode {
               </section>
             ) : null}
 
-            <Card className="dashboard-card admin-audit-card" style={{ marginTop: "2rem" }}>
+            <Card
+              className="dashboard-card admin-audit-card"
+              style={{ marginTop: "2rem" }}
+            >
               <CardBody>
                 <h2>Recent audit logs</h2>
                 {auditQuery.isLoading ? (
@@ -403,16 +758,31 @@ export function AdminDashboardPage(): ReactNode {
         {/* ── Products ──────────────────────────────────────────────────── */}
         {activePanel === "products" && (
           <div className="dashboard-pane-content">
-            <div className="section-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div
+              className="section-heading"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <div>
                 <h3 style={{ margin: 0 }}>Product management</h3>
-                <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
-                  Create, publish, edit, or delete items in the storefront catalog.
+                <p
+                  style={{
+                    color: "var(--color-midas-gray)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
+                  Create, publish, edit, or delete items in the storefront
+                  catalog.
                 </p>
               </div>
               <Button
                 tone="primary"
-                onClick={() => setShowAddProduct(!showAddProduct)}
+                onClick={() => {
+                  setShowAddProduct(!showAddProduct);
+                }}
                 startContent={<Plus size={18} />}
               >
                 {showAddProduct ? "View list" : "Add product"}
@@ -422,145 +792,193 @@ export function AdminDashboardPage(): ReactNode {
             {showAddProduct ? (
               <Card className="dashboard-card" style={{ marginTop: "1.5rem" }}>
                 <CardBody>
-                  <h2>Create New Product</h2>
+                  <div className="admin-form-head">
+                    <span className="dashboard-metric-icon">
+                      <Package size={18} />
+                    </span>
+                    <div>
+                      <h2>Create product</h2>
+                      <p className="form-muted">
+                        Publish catalog items with clean taxonomy and
+                        storefront-ready copy.
+                      </p>
+                    </div>
+                  </div>
                   <form
-                    className="auth-form"
+                    className="admin-modern-form"
                     onSubmit={(e) => {
                       e.preventDefault();
                       if (!productForm.categoryId || !productForm.brandId) {
-                        alert("Please select category and brand.");
+                        Toast.toast.warning("Select category and brand");
                         return;
                       }
                       createProductMutation.mutate(productForm);
                     }}
                   >
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                      <label>
-                        <span>Product Name*</span>
-                        <input
+                    <div className="admin-form-grid two">
+                      <AdminField label="Product name*">
+                        <Input
+                          className="admin-heroui-input"
                           required
                           value={productForm.name}
                           onChange={(e) => {
                             const name = e.target.value;
-                            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-                            setProductForm({ ...productForm, name, slug });
+                            setProductForm({
+                              ...productForm,
+                              name,
+                              slug: slugify(name),
+                            });
                           }}
                         />
-                      </label>
+                      </AdminField>
 
-                      <label>
-                        <span>Slug* (automatic)</span>
-                        <input
+                      <AdminField label="Slug*">
+                        <Input
+                          className="admin-heroui-input"
                           required
                           value={productForm.slug}
-                          onChange={(e) => setProductForm({ ...productForm, slug: e.target.value })}
+                          onChange={(e) => {
+                            setProductForm({
+                              ...productForm,
+                              slug: e.target.value,
+                            });
+                          }}
                         />
-                      </label>
+                      </AdminField>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
-                      <label>
-                        <span>SKU*</span>
-                        <input
+                    <div className="admin-form-grid three">
+                      <AdminField label="SKU*">
+                        <Input
+                          className="admin-heroui-input"
                           required
                           value={productForm.sku}
-                          onChange={(e) => setProductForm({ ...productForm, sku: e.target.value.toUpperCase() })}
+                          onChange={(e) => {
+                            setProductForm({
+                              ...productForm,
+                              sku: e.target.value.toUpperCase(),
+                            });
+                          }}
                         />
-                      </label>
+                      </AdminField>
 
-                      <label>
-                        <span>Price (BDT)*</span>
-                        <input
+                      <AdminField label="Price (BDT)*">
+                        <Input
+                          className="admin-heroui-input"
                           type="number"
                           required
-                          value={productForm.price}
-                          onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
+                          value={String(productForm.price)}
+                          onChange={(e) => {
+                            setProductForm({
+                              ...productForm,
+                              price: Number(e.target.value),
+                            });
+                          }}
                         />
-                      </label>
+                      </AdminField>
 
-                      <label>
-                        <span>Stock Quantity*</span>
-                        <input
+                      <AdminField label="Stock quantity*">
+                        <Input
+                          className="admin-heroui-input"
                           type="number"
                           required
-                          value={productForm.stockQuantity}
-                          onChange={(e) => setProductForm({ ...productForm, stockQuantity: Number(e.target.value) })}
+                          value={String(productForm.stockQuantity)}
+                          onChange={(e) => {
+                            setProductForm({
+                              ...productForm,
+                              stockQuantity: Number(e.target.value),
+                            });
+                          }}
                         />
-                      </label>
+                      </AdminField>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                      <label>
-                        <span>Category*</span>
-                        <select
-                          required
-                          value={productForm.categoryId}
-                          onChange={(e) => setProductForm({ ...productForm, categoryId: e.target.value })}
-                        >
-                          <option value="">Select Category</option>
-                          {(categoriesQuery.data ?? []).map((cat) => (
-                            <option key={cat._id} value={cat._id}>
-                              {cat.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-
-                      <label>
-                        <span>Brand*</span>
-                        <select
-                          required
-                          value={productForm.brandId}
-                          onChange={(e) => setProductForm({ ...productForm, brandId: e.target.value })}
-                        >
-                          <option value="">Select Brand</option>
-                          {(brandsQuery.data ?? []).map((b) => (
-                            <option key={b._id} value={b._id}>
-                              {b.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-
-                    <label>
-                      <span>Short Description</span>
-                      <input
-                        value={productForm.shortDescription}
-                        onChange={(e) => setProductForm({ ...productForm, shortDescription: e.target.value })}
-                      />
-                    </label>
-
-                    <label>
-                      <span>Full Description* (min 20 chars)</span>
-                      <textarea
-                        required
-                        style={{
-                          width: "100%",
-                          minHeight: "5rem",
-                          border: "1px solid var(--color-midas-border)",
-                          borderRadius: "0.9rem",
-                          padding: "0.5rem 0.9rem",
+                    <div className="admin-form-grid two">
+                      <AdminSelect
+                        label="Category*"
+                        placeholder="Select category"
+                        value={productForm.categoryId}
+                        options={(categoriesQuery.data ?? []).map(
+                          (category) => ({
+                            id: category._id,
+                            label: category.name,
+                          }),
+                        )}
+                        onChange={(categoryId) => {
+                          setProductForm({ ...productForm, categoryId });
                         }}
-                        value={productForm.description}
-                        onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                       />
-                    </label>
 
-                    <label style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                      <AdminSelect
+                        label="Brand*"
+                        placeholder="Select brand"
+                        value={productForm.brandId}
+                        options={(brandsQuery.data ?? []).map((brand) => ({
+                          id: brand._id,
+                          label: brand.name,
+                        }))}
+                        onChange={(brandId) => {
+                          setProductForm({ ...productForm, brandId });
+                        }}
+                      />
+                    </div>
+
+                    <AdminField label="Short description">
+                      <Input
+                        className="admin-heroui-input"
+                        value={productForm.shortDescription}
+                        onChange={(e) => {
+                          setProductForm({
+                            ...productForm,
+                            shortDescription: e.target.value,
+                          });
+                        }}
+                      />
+                    </AdminField>
+
+                    <AdminField label="Full description*">
+                      <TextArea
+                        className="admin-heroui-textarea"
+                        required
+                        value={productForm.description}
+                        onChange={(e) => {
+                          setProductForm({
+                            ...productForm,
+                            description: e.target.value,
+                          });
+                        }}
+                      />
+                    </AdminField>
+
+                    <label className="admin-checkbox-control">
                       <input
                         type="checkbox"
                         checked={productForm.isPublished}
-                        onChange={(e) => setProductForm({ ...productForm, isPublished: e.target.checked })}
+                        onChange={(event) => {
+                          setProductForm({
+                            ...productForm,
+                            isPublished: event.target.checked,
+                          });
+                        }}
                       />
                       <span>Publish immediately</span>
                     </label>
 
-                    <Button type="submit" tone="primary" disabled={createProductMutation.isPending}>
-                      {createProductMutation.isPending ? "Saving..." : "Create Product"}
-                    </Button>
+                    <div className="admin-form-actions">
+                      <Button
+                        type="submit"
+                        tone="primary"
+                        disabled={createProductMutation.isPending}
+                      >
+                        {createProductMutation.isPending
+                          ? "Saving..."
+                          : "Create Product"}
+                      </Button>
+                    </div>
                     {createProductMutation.error && (
-                      <p className="form-error">{createProductMutation.error.message}</p>
+                      <p className="form-error">
+                        {createProductMutation.error.message}
+                      </p>
                     )}
                   </form>
                 </CardBody>
@@ -573,7 +991,9 @@ export function AdminDashboardPage(): ReactNode {
                     <input
                       placeholder="Search name or SKU..."
                       value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
+                      onChange={(e) => {
+                        setProductSearch(e.target.value);
+                      }}
                     />
                   </div>
 
@@ -587,14 +1007,36 @@ export function AdminDashboardPage(): ReactNode {
 
                   <ul className="admin-list" style={{ gap: "1rem" }}>
                     {filteredProducts.map((product) => (
-                      <li key={product._id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--color-midas-border)", paddingBottom: "0.75rem" }}>
+                      <li
+                        key={product._id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          borderBottom: "1px solid var(--color-midas-border)",
+                          paddingBottom: "0.75rem",
+                        }}
+                      >
                         <div>
                           <strong>{product.name}</strong>
-                          <div style={{ fontSize: "0.8rem", color: "var(--color-midas-gray)", display: "flex", gap: "0.75rem", marginTop: "0.2rem" }}>
+                          <div
+                            style={{
+                              fontSize: "0.8rem",
+                              color: "var(--color-midas-gray)",
+                              display: "flex",
+                              gap: "0.75rem",
+                              marginTop: "0.2rem",
+                            }}
+                          >
                             <span>SKU: {product.sku}</span>
                             <span>Price: ৳{product.price}</span>
                             <span>Stock: {product.stockQuantity}</span>
-                            <span style={{ color: product.isPublished ? "green" : "red", fontWeight: "bold" }}>
+                            <span
+                              style={{
+                                color: product.isPublished ? "green" : "red",
+                                fontWeight: "bold",
+                              }}
+                            >
                               {product.isPublished ? "Published" : "Draft"}
                             </span>
                           </div>
@@ -604,15 +1046,23 @@ export function AdminDashboardPage(): ReactNode {
                           <Button
                             iconOnly
                             tone={product.isPublished ? "secondary" : "ghost"}
-                            title={product.isPublished ? "Unpublish" : "Publish"}
+                            title={
+                              product.isPublished ? "Unpublish" : "Publish"
+                            }
                             disabled={toggleProductPublishMutation.isPending}
-                            onClick={() =>
+                            onClick={() => {
                               toggleProductPublishMutation.mutate({
                                 productId: product._id,
                                 isPublished: !product.isPublished,
-                              })
+                              });
+                            }}
+                            startContent={
+                              product.isPublished ? (
+                                <Eye size={16} />
+                              ) : (
+                                <EyeOff size={16} />
+                              )
                             }
-                            startContent={product.isPublished ? <Eye size={16} /> : <EyeOff size={16} />}
                           >
                             Toggle Publish
                           </Button>
@@ -627,20 +1077,535 @@ export function AdminDashboardPage(): ReactNode {
                                 deleteProductMutation.mutate(product._id);
                               }
                             }}
-                            startContent={<Trash2 size={16} style={{ color: "var(--color-midas-red)" }} />}
+                            startContent={
+                              <Trash2
+                                size={16}
+                                style={{ color: "var(--color-midas-red)" }}
+                              />
+                            }
                           >
                             Delete
                           </Button>
                         </div>
                       </li>
                     ))}
-                    {filteredProducts.length === 0 && !productsQuery.isLoading && (
-                      <p className="form-muted">No products match search criteria.</p>
-                    )}
+                    {filteredProducts.length === 0 &&
+                      !productsQuery.isLoading && (
+                        <li className="admin-empty-row">
+                          <p className="form-muted">
+                            No products match search criteria.
+                          </p>
+                        </li>
+                      )}
                   </ul>
                 </CardBody>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* ── Categories ───────────────────────────────────────────────── */}
+        {activePanel === "categories" && (
+          <TaxonomyPanel
+            title="Category management"
+            description="Create storefront categories and control whether they appear in homepage highlights."
+            form={categoryForm}
+            items={categoriesQuery.data ?? []}
+            isLoading={categoriesQuery.isLoading}
+            isSaving={createCategoryMutation.isPending}
+            onFormChange={setCategoryForm}
+            onSubmit={() => {
+              createCategoryMutation.mutate(toTaxonomyPayload(categoryForm));
+            }}
+            onToggle={(category) => {
+              updateCategoryMutation.mutate({
+                categoryId: category._id,
+                input: { isActive: !(category.isActive ?? true) },
+              });
+            }}
+            onFeature={(category) => {
+              updateCategoryMutation.mutate({
+                categoryId: category._id,
+                input: { isFeatured: !(category.isFeatured ?? false) },
+              });
+            }}
+            onDelete={(category) => {
+              if (confirm(`Delete ${category.name}?`)) {
+                deleteCategoryMutation.mutate(category._id);
+              }
+            }}
+            error={createCategoryMutation.error?.message}
+          />
+        )}
+
+        {/* ── Brands ───────────────────────────────────────────────────── */}
+        {activePanel === "brands" && (
+          <TaxonomyPanel
+            title="Brand management"
+            description="Manage active brands and decide which partners are featured on the homepage."
+            form={brandForm}
+            items={brandsQuery.data ?? []}
+            isLoading={brandsQuery.isLoading}
+            isSaving={createBrandMutation.isPending}
+            onFormChange={setBrandForm}
+            onSubmit={() => {
+              createBrandMutation.mutate(toTaxonomyPayload(brandForm));
+            }}
+            onToggle={(brand) => {
+              updateBrandMutation.mutate({
+                brandId: brand._id,
+                input: { isActive: !(brand.isActive ?? true) },
+              });
+            }}
+            onFeature={(brand) => {
+              updateBrandMutation.mutate({
+                brandId: brand._id,
+                input: { isFeatured: !(brand.isFeatured ?? false) },
+              });
+            }}
+            onDelete={(brand) => {
+              if (confirm(`Delete ${brand.name}?`)) {
+                deleteBrandMutation.mutate(brand._id);
+              }
+            }}
+            error={createBrandMutation.error?.message}
+          />
+        )}
+
+        {/* ── Homepage Config ──────────────────────────────────────────── */}
+        {activePanel === "homepage" && (
+          <div className="dashboard-pane-content">
+            <div className="section-heading">
+              <div>
+                <h3 style={{ margin: 0 }}>Homepage configuration</h3>
+                <p
+                  style={{
+                    color: "var(--color-midas-gray)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
+                  Manage hero content, policy/value sections, campaign banner,
+                  metrics, and testimonials.
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="admin-homepage-grid"
+              style={{ marginTop: "1.5rem" }}
+            >
+              <Card className="dashboard-card">
+                <CardBody>
+                  <div className="admin-form-head">
+                    <span className="dashboard-metric-icon">
+                      <Home size={18} />
+                    </span>
+                    <div>
+                      <h2>Storefront sections</h2>
+                      <p className="form-muted">
+                        These values feed the public homepage payload and clear
+                        the homepage cache when saved.
+                      </p>
+                    </div>
+                  </div>
+                  <form
+                    className="admin-modern-form"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      updateHomepageMutation.mutate(homepageForm);
+                    }}
+                  >
+                    <div className="admin-form-grid two">
+                      <AdminField label="Hero eyebrow">
+                        <Input
+                          className="admin-heroui-input"
+                          value={homepageForm.hero?.eyebrow ?? ""}
+                          onChange={(event) => {
+                            setHomepageForm({
+                              ...homepageForm,
+                              hero: {
+                                ...homepageForm.hero,
+                                title:
+                                  homepageForm.hero?.title ??
+                                  defaultHomepageForm.hero?.title ??
+                                  "Homepage",
+                                eyebrow: event.target.value,
+                              },
+                            });
+                          }}
+                        />
+                      </AdminField>
+                      <AdminField label="Hero title*">
+                        <Input
+                          className="admin-heroui-input"
+                          required
+                          value={homepageForm.hero?.title ?? ""}
+                          onChange={(event) => {
+                            setHomepageForm({
+                              ...homepageForm,
+                              hero: {
+                                ...homepageForm.hero,
+                                title: event.target.value,
+                              },
+                            });
+                          }}
+                        />
+                      </AdminField>
+                    </div>
+                    <AdminField label="Hero description">
+                      <TextArea
+                        className="admin-heroui-textarea"
+                        value={homepageForm.hero?.description ?? ""}
+                        onChange={(event) => {
+                          setHomepageForm({
+                            ...homepageForm,
+                            hero: {
+                              ...homepageForm.hero,
+                              title:
+                                homepageForm.hero?.title ??
+                                defaultHomepageForm.hero?.title ??
+                                "Homepage",
+                              description: event.target.value,
+                            },
+                          });
+                        }}
+                      />
+                    </AdminField>
+                    <div className="admin-form-grid two">
+                      <AdminField label="Primary button label">
+                        <Input
+                          className="admin-heroui-input"
+                          value={homepageForm.hero?.primaryAction?.label ?? ""}
+                          onChange={(event) => {
+                            setHomepageForm({
+                              ...homepageForm,
+                              hero: {
+                                ...homepageForm.hero,
+                                title:
+                                  homepageForm.hero?.title ??
+                                  defaultHomepageForm.hero?.title ??
+                                  "Homepage",
+                                primaryAction: {
+                                  href:
+                                    homepageForm.hero?.primaryAction?.href ??
+                                    "/products",
+                                  label: event.target.value,
+                                },
+                              },
+                            });
+                          }}
+                        />
+                      </AdminField>
+                      <AdminField label="Primary button link">
+                        <Input
+                          className="admin-heroui-input"
+                          value={homepageForm.hero?.primaryAction?.href ?? ""}
+                          onChange={(event) => {
+                            setHomepageForm({
+                              ...homepageForm,
+                              hero: {
+                                ...homepageForm.hero,
+                                title:
+                                  homepageForm.hero?.title ??
+                                  defaultHomepageForm.hero?.title ??
+                                  "Homepage",
+                                primaryAction: {
+                                  label:
+                                    homepageForm.hero?.primaryAction?.label ??
+                                    "Shop products",
+                                  href: event.target.value,
+                                },
+                              },
+                            });
+                          }}
+                        />
+                      </AdminField>
+                    </div>
+                    <div className="admin-form-grid two">
+                      <AdminField label="Promo title*">
+                        <Input
+                          className="admin-heroui-input"
+                          required
+                          value={homepageForm.promoBanner?.title ?? ""}
+                          onChange={(event) => {
+                            setHomepageForm({
+                              ...homepageForm,
+                              promoBanner: {
+                                ...homepageForm.promoBanner,
+                                title: event.target.value,
+                              },
+                            });
+                          }}
+                        />
+                      </AdminField>
+                      <AdminField label="Promo link">
+                        <Input
+                          className="admin-heroui-input"
+                          value={homepageForm.promoBanner?.action?.href ?? ""}
+                          onChange={(event) => {
+                            setHomepageForm({
+                              ...homepageForm,
+                              promoBanner: {
+                                ...homepageForm.promoBanner,
+                                title:
+                                  homepageForm.promoBanner?.title ??
+                                  defaultHomepageForm.promoBanner?.title ??
+                                  "Promo",
+                                action: {
+                                  label:
+                                    homepageForm.promoBanner?.action?.label ??
+                                    "Explore offers",
+                                  href: event.target.value,
+                                },
+                              },
+                            });
+                          }}
+                        />
+                      </AdminField>
+                    </div>
+                    <AdminField label="Promo description">
+                      <TextArea
+                        className="admin-heroui-textarea"
+                        value={homepageForm.promoBanner?.description ?? ""}
+                        onChange={(event) => {
+                          setHomepageForm({
+                            ...homepageForm,
+                            promoBanner: {
+                              ...homepageForm.promoBanner,
+                              title:
+                                homepageForm.promoBanner?.title ??
+                                defaultHomepageForm.promoBanner?.title ??
+                                "Promo",
+                              description: event.target.value,
+                            },
+                          });
+                        }}
+                      />
+                    </AdminField>
+                    <RepeaterFields
+                      title="Metrics"
+                      firstLabel="Value"
+                      secondLabel="Label"
+                      items={homepageForm.metrics ?? []}
+                      onChange={(metrics) => {
+                        setHomepageForm({ ...homepageForm, metrics });
+                      }}
+                    />
+                    <RepeaterFields
+                      title="Why choose us / policies"
+                      firstLabel="Title"
+                      secondLabel="Description"
+                      items={homepageForm.whyChooseUs ?? []}
+                      onChange={(whyChooseUs) => {
+                        setHomepageForm({ ...homepageForm, whyChooseUs });
+                      }}
+                    />
+                    <Button
+                      type="submit"
+                      tone="primary"
+                      disabled={updateHomepageMutation.isPending}
+                    >
+                      {updateHomepageMutation.isPending
+                        ? "Saving..."
+                        : "Save homepage config"}
+                    </Button>
+                    {updateHomepageMutation.error ? (
+                      <p className="form-error">
+                        {updateHomepageMutation.error.message}
+                      </p>
+                    ) : null}
+                  </form>
+                </CardBody>
+              </Card>
+
+              <Card className="dashboard-card">
+                <CardBody>
+                  <div className="admin-form-head">
+                    <span className="dashboard-metric-icon">
+                      <MessageSquareQuote size={18} />
+                    </span>
+                    <div>
+                      <h2>Testimonials</h2>
+                      <p className="form-muted">
+                        Add customer quotes and control which ones appear
+                        publicly.
+                      </p>
+                    </div>
+                  </div>
+                  <form
+                    className="admin-modern-form"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      createTestimonialMutation.mutate(testimonialForm);
+                    }}
+                  >
+                    <div className="admin-form-grid two">
+                      <AdminField label="Customer name*">
+                        <Input
+                          className="admin-heroui-input"
+                          required
+                          value={testimonialForm.customerName}
+                          onChange={(event) => {
+                            setTestimonialForm({
+                              ...testimonialForm,
+                              customerName: event.target.value,
+                            });
+                          }}
+                        />
+                      </AdminField>
+                      <AdminField label="Rating*">
+                        <Input
+                          className="admin-heroui-input"
+                          type="number"
+                          min={1}
+                          max={5}
+                          required
+                          value={String(testimonialForm.rating)}
+                          onChange={(event) => {
+                            setTestimonialForm({
+                              ...testimonialForm,
+                              rating: Number(event.target.value),
+                            });
+                          }}
+                        />
+                      </AdminField>
+                    </div>
+                    <AdminField label="Quote*">
+                      <TextArea
+                        className="admin-heroui-textarea"
+                        required
+                        value={testimonialForm.quote}
+                        onChange={(event) => {
+                          setTestimonialForm({
+                            ...testimonialForm,
+                            quote: event.target.value,
+                          });
+                        }}
+                      />
+                    </AdminField>
+                    <div className="admin-form-grid two">
+                      <AdminField label="Sort order">
+                        <Input
+                          className="admin-heroui-input"
+                          type="number"
+                          value={String(testimonialForm.sortOrder)}
+                          onChange={(event) => {
+                            setTestimonialForm({
+                              ...testimonialForm,
+                              sortOrder: Number(event.target.value),
+                            });
+                          }}
+                        />
+                      </AdminField>
+                      <AdminSwitch
+                        className="inline"
+                        isSelected={testimonialForm.isActive}
+                        onChange={(isSelected) => {
+                          setTestimonialForm({
+                            ...testimonialForm,
+                            isActive: isSelected,
+                          });
+                        }}
+                      >
+                        Show on homepage
+                      </AdminSwitch>
+                    </div>
+                    <Button
+                      type="submit"
+                      tone="primary"
+                      disabled={createTestimonialMutation.isPending}
+                    >
+                      {createTestimonialMutation.isPending
+                        ? "Adding..."
+                        : "Add testimonial"}
+                    </Button>
+                    {createTestimonialMutation.error ? (
+                      <p className="form-error">
+                        {createTestimonialMutation.error.message}
+                      </p>
+                    ) : null}
+                  </form>
+
+                  <ul
+                    className="admin-list admin-inline-list"
+                    style={{ marginTop: "1rem" }}
+                  >
+                    {(testimonialsQuery.data ?? []).map((testimonial) => (
+                      <li key={testimonial._id}>
+                        <div>
+                          <strong>{testimonial.customerName}</strong>
+                          <small>
+                            {testimonial.rating}/5 ·{" "}
+                            {testimonial.isActive ? "Active" : "Hidden"}
+                          </small>
+                          <small>{testimonial.quote}</small>
+                        </div>
+                        <div className="admin-row-actions">
+                          <Button
+                            iconOnly
+                            tone={testimonial.isActive ? "secondary" : "ghost"}
+                            title={
+                              testimonial.isActive
+                                ? "Hide testimonial"
+                                : "Show testimonial"
+                            }
+                            disabled={updateTestimonialMutation.isPending}
+                            onClick={() => {
+                              updateTestimonialMutation.mutate({
+                                testimonialId: testimonial._id,
+                                input: {
+                                  isActive: !(testimonial.isActive ?? true),
+                                },
+                              });
+                            }}
+                            startContent={
+                              testimonial.isActive ? (
+                                <Eye size={16} />
+                              ) : (
+                                <EyeOff size={16} />
+                              )
+                            }
+                          >
+                            Toggle visibility
+                          </Button>
+                          <Button
+                            iconOnly
+                            tone="ghost"
+                            title="Delete testimonial"
+                            disabled={deleteTestimonialMutation.isPending}
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  `Delete testimonial from ${testimonial.customerName}?`,
+                                )
+                              ) {
+                                deleteTestimonialMutation.mutate(
+                                  testimonial._id,
+                                );
+                              }
+                            }}
+                            startContent={
+                              <Trash2
+                                size={16}
+                                style={{ color: "var(--color-midas-red)" }}
+                              />
+                            }
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                    {testimonialsQuery.data &&
+                    testimonialsQuery.data.length === 0 ? (
+                      <li className="admin-empty-row">
+                        <p className="form-muted">No testimonials yet.</p>
+                      </li>
+                    ) : null}
+                  </ul>
+                </CardBody>
+              </Card>
+            </div>
           </div>
         )}
 
@@ -650,7 +1615,12 @@ export function AdminDashboardPage(): ReactNode {
             <div className="section-heading">
               <div>
                 <h3 style={{ margin: 0 }}>User management</h3>
-                <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
+                <p
+                  style={{
+                    color: "var(--color-midas-gray)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
                   View, search, block, or unblock registered customers.
                 </p>
               </div>
@@ -663,7 +1633,9 @@ export function AdminDashboardPage(): ReactNode {
                   <input
                     placeholder="Search users…"
                     value={userFilter}
-                    onChange={(event) => setUserFilter(event.target.value)}
+                    onChange={(event) => {
+                      setUserFilter(event.target.value);
+                    }}
                   />
                 </div>
 
@@ -689,7 +1661,8 @@ export function AdminDashboardPage(): ReactNode {
                         onClick={() => {
                           updateUserMutation.mutate({
                             userId: user.id,
-                            status: user.status === "active" ? "blocked" : "active",
+                            status:
+                              user.status === "active" ? "blocked" : "active",
                           });
                         }}
                       >
@@ -712,7 +1685,12 @@ export function AdminDashboardPage(): ReactNode {
             <div className="section-heading">
               <div>
                 <h3 style={{ margin: 0 }}>Order management</h3>
-                <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
+                <p
+                  style={{
+                    color: "var(--color-midas-gray)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
                   Update fulfilment statuses and monitor the order pipeline.
                 </p>
               </div>
@@ -725,7 +1703,9 @@ export function AdminDashboardPage(): ReactNode {
                   <select
                     aria-label="Filter orders by status"
                     value={orderStatusFilter}
-                    onChange={(event) => setOrderStatusFilter(event.target.value)}
+                    onChange={(event) => {
+                      setOrderStatusFilter(event.target.value);
+                    }}
                   >
                     <option value="">All statuses</option>
                     {statusOptions.map((status) => (
@@ -749,8 +1729,8 @@ export function AdminDashboardPage(): ReactNode {
                       <div>
                         <strong>{order.orderNumber}</strong>
                         <small>
-                          {order.customerName} · {order.status} · {order.currency}{" "}
-                          {order.total.toLocaleString("en-BD")}
+                          {order.customerName} · {order.status} ·{" "}
+                          {order.currency} {order.total.toLocaleString("en-BD")}
                         </small>
                       </div>
                       <select
@@ -787,13 +1767,22 @@ export function AdminDashboardPage(): ReactNode {
             <div className="section-heading">
               <div>
                 <h3 style={{ margin: 0 }}>Homepage carousel</h3>
-                <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
-                  Upload, reorder, or remove banner slides shown on the storefront.
+                <p
+                  style={{
+                    color: "var(--color-midas-gray)",
+                    margin: "0.25rem 0 0",
+                  }}
+                >
+                  Upload, reorder, or remove banner slides shown on the
+                  storefront.
                 </p>
               </div>
             </div>
 
-            <div className="admin-carousel-grid" style={{ marginTop: "1.5rem" }}>
+            <div
+              className="admin-carousel-grid"
+              style={{ marginTop: "1.5rem" }}
+            >
               {/* Add Slide Form */}
               <Card className="dashboard-card">
                 <CardBody>
@@ -807,9 +1796,12 @@ export function AdminDashboardPage(): ReactNode {
                       const formData = new FormData();
                       formData.append("image", file);
                       formData.append("linkHref", slideForm.linkHref);
-                      if (slideForm.title) formData.append("title", slideForm.title);
-                      if (slideForm.description) formData.append("description", slideForm.description);
-                      if (slideForm.imageAlt) formData.append("imageAlt", slideForm.imageAlt);
+                      if (slideForm.title)
+                        formData.append("title", slideForm.title);
+                      if (slideForm.description)
+                        formData.append("description", slideForm.description);
+                      if (slideForm.imageAlt)
+                        formData.append("imageAlt", slideForm.imageAlt);
                       formData.append("sortOrder", String(slideForm.sortOrder));
 
                       createSlideMutation.mutate(formData);
@@ -828,7 +1820,9 @@ export function AdminDashboardPage(): ReactNode {
                           if (selectedFile && !slideForm.imageAlt) {
                             setSlideForm({
                               ...slideForm,
-                              imageAlt: selectedFile.name.split(".")[0] ?? "slide-image",
+                              imageAlt:
+                                selectedFile.name.split(".")[0] ??
+                                "slide-image",
                             });
                           }
                         }}
@@ -841,7 +1835,12 @@ export function AdminDashboardPage(): ReactNode {
                         type="text"
                         required
                         value={slideForm.imageAlt}
-                        onChange={(event) => setSlideForm({ ...slideForm, imageAlt: event.target.value })}
+                        onChange={(event) => {
+                          setSlideForm({
+                            ...slideForm,
+                            imageAlt: event.target.value,
+                          });
+                        }}
                       />
                     </label>
 
@@ -852,7 +1851,12 @@ export function AdminDashboardPage(): ReactNode {
                         required
                         placeholder="/products"
                         value={slideForm.linkHref}
-                        onChange={(event) => setSlideForm({ ...slideForm, linkHref: event.target.value })}
+                        onChange={(event) => {
+                          setSlideForm({
+                            ...slideForm,
+                            linkHref: event.target.value,
+                          });
+                        }}
                       />
                     </label>
 
@@ -861,7 +1865,12 @@ export function AdminDashboardPage(): ReactNode {
                       <input
                         type="text"
                         value={slideForm.title}
-                        onChange={(event) => setSlideForm({ ...slideForm, title: event.target.value })}
+                        onChange={(event) => {
+                          setSlideForm({
+                            ...slideForm,
+                            title: event.target.value,
+                          });
+                        }}
                       />
                     </label>
 
@@ -877,7 +1886,12 @@ export function AdminDashboardPage(): ReactNode {
                           font: "inherit",
                         }}
                         value={slideForm.description}
-                        onChange={(event) => setSlideForm({ ...slideForm, description: event.target.value })}
+                        onChange={(event) => {
+                          setSlideForm({
+                            ...slideForm,
+                            description: event.target.value,
+                          });
+                        }}
                       />
                     </label>
 
@@ -886,20 +1900,28 @@ export function AdminDashboardPage(): ReactNode {
                       <input
                         type="number"
                         value={slideForm.sortOrder}
-                        onChange={(event) =>
-                          setSlideForm({ ...slideForm, sortOrder: Number(event.target.value) })
-                        }
+                        onChange={(event) => {
+                          setSlideForm({
+                            ...slideForm,
+                            sortOrder: Number(event.target.value),
+                          });
+                        }}
                       />
                     </label>
 
-                    <Button type="submit" tone="primary" disabled={createSlideMutation.isPending || !file}>
-                      {createSlideMutation.isPending ? "Uploading…" : "Add slide"}
+                    <Button
+                      type="submit"
+                      tone="primary"
+                      disabled={createSlideMutation.isPending || !file}
+                    >
+                      {createSlideMutation.isPending
+                        ? "Uploading…"
+                        : "Add slide"}
                     </Button>
                     {createSlideMutation.error ? (
-                      <p className="form-error">{createSlideMutation.error.message}</p>
-                    ) : null}
-                    {createSlideMutation.isSuccess ? (
-                      <p className="form-success">Slide uploaded successfully!</p>
+                      <p className="form-error">
+                        {createSlideMutation.error.message}
+                      </p>
                     ) : null}
                   </form>
                 </CardBody>
@@ -942,7 +1964,13 @@ export function AdminDashboardPage(): ReactNode {
                             }}
                           />
                           <div style={{ flexGrow: 1, minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                              }}
+                            >
                               <strong
                                 style={{
                                   textOverflow: "ellipsis",
@@ -950,9 +1978,14 @@ export function AdminDashboardPage(): ReactNode {
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                {slide.title || "Untitled Slide"}
+                                {slide.title ?? "Untitled Slide"}
                               </strong>
-                              <span style={{ fontSize: "0.75rem", color: "var(--color-midas-gray)" }}>
+                              <span
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "var(--color-midas-gray)",
+                                }}
+                              >
                                 #{slide.sortOrder}
                               </span>
                             </div>
@@ -968,16 +2001,27 @@ export function AdminDashboardPage(): ReactNode {
                               {slide.linkHref}
                             </small>
                           </div>
-                          <div style={{ display: "inline-flex", gap: "0.25rem" }}>
+                          <div
+                            style={{ display: "inline-flex", gap: "0.25rem" }}
+                          >
                             <Button
                               iconOnly
                               tone={slide.isActive ? "secondary" : "ghost"}
                               title={slide.isActive ? "Deactivate" : "Activate"}
                               disabled={toggleSlideMutation.isPending}
-                              onClick={() =>
-                                toggleSlideMutation.mutate({ slideId: slide.id, isActive: !slide.isActive })
+                              onClick={() => {
+                                toggleSlideMutation.mutate({
+                                  slideId: slide.id,
+                                  isActive: !slide.isActive,
+                                });
+                              }}
+                              startContent={
+                                slide.isActive ? (
+                                  <Eye size={16} />
+                                ) : (
+                                  <EyeOff size={16} />
+                                )
                               }
-                              startContent={slide.isActive ? <Eye size={16} /> : <EyeOff size={16} />}
                             >
                               Toggle visibility
                             </Button>
@@ -987,12 +2031,19 @@ export function AdminDashboardPage(): ReactNode {
                               title="Delete slide"
                               disabled={deleteSlideMutation.isPending}
                               onClick={() => {
-                                if (confirm("Are you sure you want to delete this slide?")) {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to delete this slide?",
+                                  )
+                                ) {
                                   deleteSlideMutation.mutate(slide.id);
                                 }
                               }}
                               startContent={
-                                <Trash2 size={16} style={{ color: "var(--color-midas-red)" }} />
+                                <Trash2
+                                  size={16}
+                                  style={{ color: "var(--color-midas-red)" }}
+                                />
                               }
                             >
                               Delete
@@ -1002,7 +2053,9 @@ export function AdminDashboardPage(): ReactNode {
                       ))}
                     </ul>
                   ) : (
-                    <p className="form-muted">No slides found. Upload one to get started.</p>
+                    <p className="form-muted">
+                      No slides found. Upload one to get started.
+                    </p>
                   )}
                 </CardBody>
               </Card>

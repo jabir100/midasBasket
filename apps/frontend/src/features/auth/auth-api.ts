@@ -1,6 +1,9 @@
-import { apiClient } from "../../shared/http/api-client.js";
-
-const accessTokenStorageKey = "midas_access_token";
+import {
+  apiClient,
+  clearStoredAccessToken,
+  getStoredAccessToken,
+  storeAccessToken,
+} from "../../shared/http/api-client.js";
 
 export type AuthUser = {
   id: string;
@@ -19,16 +22,6 @@ type ApiSuccess<TData> = {
   data: TData;
   requestId: string;
 };
-
-apiClient.interceptors.request.use((config) => {
-  const token = getStoredAccessToken();
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
 
 export async function registerCustomer(input: {
   name: string;
@@ -77,22 +70,4 @@ export async function getCurrentUser(): Promise<AuthUser> {
   return response.data.data.user;
 }
 
-export function getStoredAccessToken(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return window.localStorage.getItem(accessTokenStorageKey);
-}
-
-function storeAccessToken(token: string): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(accessTokenStorageKey, token);
-  }
-}
-
-function clearStoredAccessToken(): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem(accessTokenStorageKey);
-  }
-}
+export { getStoredAccessToken };

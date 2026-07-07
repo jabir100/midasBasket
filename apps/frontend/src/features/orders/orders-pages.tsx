@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Clock3, Truck } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useMemo, useState } from "react";
-import { Skeleton } from "@heroui/react";
+import { Skeleton, Toast } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -54,6 +54,11 @@ export function CheckoutPage(): ReactNode {
 
   const checkoutMutation = useMutation({
     mutationFn: checkoutOrder,
+    onSuccess: (order) => {
+      Toast.toast.success("Order placed", {
+        description: order.orderNumber,
+      });
+    },
   });
 
   return (
@@ -261,6 +266,11 @@ export function OrdersPage(): ReactNode {
   const trackMutation = useMutation({
     mutationFn: (input: { orderNumber: string; email?: string }) =>
       trackOrder(input.orderNumber, input.email),
+    onSuccess: (order) => {
+      Toast.toast.success("Order found", {
+        description: order.status,
+      });
+    },
   });
 
   return (
@@ -277,7 +287,9 @@ export function OrdersPage(): ReactNode {
           <CardBody>
             <h2>My orders</h2>
             {ordersQuery.isLoading ? (
-              <div style={{ display: "grid", gap: "0.5rem", marginTop: "1rem" }}>
+              <div
+                style={{ display: "grid", gap: "0.5rem", marginTop: "1rem" }}
+              >
                 <Skeleton className="h-12 w-full rounded-lg" />
                 <Skeleton className="h-12 w-full rounded-lg" />
               </div>

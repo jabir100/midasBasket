@@ -1,18 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { 
-  ShoppingBag, 
-  Heart, 
-  MapPin, 
-  Receipt, 
-  LayoutGrid, 
-  User, 
-  Bell, 
-  ChevronLeft, 
+import {
+  ShoppingBag,
+  Heart,
+  MapPin,
+  Receipt,
+  LayoutGrid,
+  User,
+  Bell,
+  ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
 } from "lucide-react";
-import { Skeleton } from "@heroui/react";
+import { Skeleton, Toast } from "@heroui/react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useState, useEffect } from "react";
 
@@ -39,11 +39,13 @@ export function CustomerDashboardPage(): ReactNode {
 
   useEffect(() => {
     if (!token) {
-      navigate({ to: "/login" });
+      void navigate({ to: "/login" });
     }
   }, [token, navigate]);
 
-  const [activePanel, setActivePanel] = useState<"overview" | "profile" | "addresses" | "invoices" | "orders" | "wishlist">("overview");
+  const [activePanel, setActivePanel] = useState<
+    "overview" | "profile" | "addresses" | "invoices" | "orders" | "wishlist"
+  >("overview");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const logoutMutation = useMutation({
@@ -94,6 +96,7 @@ export function CustomerDashboardPage(): ReactNode {
       await queryClient.invalidateQueries({
         queryKey: ["dashboard", "profile"],
       });
+      Toast.toast.success("Profile updated");
     },
   });
 
@@ -113,6 +116,7 @@ export function CustomerDashboardPage(): ReactNode {
       await queryClient.invalidateQueries({
         queryKey: ["dashboard", "profile"],
       });
+      Toast.toast.success("Address added");
     },
   });
 
@@ -125,6 +129,7 @@ export function CustomerDashboardPage(): ReactNode {
       await queryClient.invalidateQueries({
         queryKey: ["dashboard", "profile"],
       });
+      Toast.toast.success("Address deleted");
     },
   });
 
@@ -134,6 +139,7 @@ export function CustomerDashboardPage(): ReactNode {
       await queryClient.invalidateQueries({
         queryKey: ["dashboard", "notifications"],
       });
+      Toast.toast.success("Notification preferences updated");
     },
   });
 
@@ -145,15 +151,25 @@ export function CustomerDashboardPage(): ReactNode {
 
   return (
     <div className="dashboard-wrapper">
-      <aside className={`dashboard-sidebar ${isSidebarCollapsed ? "collapsed" : ""}`}>
+      <aside
+        className={`dashboard-sidebar ${isSidebarCollapsed ? "collapsed" : ""}`}
+      >
         <button
-          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onClick={() => {
+            setIsSidebarCollapsed(!isSidebarCollapsed);
+          }}
           className="sidebar-toggle-btn"
-          aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={
+            isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+          }
         >
-          {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {isSidebarCollapsed ? (
+            <ChevronRight size={18} />
+          ) : (
+            <ChevronLeft size={18} />
+          )}
         </button>
-        
+
         <div className="sidebar-brand">
           <span className="sidebar-brand-symbol">M</span>
           {!isSidebarCollapsed && <span>Dashboard</span>}
@@ -161,42 +177,54 @@ export function CustomerDashboardPage(): ReactNode {
 
         <nav className="sidebar-nav" style={{ flex: 1 }}>
           <button
-            onClick={() => setActivePanel("overview")}
+            onClick={() => {
+              setActivePanel("overview");
+            }}
             className={`sidebar-nav-btn ${activePanel === "overview" ? "active" : ""}`}
           >
             <LayoutGrid size={18} />
             {!isSidebarCollapsed && <span>Overview</span>}
           </button>
           <button
-            onClick={() => setActivePanel("profile")}
+            onClick={() => {
+              setActivePanel("profile");
+            }}
             className={`sidebar-nav-btn ${activePanel === "profile" ? "active" : ""}`}
           >
             <User size={18} />
             {!isSidebarCollapsed && <span>Profile</span>}
           </button>
           <button
-            onClick={() => setActivePanel("addresses")}
+            onClick={() => {
+              setActivePanel("addresses");
+            }}
             className={`sidebar-nav-btn ${activePanel === "addresses" ? "active" : ""}`}
           >
             <MapPin size={18} />
             {!isSidebarCollapsed && <span>Addresses</span>}
           </button>
           <button
-            onClick={() => setActivePanel("invoices")}
+            onClick={() => {
+              setActivePanel("invoices");
+            }}
             className={`sidebar-nav-btn ${activePanel === "invoices" ? "active" : ""}`}
           >
             <Receipt size={18} />
             {!isSidebarCollapsed && <span>Invoices</span>}
           </button>
           <button
-            onClick={() => setActivePanel("orders")}
+            onClick={() => {
+              setActivePanel("orders");
+            }}
             className={`sidebar-nav-btn ${activePanel === "orders" ? "active" : ""}`}
           >
             <ShoppingBag size={18} />
             {!isSidebarCollapsed && <span>Orders</span>}
           </button>
           <button
-            onClick={() => setActivePanel("wishlist")}
+            onClick={() => {
+              setActivePanel("wishlist");
+            }}
             className={`sidebar-nav-btn ${activePanel === "wishlist" ? "active" : ""}`}
           >
             <Heart size={18} />
@@ -205,11 +233,31 @@ export function CustomerDashboardPage(): ReactNode {
         </nav>
 
         {/* Identity & Logout at the bottom */}
-        <div className="admin-sidebar-footer" style={{ borderTop: "1px solid var(--color-midas-border)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+          className="admin-sidebar-footer"
+          style={{
+            borderTop: "1px solid var(--color-midas-border)",
+            paddingTop: "1rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+          }}
+        >
           {!isSidebarCollapsed && profile && (
-            <div className="admin-sidebar-identity" style={{ padding: "0 0.5rem" }}>
-              <small className="admin-sidebar-role-label" style={{ color: "var(--color-midas-gray)" }}>Customer</small>
-              <p className="admin-sidebar-name" style={{ margin: 0, fontSize: "0.85rem" }}>
+            <div
+              className="admin-sidebar-identity"
+              style={{ padding: "0 0.5rem" }}
+            >
+              <small
+                className="admin-sidebar-role-label"
+                style={{ color: "var(--color-midas-gray)" }}
+              >
+                Customer
+              </small>
+              <p
+                className="admin-sidebar-name"
+                style={{ margin: 0, fontSize: "0.85rem" }}
+              >
                 Hi, <strong>{profile.user.name}</strong>
               </p>
             </div>
@@ -218,7 +266,9 @@ export function CustomerDashboardPage(): ReactNode {
             className="sidebar-nav-btn admin-logout-btn"
             title="Log out"
             disabled={logoutMutation.isPending}
-            onClick={() => logoutMutation.mutate()}
+            onClick={() => {
+              logoutMutation.mutate();
+            }}
           >
             <LogOut size={18} />
             {!isSidebarCollapsed && <span>Log out</span>}
@@ -231,23 +281,39 @@ export function CustomerDashboardPage(): ReactNode {
           <div className="dashboard-pane-content">
             <div className="section-heading">
               <h3>Overview</h3>
-              <p>Hello, {profile?.user.name ?? "Customer"}. Here is your account snapshot.</p>
+              <p>
+                Hello, {profile?.user.name ?? "Customer"}. Here is your account
+                snapshot.
+              </p>
             </div>
 
-            <section className="dashboard-metrics-grid" style={{ marginTop: "1.5rem" }}>
+            <section
+              className="dashboard-metrics-grid"
+              style={{ marginTop: "1.5rem" }}
+            >
               <MetricCard
                 label="Orders"
-                value={profile?.summary.ordersCount ?? ordersQuery.data?.length ?? 0}
+                value={
+                  profile?.summary.ordersCount ?? ordersQuery.data?.length ?? 0
+                }
                 icon={<ShoppingBag size={18} />}
               />
               <MetricCard
                 label="Wishlist"
-                value={profile?.summary.wishlistItems ?? wishlistQuery.data?.length ?? 0}
+                value={
+                  profile?.summary.wishlistItems ??
+                  wishlistQuery.data?.length ??
+                  0
+                }
                 icon={<Heart size={18} />}
               />
               <MetricCard
                 label="Addresses"
-                value={profile?.summary.addressesCount ?? addressesQuery.data?.length ?? 0}
+                value={
+                  profile?.summary.addressesCount ??
+                  addressesQuery.data?.length ??
+                  0
+                }
                 icon={<MapPin size={18} />}
               />
               <MetricCard
@@ -263,9 +329,11 @@ export function CustomerDashboardPage(): ReactNode {
           <div className="dashboard-pane-content">
             <div className="section-heading">
               <h3>Profile & Settings</h3>
-              <p>Update your personal information and communication preferences.</p>
+              <p>
+                Update your personal information and communication preferences.
+              </p>
             </div>
-            
+
             <div className="dashboard-grid-two" style={{ marginTop: "1.5rem" }}>
               <Card className="dashboard-card">
                 <CardBody>
@@ -276,7 +344,9 @@ export function CustomerDashboardPage(): ReactNode {
                       event.preventDefault();
                       const payload = {
                         ...(profileForm.name ? { name: profileForm.name } : {}),
-                        ...(profileForm.phone ? { phone: profileForm.phone } : {}),
+                        ...(profileForm.phone
+                          ? { phone: profileForm.phone }
+                          : {}),
                       };
                       if (Object.keys(payload).length === 0) {
                         return;
@@ -329,20 +399,22 @@ export function CustomerDashboardPage(): ReactNode {
                   <h2>Notification Settings</h2>
                   {notificationsQuery.data ? (
                     <div className="dashboard-preferences">
-                      {Object.entries(notificationsQuery.data).map(([key, value]) => (
-                        <label key={key}>
-                          <input
-                            type="checkbox"
-                            checked={value}
-                            onChange={(event) => {
-                              updateNotificationsMutation.mutate({
-                                [key]: event.target.checked,
-                              });
-                            }}
-                          />
-                          <span>{toPreferenceLabel(key)}</span>
-                        </label>
-                      ))}
+                      {Object.entries(notificationsQuery.data).map(
+                        ([key, value]) => (
+                          <label key={key}>
+                            <input
+                              type="checkbox"
+                              checked={value}
+                              onChange={(event) => {
+                                updateNotificationsMutation.mutate({
+                                  [key]: event.target.checked,
+                                });
+                              }}
+                            />
+                            <span>{toPreferenceLabel(key)}</span>
+                          </label>
+                        ),
+                      )}
                     </div>
                   ) : (
                     <p className="form-muted">Loading preferences...</p>
@@ -356,7 +428,8 @@ export function CustomerDashboardPage(): ReactNode {
                     </p>
                   ) : null}
                   <p className="dashboard-helper-row">
-                    <Bell size={16} /> Transaction notifications stay enabled by default.
+                    <Bell size={16} /> Transaction notifications stay enabled by
+                    default.
                   </p>
                 </CardBody>
               </Card>
@@ -368,7 +441,9 @@ export function CustomerDashboardPage(): ReactNode {
           <div className="dashboard-pane-content">
             <div className="section-heading">
               <h3>Saved Addresses</h3>
-              <p>Manage your delivery and billing locations for faster checkout.</p>
+              <p>
+                Manage your delivery and billing locations for faster checkout.
+              </p>
             </div>
 
             <div className="dashboard-grid-two" style={{ marginTop: "1.5rem" }}>
@@ -467,7 +542,8 @@ export function CustomerDashboardPage(): ReactNode {
                         <div style={{ display: "grid", gap: "0.25rem" }}>
                           <strong>{address.label}</strong>
                           <small style={{ color: "var(--color-midas-gray)" }}>
-                            {address.line1}, {address.area}, {address.city}, {address.country}
+                            {address.line1}, {address.area}, {address.city},{" "}
+                            {address.country}
                           </small>
                         </div>
                         <Button
@@ -508,11 +584,13 @@ export function CustomerDashboardPage(): ReactNode {
                         <div>
                           <strong>{invoice.invoiceNumber}</strong>
                           <small>
-                            {invoice.orderNumber} · {invoice.status} · {invoice.paymentStatus}
+                            {invoice.orderNumber} · {invoice.status} ·{" "}
+                            {invoice.paymentStatus}
                           </small>
                         </div>
                         <span>
-                          {invoice.currency} {invoice.total.toLocaleString("en-BD")}
+                          {invoice.currency}{" "}
+                          {invoice.total.toLocaleString("en-BD")}
                         </span>
                       </li>
                     ))}
@@ -530,7 +608,9 @@ export function CustomerDashboardPage(): ReactNode {
           <div className="dashboard-pane-content">
             <div className="section-heading">
               <h3>My Orders</h3>
-              <p>Track history, payments, and dispatch statuses of your packages.</p>
+              <p>
+                Track history, payments, and dispatch statuses of your packages.
+              </p>
             </div>
 
             <div style={{ marginTop: "1.5rem" }}>
@@ -549,12 +629,23 @@ export function CustomerDashboardPage(): ReactNode {
                         <div>
                           <strong>{order.orderNumber}</strong>
                           <small>
-                            Status: {order.status} · {new Date(order.createdAt ?? "").toLocaleDateString("en-BD")}
+                            Status: {order.status} ·{" "}
+                            {new Date(order.createdAt ?? "").toLocaleDateString(
+                              "en-BD",
+                            )}
                           </small>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <strong>{order.totals.currency} {order.totals.total.toLocaleString("en-BD")}</strong>
-                          <div style={{ fontSize: "0.8rem", color: "var(--color-midas-gray)" }}>
+                          <strong>
+                            {order.totals.currency}{" "}
+                            {order.totals.total.toLocaleString("en-BD")}
+                          </strong>
+                          <div
+                            style={{
+                              fontSize: "0.8rem",
+                              color: "var(--color-midas-gray)",
+                            }}
+                          >
                             {order.paymentStatus}
                           </div>
                         </div>
@@ -574,7 +665,9 @@ export function CustomerDashboardPage(): ReactNode {
           <div className="dashboard-pane-content">
             <div className="section-heading">
               <h3>Wishlist</h3>
-              <p>Your saved favorites. Add them to your cart directly from here.</p>
+              <p>
+                Your saved favorites. Add them to your cart directly from here.
+              </p>
             </div>
 
             <div style={{ marginTop: "1.5rem" }}>
@@ -589,15 +682,36 @@ export function CustomerDashboardPage(): ReactNode {
                   ) : null}
                   <ul className="dashboard-invoice-list">
                     {(wishlistQuery.data ?? []).map((item) => (
-                      <li key={item.productId} style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                      <li
+                        key={item.productId}
+                        style={{
+                          display: "flex",
+                          gap: "1rem",
+                          alignItems: "center",
+                        }}
+                      >
                         <div style={{ flexGrow: 1 }}>
                           <strong>Product ID: {item.productId}</strong>
-                          <small style={{ display: "block", color: "var(--color-midas-gray)" }}>
-                            Saved {new Date(item.addedAt).toLocaleDateString("en-BD")}
+                          <small
+                            style={{
+                              display: "block",
+                              color: "var(--color-midas-gray)",
+                            }}
+                          >
+                            Saved{" "}
+                            {new Date(item.addedAt).toLocaleDateString("en-BD")}
                           </small>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <Link to="/products" className="ui-button ui-button-secondary" style={{ minHeight: "2rem", padding: "0 0.75rem", fontSize: "0.85rem" }}>
+                          <Link
+                            to="/products"
+                            className="ui-button ui-button-secondary"
+                            style={{
+                              minHeight: "2rem",
+                              padding: "0 0.75rem",
+                              fontSize: "0.85rem",
+                            }}
+                          >
                             Browse Products
                           </Link>
                         </div>

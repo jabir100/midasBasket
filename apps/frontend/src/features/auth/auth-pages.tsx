@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { KeyRound, LogOut, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useState } from "react";
-import { Skeleton } from "@heroui/react";
+import { Skeleton, Toast } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -159,7 +159,12 @@ export function LoginPage(): ReactNode {
 
 export function ForgotPasswordPage(): ReactNode {
   const [email, setEmail] = useState("");
-  const mutation = useMutation({ mutationFn: requestPasswordReset });
+  const mutation = useMutation({
+    mutationFn: requestPasswordReset,
+    onSuccess: () => {
+      Toast.toast.success("Reset request accepted");
+    },
+  });
 
   return (
     <AuthFrame
@@ -191,9 +196,6 @@ export function ForgotPasswordPage(): ReactNode {
         <Button type="submit" tone="primary" disabled={mutation.isPending}>
           Send reset request
         </Button>
-        {mutation.isSuccess ? (
-          <p className="form-success">Reset request accepted.</p>
-        ) : null}
         <FormStatus error={mutation.error} pending={mutation.isPending} />
       </form>
     </AuthFrame>
@@ -202,7 +204,12 @@ export function ForgotPasswordPage(): ReactNode {
 
 export function ResetPasswordPage(): ReactNode {
   const [form, setForm] = useState({ token: "", password: "" });
-  const mutation = useMutation({ mutationFn: resetPassword });
+  const mutation = useMutation({
+    mutationFn: resetPassword,
+    onSuccess: () => {
+      Toast.toast.success("Password reset complete");
+    },
+  });
 
   return (
     <AuthFrame
@@ -245,9 +252,6 @@ export function ResetPasswordPage(): ReactNode {
         <Button type="submit" tone="primary" disabled={mutation.isPending}>
           Reset password
         </Button>
-        {mutation.isSuccess ? (
-          <p className="form-success">Password reset complete.</p>
-        ) : null}
         <FormStatus error={mutation.error} pending={mutation.isPending} />
       </form>
     </AuthFrame>
@@ -335,18 +339,44 @@ function AuthFrame({
       <section className="auth-panel">
         <div className="auth-copy">
           <div className="auth-header-info">
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
-              <span className="auth-icon" style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.75rem" }}>{icon}</span>
-              <h3 style={{ margin: 0, fontSize: "1.75rem", fontWeight: 600 }}>{title}</h3>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <span
+                className="auth-icon"
+                style={{
+                  width: "2.5rem",
+                  height: "2.5rem",
+                  borderRadius: "0.75rem",
+                }}
+              >
+                {icon}
+              </span>
+              <h3 style={{ margin: 0, fontSize: "1.75rem", fontWeight: 600 }}>
+                {title}
+              </h3>
             </div>
           </div>
           <div className="auth-visual-container">
             <div className={`auth-animation-graphic type-${animationType}`}>
               <div className="graphic-circle-bg">
-                {animationType === "login" && <ShieldCheck className="animated-icon-main" size={54} />}
-                {animationType === "register" && <UserPlus className="animated-icon-main" size={54} />}
-                {animationType === "forgot" && <Mail className="animated-icon-main" size={54} />}
-                {animationType === "reset" && <KeyRound className="animated-icon-main" size={54} />}
+                {animationType === "login" && (
+                  <ShieldCheck className="animated-icon-main" size={54} />
+                )}
+                {animationType === "register" && (
+                  <UserPlus className="animated-icon-main" size={54} />
+                )}
+                {animationType === "forgot" && (
+                  <Mail className="animated-icon-main" size={54} />
+                )}
+                {animationType === "reset" && (
+                  <KeyRound className="animated-icon-main" size={54} />
+                )}
               </div>
               <div className="decorative-ring ring-1"></div>
               <div className="decorative-ring ring-2"></div>

@@ -128,6 +128,15 @@ catalogRouter.get("/products/:slug", async (req, res, next) => {
 
 adminRouter.use(authenticateAccessToken, requireRoles(["admin"]));
 
+adminRouter.get("/categories", async (_req, res, next) => {
+  try {
+    const categories = await CategoryModel.find().sort({ name: 1 }).lean();
+    sendSuccess(res, { data: { categories }, requestId: getRequestId(res) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 adminRouter.post("/categories", async (req, res, next) => {
   try {
     const category = await CategoryModel.create(categorySchema.parse(req.body));
@@ -182,6 +191,15 @@ adminRouter.post("/brands", async (req, res, next) => {
       data: { brand },
       requestId: getRequestId(res),
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.get("/brands", async (_req, res, next) => {
+  try {
+    const brands = await BrandModel.find().sort({ name: 1 }).lean();
+    sendSuccess(res, { data: { brands }, requestId: getRequestId(res) });
   } catch (error) {
     next(error);
   }

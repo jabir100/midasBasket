@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
-import { Search, SlidersHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
-import { Skeleton } from "@heroui/react";
+import { Skeleton, Toast } from "@heroui/react";
 
 import { Badge } from "../../shared/ui/badge.js";
 import { Button } from "../../shared/ui/button.js";
@@ -31,7 +30,9 @@ function ProductSkeletonGrid(): ReactNode {
               <Skeleton className="h-6 w-3/4 rounded-lg" />
               <Skeleton className="h-4 w-full rounded-lg" />
               <Skeleton className="h-5 w-1/3 rounded-lg" />
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+              <div
+                style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}
+              >
                 <Skeleton className="h-10 flex-1 rounded-full" />
                 <Skeleton className="h-10 flex-1 rounded-full" />
               </div>
@@ -81,6 +82,7 @@ export function CatalogPage(): ReactNode {
     mutationFn: (productId: string) => addCartItem({ productId, quantity: 1 }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["cart"] });
+      Toast.toast.success("Added to cart");
     },
   });
 
@@ -88,6 +90,7 @@ export function CatalogPage(): ReactNode {
     mutationFn: (productId: string) => addWishlistItem(productId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      Toast.toast.success("Added to wishlist");
     },
   });
 
@@ -97,15 +100,19 @@ export function CatalogPage(): ReactNode {
         title="Products"
         description="Browse our selection of premium quality groceries and everyday essentials."
       />
-      
+
       {productsQuery.isLoading ? (
         <ProductSkeletonGrid />
       ) : (
         <ProductGrid
           products={productsQuery.data?.products ?? []}
           isLoading={false}
-          onAddToCart={(productId) => { addToCartMutation.mutate(productId); }}
-          onAddToWishlist={(productId) => { addToWishlistMutation.mutate(productId); }}
+          onAddToCart={(productId) => {
+            addToCartMutation.mutate(productId);
+          }}
+          onAddToWishlist={(productId) => {
+            addToWishlistMutation.mutate(productId);
+          }}
           isMutating={
             addToCartMutation.isPending || addToWishlistMutation.isPending
           }
@@ -262,7 +269,9 @@ function CatalogHeader({
   return (
     <section className="section-heading catalog-heading">
       <h3 style={{ margin: 0 }}>{title}</h3>
-      <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>{description}</p>
+      <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
+        {description}
+      </p>
     </section>
   );
 }
@@ -310,14 +319,18 @@ function ProductGrid({
             <div className="catalog-card-actions">
               <Button
                 tone="secondary"
-                onClick={() => { onAddToWishlist(product._id); }}
+                onClick={() => {
+                  onAddToWishlist(product._id);
+                }}
                 disabled={isMutating}
               >
                 Wishlist
               </Button>
               <Button
                 tone="primary"
-                onClick={() => { onAddToCart(product._id); }}
+                onClick={() => {
+                  onAddToCart(product._id);
+                }}
                 disabled={isMutating}
               >
                 Add to cart
@@ -345,4 +358,3 @@ function TaxonomyCard({
     </Card>
   );
 }
-
