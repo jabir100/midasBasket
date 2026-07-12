@@ -13,6 +13,9 @@ const imageSchema = new Schema(
     url: { type: String, required: true, trim: true },
     alt: { type: String, required: true, trim: true, maxlength: 140 },
     publicId: { type: String, trim: true },
+    // Associates this image with a variant color (product images only);
+    // unset means the image applies regardless of the selected color.
+    color: { type: String, trim: true, maxlength: 40 },
   },
   { _id: false },
 );
@@ -57,6 +60,16 @@ const brandSchema = new Schema(
   { timestamps: true },
 );
 
+const variantSchema = new Schema(
+  {
+    size: { type: String, required: true, trim: true, uppercase: true, maxlength: 20 },
+    color: { type: String, required: true, trim: true, maxlength: 40 },
+    stockQuantity: { type: Number, required: true, min: 0, default: 0 },
+    sku: { type: String, trim: true, maxlength: 80 },
+  },
+  { _id: false },
+);
+
 const productSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 180 },
@@ -92,7 +105,10 @@ const productSchema = new Schema(
     },
     price: { type: Number, required: true, min: 0, index: true },
     compareAtPrice: { type: Number, min: 0 },
+    // Derived/cached sum of variants[].stockQuantity when variants exist;
+    // otherwise the product's own flat stock (legacy no-variant products).
     stockQuantity: { type: Number, required: true, min: 0, default: 0 },
+    variants: { type: [variantSchema], default: [] },
     images: { type: [imageSchema], default: [] },
     seo: seoSchema,
     tags: { type: [String], default: [], index: true },

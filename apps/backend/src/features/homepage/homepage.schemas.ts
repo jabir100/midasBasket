@@ -47,6 +47,8 @@ export const homepageSettingsSchema = z.object({
     )
     .max(6)
     .optional(),
+  popularProductIds: z.array(z.string().trim().min(1)).max(24).optional(),
+  bestSellingProductIds: z.array(z.string().trim().min(1)).max(24).optional(),
 });
 
 export const testimonialSchema = z.object({

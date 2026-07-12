@@ -52,63 +52,47 @@ homepageRouter.get("/", async (_req, res, next) => {
       return;
     }
 
-    const [
-      settings,
-      featuredCategories,
-      featuredProducts,
-      flashSaleProducts,
-      trendingProducts,
-      bestSellers,
-      newestProducts,
-      featuredBrands,
-      testimonials,
-      latestBlogs,
-      carouselSlides,
-    ] = await Promise.all([
-      HomepageSettingsModel.findOne().lean(),
-      CategoryModel.find({ isFeatured: true, isActive: true })
-        .sort({ name: 1 })
-        .limit(6)
-        .lean(),
-      ProductModel.find({ isFeatured: true, isPublished: true })
-        .sort({ createdAt: -1 })
-        .limit(8)
-        .lean(),
-      ProductModel.find({
-        isPublished: true,
-        compareAtPrice: { $exists: true, $gt: 0 },
-      })
-        .sort({ createdAt: -1 })
-        .limit(4)
-        .lean(),
-      ProductModel.find({ isPublished: true })
-        .sort({ publishedAt: -1 })
-        .limit(4)
-        .lean(),
-      ProductModel.find({ isFeatured: true, isPublished: true })
-        .sort({ createdAt: 1 })
-        .limit(4)
-        .lean(),
-      ProductModel.find({ isPublished: true })
-        .sort({ publishedAt: -1 })
-        .limit(4)
-        .lean(),
-      BrandModel.find({ isFeatured: true, isActive: true })
-        .sort({ name: 1 })
-        .limit(8)
-        .lean(),
-      TestimonialModel.find({ isActive: true })
-        .sort({ sortOrder: 1, createdAt: -1 })
-        .limit(6)
-        .lean(),
-      BlogModel.find({ isPublished: true })
-        .sort({ publishedAt: -1 })
-        .limit(4)
-        .lean(),
-      CarouselSlideModel.find({ isActive: true })
-        .sort({ sortOrder: 1 })
-        .lean(),
-    ]);
+    const [settings, featuredCategories, featuredBrands, carouselSlides] =
+      await Promise.all([
+        HomepageSettingsModel.findOne().lean(),
+        CategoryModel.find({ isFeatured: true, isActive: true })
+          .sort({ name: 1 })
+          .limit(6)
+          .lean(),
+        BrandModel.find({ isFeatured: true, isActive: true })
+          .sort({ name: 1 })
+          .limit(8)
+          .lean(),
+        CarouselSlideModel.find({ isActive: true })
+          .sort({ sortOrder: 1 })
+          .lean(),
+      ]);
+
+    /* Resolve admin-picked product lists, preserving admin-chosen order */
+    const popularProductIds = settings?.popularProductIds ?? [];
+    const bestSellingProductIds = settings?.bestSellingProductIds ?? [];
+    const pickedProductIds = [...popularProductIds, ...bestSellingProductIds];
+
+    const pickedProducts = pickedProductIds.length
+      ? await ProductModel.find({
+          _id: { $in: pickedProductIds },
+          isPublished: true,
+        }).lean()
+      : [];
+
+    const pickedProductMap = new Map(
+      pickedProducts.map((product) => [String(product._id), product]),
+    );
+
+    const resolveOrderedProducts = (ids: typeof popularProductIds) =>
+      ids
+        .map((id) => pickedProductMap.get(String(id)))
+        .filter((product): product is NonNullable<typeof product> =>
+          Boolean(product),
+        );
+
+    const popularProducts = resolveOrderedProducts(popularProductIds);
+    const bestSellingProducts = resolveOrderedProducts(bestSellingProductIds);
 
     /* Count products per featured category */
     const categoryProductCounts = await Promise.all(
@@ -132,7 +116,7 @@ homepageRouter.get("/", async (_req, res, next) => {
         ? { src: String(img.url), alt: String(img.alt), width: 1200, height: 900 }
         : undefined;
 
-    const mapProduct = (product: (typeof featuredProducts)[0]) => ({
+    const mapProduct = (product: (typeof pickedProducts)[0]) => ({
       id: String(product._id),
       name: product.name,
       slug: product.slug,
@@ -202,17 +186,6 @@ homepageRouter.get("/", async (_req, res, next) => {
             height: 900,
           },
         },
-        metrics:
-          settings?.metrics && settings.metrics.length > 0
-            ? settings.metrics.map((m) => ({
-                value: m.value,
-                label: m.label,
-              }))
-            : [
-                { value: "2k+", label: "Curated products" },
-                { value: "24h", label: "Fast dispatch target" },
-                { value: "100%", label: "Secure checkout focus" },
-              ],
         featuredCategories: featuredCategories.map((category) => ({
           id: String(category._id),
           name: category.name,
@@ -225,11 +198,8 @@ homepageRouter.get("/", async (_req, res, next) => {
           },
           productCount: countMap.get(String(category._id)) ?? 0,
         })),
-        featuredProducts: featuredProducts.map(mapProduct),
-        flashSaleProducts: flashSaleProducts.map(mapProduct),
-        trendingProducts: trendingProducts.map(mapProduct),
-        bestSellers: bestSellers.map(mapProduct),
-        newestProducts: newestProducts.map(mapProduct),
+        popularProducts: popularProducts.map(mapProduct),
+        bestSellingProducts: bestSellingProducts.map(mapProduct),
         featuredBrands: featuredBrands.map((brand) => ({
           id: String(brand._id),
           name: brand.name,
@@ -241,21 +211,6 @@ homepageRouter.get("/", async (_req, res, next) => {
             height: 900,
           },
         })),
-        promoBanner: settings?.promoBanner?.title
-          ? {
-              title: settings.promoBanner.title,
-              description: settings.promoBanner.description ?? "",
-              action: settings.promoBanner.action ?? {
-                href: "/offers",
-                label: "Explore offers",
-              },
-            }
-          : {
-              title: "Weekend essentials, sharper prices",
-              description:
-                "A premium promotional surface for campaigns, seasonal edits, and featured collections.",
-              action: { href: "/offers", label: "Explore offers" },
-            },
         whyChooseUs:
           settings?.whyChooseUs && settings.whyChooseUs.length > 0
             ? settings.whyChooseUs.map((item, index) => ({
@@ -283,26 +238,6 @@ homepageRouter.get("/", async (_req, res, next) => {
                     "Clear category paths, product highlights, trusted brands, and friction-light shopping journeys.",
                 },
               ],
-        testimonials: testimonials.map((t) => ({
-          id: String(t._id),
-          customerName: t.customerName,
-          quote: t.quote,
-          rating: t.rating,
-        })),
-        latestBlogs: latestBlogs.map((blog) => ({
-          id: String(blog._id),
-          title: blog.title,
-          slug: blog.slug,
-          excerpt: blog.excerpt ?? "",
-          publishedAt:
-            blog.publishedAt?.toISOString() ?? new Date().toISOString(),
-          image: mapImage(blog.image) ?? {
-            src: "/images/homepage/placeholder.webp",
-            alt: blog.title,
-            width: 1200,
-            height: 900,
-          },
-        })),
         generatedAt: new Date().toISOString(),
       },
       requestId: getRequestId(res),

@@ -35,11 +35,63 @@ export type AdminOrder = {
   orderNumber: string;
   customerName: string;
   customerEmail: string;
+  customerPhone?: string;
+  paymentMethod?: string;
   status: string;
   paymentStatus: string;
   total: number;
   currency: string;
   createdAt?: string;
+  statusTimeline?: OrderStatusTimelineEntry[];
+};
+
+export type OrderStatusTimelineEntry = {
+  status: string;
+  timestamp?: string;
+  updatedBy: string;
+  note?: string;
+};
+
+export type OrderAddress = {
+  line1: string;
+  line2?: string;
+  area: string;
+  city: string;
+  postalCode?: string;
+  country: string;
+};
+
+export type OrderItem = {
+  productId: string;
+  title: string;
+  slug: string;
+  imageUrl?: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+};
+
+export type AdminOrderDetail = {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  shippingAddress: OrderAddress;
+  notes: string | null;
+  paymentMethod: string;
+  paymentStatus: string;
+  status: string;
+  statusTimeline: OrderStatusTimelineEntry[];
+  items: OrderItem[];
+  currency: string;
+  couponCode: string | null;
+  subTotal: number;
+  shippingFee: number;
+  discountTotal: number;
+  total: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type AuditLog = {
@@ -97,12 +149,20 @@ export async function listAdminOrders(input?: {
   limit?: number;
   status?: string;
   paymentStatus?: string;
+  search?: string;
 }): Promise<AdminOrder[]> {
   const response = await apiClient.get<ApiSuccess<{ orders: AdminOrder[] }>>(
     "/admin/dashboard/orders",
     { params: input },
   );
   return response.data.data.orders;
+}
+
+export async function getAdminOrder(orderId: string): Promise<AdminOrderDetail> {
+  const response = await apiClient.get<ApiSuccess<{ order: AdminOrderDetail }>>(
+    `/admin/dashboard/orders/${orderId}`,
+  );
+  return response.data.data.order;
 }
 
 export async function updateOrderStatus(
@@ -174,6 +234,13 @@ export async function toggleCarouselSlideActive(
   return response.data.data.slide;
 }
 
+export type AdminProductVariant = {
+  size: string;
+  color: string;
+  stockQuantity: number;
+  sku?: string;
+};
+
 export type AdminProduct = {
   _id: string;
   name: string;
@@ -186,11 +253,22 @@ export type AdminProduct = {
   price: number;
   compareAtPrice?: number;
   stockQuantity: number;
-  images: { url: string; alt: string; publicId?: string }[];
+  variants: AdminProductVariant[];
+  images: { url: string; alt: string; publicId?: string; color?: string }[];
   tags: string[];
   isFeatured: boolean;
   isPublished: boolean;
   publishedAt?: string;
+};
+
+export type AdminProductImagesUpload = {
+  files?: File[];
+  removeImagePublicIds?: string[];
+  imageOrder?: string[];
+  /** Maps existing image publicId -> variant color ("" clears it). */
+  imageColors?: Record<string, string>;
+  /** Color for each newly uploaded file, same order as `files`. */
+  newImageColors?: (string | null)[];
 };
 
 export type AdminTaxonomy = {
@@ -198,30 +276,29 @@ export type AdminTaxonomy = {
   name: string;
   slug: string;
   description?: string;
+  image?: {
+    url: string;
+    alt: string;
+    publicId?: string;
+  };
+  logo?: {
+    url: string;
+    alt: string;
+    publicId?: string;
+  };
   isActive?: boolean;
   isFeatured?: boolean;
 };
 
-export type HomepageLink = {
-  href: string;
-  label: string;
+export type AdminImageUpload = {
+  file?: File | null;
+  alt?: string;
 };
 
 export type HomepageSettings = {
-  hero?: {
-    eyebrow?: string;
-    title: string;
-    description?: string;
-    primaryAction?: HomepageLink;
-    secondaryAction?: HomepageLink;
-  };
-  metrics?: { value: string; label: string }[];
-  promoBanner?: {
-    title: string;
-    description?: string;
-    action?: HomepageLink;
-  };
   whyChooseUs?: { title: string; description?: string }[];
+  popularProductIds?: string[];
+  bestSellingProductIds?: string[];
 };
 
 export type AdminTestimonial = {
@@ -240,12 +317,22 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
   return response.data.data.products;
 }
 
+export async function getAdminProduct(productId: string): Promise<AdminProduct> {
+  const response = await apiClient.get<ApiSuccess<{ product: AdminProduct }>>(
+    `/catalog/admin/products/${productId}`,
+  );
+  return response.data.data.product;
+}
+
 export async function createAdminProduct(
   input: Partial<AdminProduct>,
+  images?: AdminProductImagesUpload,
 ): Promise<AdminProduct> {
+  const payload = toProductMultipartPayload(input, images);
   const response = await apiClient.post<ApiSuccess<{ product: AdminProduct }>>(
     "/catalog/admin/products",
-    input,
+    payload,
+    getMultipartConfig(payload),
   );
   return response.data.data.product;
 }
@@ -253,10 +340,13 @@ export async function createAdminProduct(
 export async function updateAdminProduct(
   productId: string,
   input: Partial<AdminProduct>,
+  images?: AdminProductImagesUpload,
 ): Promise<AdminProduct> {
+  const payload = toProductMultipartPayload(input, images);
   const response = await apiClient.patch<ApiSuccess<{ product: AdminProduct }>>(
     `/catalog/admin/products/${productId}`,
-    input,
+    payload,
+    getMultipartConfig(payload),
   );
   return response.data.data.product;
 }
@@ -274,20 +364,28 @@ export async function listAdminCategories(): Promise<AdminTaxonomy[]> {
 
 export async function createAdminCategory(
   input: Partial<AdminTaxonomy>,
+  image?: AdminImageUpload,
 ): Promise<AdminTaxonomy> {
+  const payload = toMultipartPayload(input, image);
   const response = await apiClient.post<
     ApiSuccess<{ category: AdminTaxonomy }>
-  >("/catalog/admin/categories", input);
+  >("/catalog/admin/categories", payload, getMultipartConfig(payload));
   return response.data.data.category;
 }
 
 export async function updateAdminCategory(
   categoryId: string,
   input: Partial<AdminTaxonomy>,
+  image?: AdminImageUpload,
 ): Promise<AdminTaxonomy> {
+  const payload = toMultipartPayload(input, image);
   const response = await apiClient.patch<
     ApiSuccess<{ category: AdminTaxonomy }>
-  >(`/catalog/admin/categories/${categoryId}`, input);
+  >(
+    `/catalog/admin/categories/${categoryId}`,
+    payload,
+    getMultipartConfig(payload),
+  );
   return response.data.data.category;
 }
 
@@ -304,10 +402,13 @@ export async function listAdminBrands(): Promise<AdminTaxonomy[]> {
 
 export async function createAdminBrand(
   input: Partial<AdminTaxonomy>,
+  image?: AdminImageUpload,
 ): Promise<AdminTaxonomy> {
+  const payload = toMultipartPayload(input, image);
   const response = await apiClient.post<ApiSuccess<{ brand: AdminTaxonomy }>>(
     "/catalog/admin/brands",
-    input,
+    payload,
+    getMultipartConfig(payload),
   );
   return response.data.data.brand;
 }
@@ -315,10 +416,13 @@ export async function createAdminBrand(
 export async function updateAdminBrand(
   brandId: string,
   input: Partial<AdminTaxonomy>,
+  image?: AdminImageUpload,
 ): Promise<AdminTaxonomy> {
+  const payload = toMultipartPayload(input, image);
   const response = await apiClient.patch<ApiSuccess<{ brand: AdminTaxonomy }>>(
     `/catalog/admin/brands/${brandId}`,
-    input,
+    payload,
+    getMultipartConfig(payload),
   );
   return response.data.data.brand;
 }
@@ -373,4 +477,113 @@ export async function deleteAdminTestimonial(
   testimonialId: string,
 ): Promise<void> {
   await apiClient.delete(`/homepage/admin/testimonials/${testimonialId}`);
+}
+
+function toMultipartPayload<T extends Record<string, unknown>>(
+  input: T,
+  image?: AdminImageUpload,
+): T | FormData {
+  const hasImagePayload = Boolean(image?.file || image?.alt);
+
+  if (!hasImagePayload) {
+    return input;
+  }
+
+  const formData = new FormData();
+
+  for (const [key, value] of Object.entries(input)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    if (Array.isArray(value) || typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+      continue;
+    }
+
+    formData.append(key, String(value));
+  }
+
+  if (image?.file) {
+    formData.append("image", image.file);
+  }
+
+  if (image?.alt) {
+    formData.append("imageAlt", image.alt);
+  }
+
+  return formData;
+}
+
+function toProductMultipartPayload(
+  input: Partial<AdminProduct>,
+  images?: AdminProductImagesUpload,
+): Partial<AdminProduct> | FormData {
+  const hasFiles = Boolean(images?.files && images.files.length > 0);
+  const hasRemovals = Boolean(
+    images?.removeImagePublicIds && images.removeImagePublicIds.length > 0,
+  );
+  const hasReorder = Boolean(
+    images?.imageOrder && images.imageOrder.length > 0,
+  );
+  const hasColors = Boolean(
+    images?.imageColors && Object.keys(images.imageColors).length > 0,
+  );
+
+  if (!hasFiles && !hasRemovals && !hasReorder && !hasColors) {
+    return input;
+  }
+
+  const formData = new FormData();
+
+  for (const [key, value] of Object.entries(input)) {
+    if (Array.isArray(value) || typeof value === "object") {
+      formData.append(key, JSON.stringify(value));
+      continue;
+    }
+
+    formData.append(key, String(value));
+  }
+
+  for (const file of images?.files ?? []) {
+    formData.append("images", file);
+  }
+
+  if (images?.removeImagePublicIds && images.removeImagePublicIds.length > 0) {
+    formData.append(
+      "removeImagePublicIds",
+      JSON.stringify(images.removeImagePublicIds),
+    );
+  }
+
+  if (images?.imageOrder && images.imageOrder.length > 0) {
+    formData.append("imageOrder", JSON.stringify(images.imageOrder));
+  }
+
+  if (images?.imageColors && Object.keys(images.imageColors).length > 0) {
+    formData.append(
+      "imageColors",
+      JSON.stringify(Object.entries(images.imageColors)),
+    );
+  }
+
+  if (images?.newImageColors && images.newImageColors.length > 0) {
+    formData.append("newImageColors", JSON.stringify(images.newImageColors));
+  }
+
+  return formData;
+}
+
+function getMultipartConfig(payload: unknown): {
+  headers?: Record<string, string>;
+} {
+  if (!(payload instanceof FormData)) {
+    return {};
+  }
+
+  return {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
 }

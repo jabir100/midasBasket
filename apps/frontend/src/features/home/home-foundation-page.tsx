@@ -1,27 +1,15 @@
-import {
-  ArrowRight,
-  BadgeCheck,
-  Clock3,
-  Mail,
-  PackageSearch,
-  Search,
-  Sparkles,
-  Star,
-  Store,
-  Truck,
-} from "lucide-react";
+import { ArrowRight, BadgeCheck, Search, Sparkles, Store, Truck } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@heroui/react";
 import { Badge } from "../../shared/ui/badge.js";
-import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { Chip } from "../../shared/ui/chip.js";
 import { toAbsoluteUrl } from "../../shared/seo/seo.js";
-import { homepagePreviewData } from "./homepage.data.js";
-import type { HomepageProduct } from "./homepage.types.js";
 import { HomeCarousel } from "./home-carousel.js";
 import { fetchHomepage } from "./homepage-api.js";
+import { ProductSlider } from "./product-slider.js";
 
 const formatter = new Intl.NumberFormat("en-BD", {
   currency: "BDT",
@@ -30,7 +18,7 @@ const formatter = new Intl.NumberFormat("en-BD", {
 });
 
 export function HomeFoundationPage(): ReactNode {
-  const { data: homepage = homepagePreviewData } = useQuery({
+  const { data: homepage, isLoading } = useQuery({
     queryKey: ["homepage"],
     queryFn: fetchHomepage,
   });
@@ -53,6 +41,20 @@ export function HomeFoundationPage(): ReactNode {
     },
   };
 
+  if (isLoading || !homepage) {
+    return (
+      <main>
+        <script type="application/ld+json">
+          {JSON.stringify(organizationJsonLd)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(websiteJsonLd)}
+        </script>
+        <HomePageSkeleton />
+      </main>
+    );
+  }
+
   return (
     <main>
       <script type="application/ld+json">
@@ -61,7 +63,7 @@ export function HomeFoundationPage(): ReactNode {
       <script type="application/ld+json">
         {JSON.stringify(websiteJsonLd)}
       </script>
-      {homepage.carousel && homepage.carousel.length > 0 ? (
+      {homepage.carousel.length > 0 ? (
         <HomeCarousel slides={homepage.carousel} />
       ) : (
         <section className="home-hero" aria-labelledby="home-title">
@@ -86,26 +88,23 @@ export function HomeFoundationPage(): ReactNode {
                 {homepage.hero.secondaryAction.label}
               </a>
             </div>
-            <dl className="home-metrics" aria-label="Midas Basket highlights">
-              {homepage.metrics.map((metric) => (
-                <div key={metric.label}>
-                  <dt>{metric.label}</dt>
-                  <dd>{metric.value}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
 
-          <aside className="home-hero-panel" aria-label="Featured shopping tools">
+          <aside
+            className="home-hero-panel"
+            aria-label="Featured shopping tools"
+          >
             <div className="hero-search-card">
               <Search aria-hidden="true" size={20} />
               <span>Search products, categories, and brands</span>
             </div>
-            <div className="hero-product-card">
-              <Badge>Featured</Badge>
-              <strong>{homepage.featuredProducts[0]?.name}</strong>
-              <span>{formatPrice(homepage.featuredProducts[0])}</span>
-            </div>
+            {homepage.popularProducts[0] ? (
+              <div className="hero-product-card">
+                <Badge>Featured</Badge>
+                <strong>{homepage.popularProducts[0].name}</strong>
+                <span>{formatter.format(homepage.popularProducts[0].price)}</span>
+              </div>
+            ) : null}
             <div className="hero-service-row">
               <span>
                 <Truck aria-hidden="true" size={18} /> Fast dispatch
@@ -141,36 +140,52 @@ export function HomeFoundationPage(): ReactNode {
         </div>
       </section>
 
-      <ProductRail
-        eyebrow="Curated picks"
-        title="Featured products"
-        products={homepage.featuredProducts}
-      />
-      <ProductRail
-        eyebrow="Limited-time value"
-        title="Flash sale"
-        products={homepage.flashSaleProducts}
-        compact
-      />
-      <ProductRail
-        eyebrow="What shoppers are viewing"
-        title="Trending products"
-        products={homepage.trendingProducts}
-      />
-
-      <section className="promo-band" aria-labelledby="promo-title">
-        <div>
-          <span>Promotion</span>
-          <h2 id="promo-title">{homepage.promoBanner.title}</h2>
-          <p>{homepage.promoBanner.description}</p>
+      <section className="home-section" aria-labelledby="brands-title">
+        <SectionHeading
+          eyebrow="Featured brands"
+          title="Trusted names for every basket"
+          action={{ href: "/brands", label: "All brands" }}
+        />
+        <div className="brand-grid">
+          {homepage.featuredBrands.map((brand) => (
+            <a
+              href={`/brands/${brand.slug}`}
+              className="brand-card"
+              key={brand.id}
+            >
+              {brand.name}
+            </a>
+          ))}
         </div>
-        <a
-          className="ui-button ui-button-primary"
-          href={homepage.promoBanner.action.href}
-        >
-          {homepage.promoBanner.action.label}
-        </a>
       </section>
+
+      {homepage.popularProducts.length > 0 ? (
+        <section
+          className="home-section"
+          aria-labelledby="popular-products-title"
+        >
+          <SectionHeading
+            eyebrow="Curated picks"
+            title="Popular products"
+            action={{ href: "/products", label: "View products" }}
+          />
+          <ProductSlider products={homepage.popularProducts} />
+        </section>
+      ) : null}
+
+      {homepage.bestSellingProducts.length > 0 ? (
+        <section
+          className="home-section"
+          aria-labelledby="best-selling-products-title"
+        >
+          <SectionHeading
+            eyebrow="Customer favorites"
+            title="Most selling"
+            action={{ href: "/products", label: "View products" }}
+          />
+          <ProductSlider products={homepage.bestSellingProducts} />
+        </section>
+      ) : null}
 
       <section
         className="home-section split-section"
@@ -193,122 +208,43 @@ export function HomeFoundationPage(): ReactNode {
         </div>
       </section>
 
-      <ProductRail
-        eyebrow="Customer favorites"
-        title="Best sellers"
-        products={homepage.bestSellers}
-      />
-      <ProductRail
-        eyebrow="Fresh arrivals"
-        title="Newest products"
-        products={homepage.newestProducts}
-        compact
-      />
-
-      <section className="home-section" aria-labelledby="brands-title">
-        <SectionHeading
-          eyebrow="Featured brands"
-          title="Trusted names for every basket"
-          action={{ href: "/brands", label: "All brands" }}
-        />
-        <div className="brand-grid">
-          {homepage.featuredBrands.map((brand) => (
-            <a
-              href={`/brands/${brand.slug}`}
-              className="brand-card"
-              key={brand.id}
-            >
-              {brand.name}
-            </a>
-          ))}
-        </div>
-      </section>
-
-      <section
-        className="home-section two-column-section"
-        aria-labelledby="testimonials-title"
-      >
-        <div>
-          <span className="section-eyebrow">Testimonials</span>
-          <h2 id="testimonials-title">Built around confidence</h2>
-        </div>
-        <div className="testimonial-list">
-          {homepage.testimonials.map((testimonial) => (
-            <blockquote key={testimonial.id}>
-              <div
-                aria-label={`${testimonial.rating.toString()} star rating`}
-                className="rating-row"
-              >
-                {Array.from({ length: testimonial.rating }, (_, index) => (
-                  <Star
-                    aria-hidden="true"
-                    fill="currentColor"
-                    key={index}
-                    size={16}
-                  />
-                ))}
-              </div>
-              <p>{testimonial.quote}</p>
-              <footer>{testimonial.customerName}</footer>
-            </blockquote>
-          ))}
-        </div>
-      </section>
-
-      <section className="home-section" aria-labelledby="blogs-title">
-        <SectionHeading
-          eyebrow="Latest blogs"
-          title="Guides for smarter shopping"
-          action={{ href: "/blogs", label: "Read all" }}
-        />
-        <div className="blog-grid">
-          {homepage.latestBlogs.map((blog) => (
-            <article className="blog-card" key={blog.id}>
-              <Clock3 aria-hidden="true" size={18} />
-              <time dateTime={blog.publishedAt}>
-                {formatDate(blog.publishedAt)}
-              </time>
-              <h3>{blog.title}</h3>
-              <p>{blog.excerpt}</p>
-              <a href={`/blogs/${blog.slug}`}>Read article</a>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section
-        className="newsletter-section"
-        aria-labelledby="newsletter-title"
-      >
-        <div>
-          <Mail aria-hidden="true" size={22} />
-          <h2 id="newsletter-title">Get the best of Midas Basket</h2>
-          <p>
-            Newsletter UI is ready for a secure backend subscription endpoint in
-            a later phase.
-          </p>
-        </div>
-        <form className="newsletter-form">
-          <label className="sr-only" htmlFor="newsletter-email">
-            Email address
-          </label>
-          <input
-            id="newsletter-email"
-            name="email"
-            placeholder="you@example.com"
-            type="email"
-          />
-          <Button tone="primary" type="submit">
-            Subscribe
-          </Button>
-        </form>
-      </section>
-
       <footer className="site-footer">
         <strong>Midas Basket</strong>
         <span>Fast, secure, premium ecommerce foundation.</span>
       </footer>
     </main>
+  );
+}
+
+function HomePageSkeleton(): ReactNode {
+  return (
+    <div aria-busy="true" aria-live="polite">
+      <section className="home-hero" aria-hidden="true">
+        <div className="home-hero-copy">
+          <Skeleton className="h-9 w-52 rounded-full" />
+          <div className="space-y-3">
+            <Skeleton className="h-20 w-full max-w-3xl rounded-2xl" />
+            <Skeleton className="h-20 w-full max-w-2xl rounded-2xl" />
+          </div>
+          <Skeleton className="h-6 w-full max-w-xl rounded-full" />
+          <div className="hero-actions">
+            <Skeleton className="h-12 w-40 rounded-full" />
+            <Skeleton className="h-12 w-36 rounded-full" />
+          </div>
+          <div className="home-metrics" aria-hidden="true">
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
+          </div>
+        </div>
+
+        <aside className="home-hero-panel" aria-hidden="true">
+          <Skeleton className="h-20 w-full rounded-3xl" />
+          <Skeleton className="h-28 w-full rounded-3xl" />
+          <Skeleton className="h-20 w-full rounded-3xl" />
+        </aside>
+      </section>
+    </div>
   );
 }
 
@@ -334,75 +270,3 @@ function SectionHeading({
   );
 }
 
-function ProductRail({
-  compact = false,
-  eyebrow,
-  products,
-  title,
-}: Readonly<{
-  compact?: boolean;
-  eyebrow: string;
-  products: HomepageProduct[];
-  title: string;
-}>): ReactNode {
-  return (
-    <section
-      className="home-section"
-      aria-labelledby={`${title.toLowerCase().replaceAll(" ", "-")}-title`}
-    >
-      <SectionHeading
-        eyebrow={eyebrow}
-        title={title}
-        action={{ href: "/products", label: "View products" }}
-      />
-      <div
-        className={
-          compact ? "product-grid product-grid-compact" : "product-grid"
-        }
-      >
-        {products.map((product) => (
-          <article className="product-card" key={product.id}>
-            <div className="product-media" aria-hidden="true">
-              {product.image?.src ? (
-                <img src={product.image.src} alt={product.image.alt} />
-              ) : (
-                <PackageSearch size={28} />
-              )}
-            </div>
-            <div className="product-content">
-              {product.badge ? <Badge>{product.badge}</Badge> : null}
-              <h3>
-                <a href={`/products/${product.slug}`}>{product.name}</a>
-              </h3>
-              <span>{product.sku}</span>
-              <div className="product-price-row">
-                <strong>{formatPrice(product)}</strong>
-                {product.compareAtPrice ? (
-                  <del>{formatter.format(product.compareAtPrice)}</del>
-                ) : null}
-              </div>
-              <small>
-                {product.rating.toFixed(1)} rating · {product.reviewCount}{" "}
-                reviews
-              </small>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function formatPrice(product: HomepageProduct | undefined): string {
-  if (!product) {
-    return "Coming soon";
-  }
-
-  return formatter.format(product.price);
-}
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
-}

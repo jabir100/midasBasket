@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Skeleton, Toast } from "@heroui/react";
 
 import { Badge } from "../../shared/ui/badge.js";
@@ -132,11 +133,69 @@ export function CatalogPage(): ReactNode {
 export function ProductDetailPage({
   slug,
 }: Readonly<{ slug: string }>): ReactNode {
+  const queryClient = useQueryClient();
   const productQuery = useQuery({
     queryKey: ["catalog", "product", slug],
     queryFn: () => getProduct(slug),
   });
   const product = productQuery.data;
+  const hasVariants = (product?.variants.length ?? 0) > 0;
+
+  const sizes = useMemo(
+    () => [...new Set((product?.variants ?? []).map((v) => v.size))],
+    [product?.variants],
+  );
+  const colors = useMemo(
+    () => [...new Set((product?.variants ?? []).map((v) => v.color))],
+    [product?.variants],
+  );
+
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const galleryImages = useMemo(() => {
+    const images = product?.images ?? [];
+    if (!selectedColor) {
+      return images;
+    }
+    const matching = images.filter((image) => image.color === selectedColor);
+    return matching.length > 0 ? matching : images;
+  }, [product?.images, selectedColor]);
+
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [galleryImages]);
+
+  const selectedVariant = useMemo(
+    () =>
+      (product?.variants ?? []).find(
+        (v) => v.size === selectedSize && v.color === selectedColor,
+      ) ?? null,
+    [product?.variants, selectedSize, selectedColor],
+  );
+
+  const addToCartMutation = useMutation({
+    mutationFn: () =>
+      addCartItem({
+        productId: product?._id ?? "",
+        quantity: 1,
+        ...(selectedSize ? { size: selectedSize } : {}),
+        ...(selectedColor ? { color: selectedColor } : {}),
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["cart"] });
+      Toast.toast.success("Added to cart");
+    },
+    onError: (error: Error) => {
+      Toast.toast.danger(error.message || "Could not add to cart");
+    },
+  });
+
+  const canAddToCart = hasVariants
+    ? Boolean(selectedVariant && selectedVariant.stockQuantity > 0)
+    : (product?.stockQuantity ?? 0) > 0;
+
   const productJsonLd = product
     ? {
         "@context": "https://schema.org",
@@ -164,18 +223,98 @@ export function ProductDetailPage({
       ) : null}
       {product ? (
         <section className="product-detail">
-          <div className="product-media">
-            {product.images[0] ? (
-              <img src={product.images[0].url} alt={product.images[0].alt} />
-            ) : (
-              <span>{product.name}</span>
-            )}
+          <div className="product-media-gallery">
+            <div className="product-media">
+              {galleryImages[selectedImageIndex] ? (
+                <img
+                  src={galleryImages[selectedImageIndex].url}
+                  alt={galleryImages[selectedImageIndex].alt}
+                />
+              ) : (
+                <span>{product.name}</span>
+              )}
+            </div>
+            {galleryImages.length > 1 ? (
+              <div className="product-media-thumbs">
+                {galleryImages.map((image, index) => (
+                  <button
+                    key={image.url}
+                    type="button"
+                    className={`product-media-thumb ${
+                      index === selectedImageIndex ? "selected" : ""
+                    }`}
+                    onClick={() => {
+                      setSelectedImageIndex(index);
+                    }}
+                  >
+                    <img src={image.url} alt={image.alt} />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div className="product-detail-copy">
             <Badge>{product.sku}</Badge>
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <strong>৳{product.price.toLocaleString("en-BD")}</strong>
+
+            {hasVariants ? (
+              <div className="product-variant-picker">
+                <div className="product-variant-group">
+                  <span>Size</span>
+                  <div className="product-variant-options">
+                    {sizes.map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        className={`product-variant-option ${selectedSize === size ? "selected" : ""}`}
+                        onClick={() => {
+                          setSelectedSize(size);
+                        }}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="product-variant-group">
+                  <span>Color</span>
+                  <div className="product-variant-options">
+                    {colors.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={`product-variant-option ${selectedColor === color ? "selected" : ""}`}
+                        onClick={() => {
+                          setSelectedColor(color);
+                        }}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {selectedSize && selectedColor && !selectedVariant ? (
+                  <p className="form-error">
+                    This combination is not available.
+                  </p>
+                ) : null}
+                {selectedVariant?.stockQuantity === 0 ? (
+                  <p className="form-error">Out of stock.</p>
+                ) : null}
+              </div>
+            ) : null}
+
+            <Button
+              tone="primary"
+              disabled={!canAddToCart || addToCartMutation.isPending}
+              onClick={() => {
+                addToCartMutation.mutate();
+              }}
+            >
+              {canAddToCart ? "Add to cart" : "Out of stock"}
+            </Button>
           </div>
         </section>
       ) : null}
@@ -326,15 +465,25 @@ function ProductGrid({
               >
                 Wishlist
               </Button>
-              <Button
-                tone="primary"
-                onClick={() => {
-                  onAddToCart(product._id);
-                }}
-                disabled={isMutating}
-              >
-                Add to cart
-              </Button>
+              {product.variants.length > 0 ? (
+                <Link
+                  to="/products/$slug"
+                  params={{ slug: product.slug }}
+                  className="ui-button ui-button-primary"
+                >
+                  Select options
+                </Link>
+              ) : (
+                <Button
+                  tone="primary"
+                  onClick={() => {
+                    onAddToCart(product._id);
+                  }}
+                  disabled={isMutating}
+                >
+                  Add to cart
+                </Button>
+              )}
             </div>
           </CardBody>
         </Card>

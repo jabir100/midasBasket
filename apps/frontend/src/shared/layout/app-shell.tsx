@@ -14,6 +14,7 @@ const publicNavItems = [
   { href: "/brands", label: "Brands" },
   { href: "/products", label: "Products" },
   { href: "/wishlist", label: "Wishlist" },
+  { href: "/track", label: "Track Order" },
 ] as const;
 
 export function AppShell({

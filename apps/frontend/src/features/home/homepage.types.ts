@@ -11,11 +11,6 @@ export type HomepageLink = {
   label: string;
 };
 
-export type HomepageMetric = {
-  label: string;
-  value: string;
-};
-
 export type HomepageHeroBanner = {
   eyebrow: string;
   title: string;
@@ -54,32 +49,10 @@ export type HomepageProduct = {
   badge?: string;
 };
 
-export type HomepageBlogPreview = {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  publishedAt: string;
-  image: HomepageImage;
-};
-
-export type HomepageTestimonial = {
-  id: string;
-  customerName: string;
-  quote: string;
-  rating: number;
-};
-
 export type HomepageValueProposition = {
   id: string;
   title: string;
   description: string;
-};
-
-export type HomepagePromoBanner = {
-  title: string;
-  description: string;
-  action: HomepageLink;
 };
 
 export type HomepageCarouselSlide = {
@@ -95,17 +68,10 @@ export type HomepageCarouselSlide = {
 export type HomepagePayload = {
   carousel: HomepageCarouselSlide[];
   hero: HomepageHeroBanner;
-  metrics: HomepageMetric[];
   featuredCategories: HomepageCategory[];
-  featuredProducts: HomepageProduct[];
-  flashSaleProducts: HomepageProduct[];
-  trendingProducts: HomepageProduct[];
-  bestSellers: HomepageProduct[];
-  newestProducts: HomepageProduct[];
+  popularProducts: HomepageProduct[];
+  bestSellingProducts: HomepageProduct[];
   featuredBrands: HomepageBrand[];
-  promoBanner: HomepagePromoBanner;
   whyChooseUs: HomepageValueProposition[];
-  testimonials: HomepageTestimonial[];
-  latestBlogs: HomepageBlogPreview[];
   generatedAt: string;
 };

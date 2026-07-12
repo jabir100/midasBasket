@@ -23,6 +23,7 @@ export const adminUsersQuerySchema = paginationSchema.extend({
 export const adminOrdersQuerySchema = paginationSchema.extend({
   status: z.enum(orderStatuses).optional(),
   paymentStatus: z.enum(["pending", "paid", "failed"]).optional(),
+  search: z.string().trim().min(1).max(120).optional(),
 });
 
 export const adminUserUpdateSchema = z

@@ -11,6 +11,8 @@ export type CartItem = {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  size: string | null;
+  color: string | null;
 };
 
 export type CartPayload = {
@@ -46,6 +48,8 @@ export async function getCart(): Promise<CartPayload> {
 export async function addCartItem(input: {
   productId: string;
   quantity?: number;
+  size?: string;
+  color?: string;
 }): Promise<CartPayload> {
   const response = await apiClient.post<ApiSuccess<{ cart: CartPayload }>>(
     "/cart/items",
@@ -60,22 +64,29 @@ export async function addCartItem(input: {
 export async function updateCartItem(input: {
   productId: string;
   quantity: number;
+  size?: string;
+  color?: string;
 }): Promise<CartPayload> {
   const response = await apiClient.patch<ApiSuccess<{ cart: CartPayload }>>(
     `/cart/items/${input.productId}`,
     {
       quantity: input.quantity,
+      ...(input.size ? { size: input.size } : {}),
+      ...(input.color ? { color: input.color } : {}),
       ...getGuestCartScope(),
     },
   );
   return response.data.data.cart;
 }
 
-export async function removeCartItem(productId: string): Promise<CartPayload> {
+export async function removeCartItem(
+  productId: string,
+  variant?: { size?: string; color?: string },
+): Promise<CartPayload> {
   const response = await apiClient.delete<ApiSuccess<{ cart: CartPayload }>>(
     `/cart/items/${productId}`,
     {
-      params: getGuestCartScope(),
+      params: { ...getGuestCartScope(), ...variant },
     },
   );
   return response.data.data.cart;

@@ -70,6 +70,16 @@ const brandSchema = new Schema(
   { timestamps: true }
 );
 
+const variantSchema = new Schema(
+  {
+    size: { type: String, required: true, trim: true, uppercase: true },
+    color: { type: String, required: true, trim: true },
+    stockQuantity: { type: Number, required: true, min: 0, default: 0 },
+    sku: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
 const productSchema = new Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -82,6 +92,7 @@ const productSchema = new Schema(
     price: { type: Number, required: true, min: 0 },
     compareAtPrice: { type: Number, min: 0 },
     stockQuantity: { type: Number, min: 0, default: 0 },
+    variants: { type: [variantSchema], default: [] },
     images: { type: [imageSchema], default: [] },
     tags: { type: [String], default: [] },
     isFeatured: { type: Boolean, default: false },

@@ -70,11 +70,6 @@ export const homepagePreviewData: HomepagePayload = {
     secondaryAction: { href: "/offers", label: "View offers" },
     image: placeholderImage,
   },
-  metrics: [
-    { value: "2k+", label: "Curated products" },
-    { value: "24h", label: "Fast dispatch target" },
-    { value: "100%", label: "Secure checkout focus" },
-  ],
   featuredCategories: [
     {
       id: "cat-grocery",
@@ -98,11 +93,8 @@ export const homepagePreviewData: HomepagePayload = {
       productCount: 56,
     },
   ],
-  featuredProducts: [...products],
-  flashSaleProducts: [products[2], products[0]],
-  trendingProducts: [products[1], products[3], products[0]],
-  bestSellers: [products[0], products[2], products[1]],
-  newestProducts: [products[1], products[3]],
+  popularProducts: [...products],
+  bestSellingProducts: [products[0], products[2], products[1]],
   featuredBrands: [
     { id: "brand-aura", name: "Aura", slug: "aura", logo: placeholderImage },
     {
@@ -119,12 +111,6 @@ export const homepagePreviewData: HomepagePayload = {
       logo: placeholderImage,
     },
   ],
-  promoBanner: {
-    title: "Weekend essentials, sharper prices",
-    description:
-      "A premium promotional surface for admin-managed campaigns, seasonal edits, and featured collections.",
-    action: { href: "/offers", label: "Explore offers" },
-  },
   whyChooseUs: [
     {
       id: "secure",
@@ -143,42 +129,6 @@ export const homepagePreviewData: HomepagePayload = {
       title: "Curated buying experience",
       description:
         "Clear category paths, product highlights, trusted brands, and friction-light shopping journeys.",
-    },
-  ],
-  testimonials: [
-    {
-      id: "testimonial-1",
-      customerName: "Nusrat Rahman",
-      quote:
-        "The new Midas Basket direction feels clean, premium, and much easier to scan on mobile.",
-      rating: 5,
-    },
-    {
-      id: "testimonial-2",
-      customerName: "Arif Chowdhury",
-      quote:
-        "Fast categories, clear product cards, and a checkout-ready structure are exactly what this store needs.",
-      rating: 5,
-    },
-  ],
-  latestBlogs: [
-    {
-      id: "blog-smart-pantry",
-      title: "How to build a smarter weekly basket",
-      slug: "smart-weekly-basket",
-      excerpt:
-        "A practical guide to planning essentials, offers, and repeat purchases with less friction.",
-      publishedAt: "2026-07-01T00:00:00.000Z",
-      image: placeholderImage,
-    },
-    {
-      id: "blog-secure-shopping",
-      title: "What secure ecommerce should feel like",
-      slug: "secure-ecommerce-experience",
-      excerpt:
-        "Security should be quiet, fast, and reliable. Here is how Midas Basket is being designed.",
-      publishedAt: "2026-07-02T00:00:00.000Z",
-      image: placeholderImage,
     },
   ],
   generatedAt: new Date(0).toISOString(),

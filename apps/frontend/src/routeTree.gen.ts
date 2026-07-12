@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as TrackRouteImport } from './routes/track'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProductsRouteImport } from './routes/products'
@@ -25,10 +26,22 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
+import { Route as AdminProductsNewRouteImport } from './routes/admin_.products.new'
+import { Route as AdminProductsProductIdRouteImport } from './routes/admin_.products.$productId'
+import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin_.orders.$orderId'
+import { Route as AdminCategoriesNewRouteImport } from './routes/admin_.categories.new'
+import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/admin_.categories.$categoryId'
+import { Route as AdminBrandsNewRouteImport } from './routes/admin_.brands.new'
+import { Route as AdminBrandsBrandIdRouteImport } from './routes/admin_.brands.$brandId'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -106,6 +119,42 @@ const ProductsSlugRoute = ProductsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ProductsRoute,
 } as any)
+const AdminProductsNewRoute = AdminProductsNewRouteImport.update({
+  id: '/admin_/products/new',
+  path: '/admin/products/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProductsProductIdRoute = AdminProductsProductIdRouteImport.update({
+  id: '/admin_/products/$productId',
+  path: '/admin/products/$productId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrdersOrderIdRoute = AdminOrdersOrderIdRouteImport.update({
+  id: '/admin_/orders/$orderId',
+  path: '/admin/orders/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCategoriesNewRoute = AdminCategoriesNewRouteImport.update({
+  id: '/admin_/categories/new',
+  path: '/admin/categories/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCategoriesCategoryIdRoute =
+  AdminCategoriesCategoryIdRouteImport.update({
+    id: '/admin_/categories/$categoryId',
+    path: '/admin/categories/$categoryId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminBrandsNewRoute = AdminBrandsNewRouteImport.update({
+  id: '/admin_/brands/new',
+  path: '/admin/brands/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBrandsBrandIdRoute = AdminBrandsBrandIdRouteImport.update({
+  id: '/admin_/brands/$brandId',
+  path: '/admin/brands/$brandId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -122,8 +171,16 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/admin/brands/$brandId': typeof AdminBrandsBrandIdRoute
+  '/admin/brands/new': typeof AdminBrandsNewRoute
+  '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
+  '/admin/categories/new': typeof AdminCategoriesNewRoute
+  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
+  '/admin/products/$productId': typeof AdminProductsProductIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -140,8 +197,16 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/admin/brands/$brandId': typeof AdminBrandsBrandIdRoute
+  '/admin/brands/new': typeof AdminBrandsNewRoute
+  '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
+  '/admin/categories/new': typeof AdminCategoriesNewRoute
+  '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
+  '/admin/products/$productId': typeof AdminProductsProductIdRoute
+  '/admin/products/new': typeof AdminProductsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -159,8 +224,16 @@ export interface FileRoutesById {
   '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/admin_/brands/$brandId': typeof AdminBrandsBrandIdRoute
+  '/admin_/brands/new': typeof AdminBrandsNewRoute
+  '/admin_/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
+  '/admin_/categories/new': typeof AdminCategoriesNewRoute
+  '/admin_/orders/$orderId': typeof AdminOrdersOrderIdRoute
+  '/admin_/products/$productId': typeof AdminProductsProductIdRoute
+  '/admin_/products/new': typeof AdminProductsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -179,8 +252,16 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/reset-password'
+    | '/track'
     | '/wishlist'
     | '/products/$slug'
+    | '/admin/brands/$brandId'
+    | '/admin/brands/new'
+    | '/admin/categories/$categoryId'
+    | '/admin/categories/new'
+    | '/admin/orders/$orderId'
+    | '/admin/products/$productId'
+    | '/admin/products/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -197,8 +278,16 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/reset-password'
+    | '/track'
     | '/wishlist'
     | '/products/$slug'
+    | '/admin/brands/$brandId'
+    | '/admin/brands/new'
+    | '/admin/categories/$categoryId'
+    | '/admin/categories/new'
+    | '/admin/orders/$orderId'
+    | '/admin/products/$productId'
+    | '/admin/products/new'
   id:
     | '__root__'
     | '/'
@@ -215,8 +304,16 @@ export interface FileRouteTypes {
     | '/products'
     | '/register'
     | '/reset-password'
+    | '/track'
     | '/wishlist'
     | '/products/$slug'
+    | '/admin_/brands/$brandId'
+    | '/admin_/brands/new'
+    | '/admin_/categories/$categoryId'
+    | '/admin_/categories/new'
+    | '/admin_/orders/$orderId'
+    | '/admin_/products/$productId'
+    | '/admin_/products/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -234,7 +331,15 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  TrackRoute: typeof TrackRoute
   WishlistRoute: typeof WishlistRoute
+  AdminBrandsBrandIdRoute: typeof AdminBrandsBrandIdRoute
+  AdminBrandsNewRoute: typeof AdminBrandsNewRoute
+  AdminCategoriesCategoryIdRoute: typeof AdminCategoriesCategoryIdRoute
+  AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
+  AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
+  AdminProductsProductIdRoute: typeof AdminProductsProductIdRoute
+  AdminProductsNewRoute: typeof AdminProductsNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -244,6 +349,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -351,6 +463,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsSlugRouteImport
       parentRoute: typeof ProductsRoute
     }
+    '/admin_/products/new': {
+      id: '/admin_/products/new'
+      path: '/admin/products/new'
+      fullPath: '/admin/products/new'
+      preLoaderRoute: typeof AdminProductsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/products/$productId': {
+      id: '/admin_/products/$productId'
+      path: '/admin/products/$productId'
+      fullPath: '/admin/products/$productId'
+      preLoaderRoute: typeof AdminProductsProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/orders/$orderId': {
+      id: '/admin_/orders/$orderId'
+      path: '/admin/orders/$orderId'
+      fullPath: '/admin/orders/$orderId'
+      preLoaderRoute: typeof AdminOrdersOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/categories/new': {
+      id: '/admin_/categories/new'
+      path: '/admin/categories/new'
+      fullPath: '/admin/categories/new'
+      preLoaderRoute: typeof AdminCategoriesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/categories/$categoryId': {
+      id: '/admin_/categories/$categoryId'
+      path: '/admin/categories/$categoryId'
+      fullPath: '/admin/categories/$categoryId'
+      preLoaderRoute: typeof AdminCategoriesCategoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/brands/new': {
+      id: '/admin_/brands/new'
+      path: '/admin/brands/new'
+      fullPath: '/admin/brands/new'
+      preLoaderRoute: typeof AdminBrandsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/brands/$brandId': {
+      id: '/admin_/brands/$brandId'
+      path: '/admin/brands/$brandId'
+      fullPath: '/admin/brands/$brandId'
+      preLoaderRoute: typeof AdminBrandsBrandIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -381,7 +542,15 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  TrackRoute: TrackRoute,
   WishlistRoute: WishlistRoute,
+  AdminBrandsBrandIdRoute: AdminBrandsBrandIdRoute,
+  AdminBrandsNewRoute: AdminBrandsNewRoute,
+  AdminCategoriesCategoryIdRoute: AdminCategoriesCategoryIdRoute,
+  AdminCategoriesNewRoute: AdminCategoriesNewRoute,
+  AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
+  AdminProductsProductIdRoute: AdminProductsProductIdRoute,
+  AdminProductsNewRoute: AdminProductsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

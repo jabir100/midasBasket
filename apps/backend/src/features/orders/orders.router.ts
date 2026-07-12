@@ -60,7 +60,17 @@ ordersRouter.post(
           });
         }
 
-        if (product.stockQuantity < item.quantity) {
+        const variant =
+          item.size && item.color
+            ? product.variants?.find(
+                (v) => v.size === item.size && v.color === item.color,
+              )
+            : undefined;
+        const availableStock = variant
+          ? variant.stockQuantity
+          : product.stockQuantity;
+
+        if (availableStock < item.quantity) {
           throw new AppError({
             statusCode: 422,
             code: "INSUFFICIENT_STOCK",
@@ -76,6 +86,8 @@ ordersRouter.post(
           quantity: item.quantity,
           unitPrice: product.price,
           lineTotal: product.price * item.quantity,
+          size: item.size ?? undefined,
+          color: item.color ?? undefined,
         };
       });
 
@@ -87,6 +99,86 @@ ordersRouter.post(
       const discountTotal = 0;
       const total = subTotal + shippingFee - discountTotal;
       const orderNumber = createOrderNumber();
+
+      // Decrement stock atomically before creating the order (guarded by
+      // $gte so concurrent checkouts can't drive stock negative), rolling
+      // back any already-applied decrements if a later item fails — this
+      // repo has no multi-document transaction support (standalone MongoDB).
+      const appliedDecrements: (typeof orderItems)[number][] = [];
+      try {
+        for (const item of orderItems) {
+          const filter: Record<string, unknown> = item.size && item.color
+            ? {
+                _id: item.productId,
+                variants: {
+                  $elemMatch: {
+                    size: item.size,
+                    color: item.color,
+                    stockQuantity: { $gte: item.quantity },
+                  },
+                },
+              }
+            : { _id: item.productId, stockQuantity: { $gte: item.quantity } };
+
+          const update =
+            item.size && item.color
+              ? {
+                  $inc: {
+                    "variants.$[v].stockQuantity": -item.quantity,
+                    stockQuantity: -item.quantity,
+                  },
+                }
+              : { $inc: { stockQuantity: -item.quantity } };
+          const options =
+            item.size && item.color
+              ? {
+                  arrayFilters: [
+                    { "v.size": item.size, "v.color": item.color },
+                  ],
+                }
+              : {};
+
+          const result = await ProductModel.updateOne(filter, update, options);
+
+          if (result.matchedCount === 0) {
+            throw new AppError({
+              statusCode: 422,
+              code: "INSUFFICIENT_STOCK",
+              message: `${item.title} does not have enough stock`,
+            });
+          }
+
+          appliedDecrements.push(item);
+        }
+      } catch (error) {
+        await Promise.all(
+          appliedDecrements.map((item) => {
+            const update =
+              item.size && item.color
+                ? {
+                    $inc: {
+                      "variants.$[v].stockQuantity": item.quantity,
+                      stockQuantity: item.quantity,
+                    },
+                  }
+                : { $inc: { stockQuantity: item.quantity } };
+            const options =
+              item.size && item.color
+                ? {
+                    arrayFilters: [
+                      { "v.size": item.size, "v.color": item.color },
+                    ],
+                  }
+                : {};
+            return ProductModel.updateOne(
+              { _id: item.productId },
+              update,
+              options,
+            );
+          }),
+        );
+        throw error;
+      }
 
       const order = await OrderModel.create({
         orderNumber,
@@ -117,15 +209,6 @@ ordersRouter.post(
         discountTotal,
         total,
       });
-
-      await Promise.all(
-        orderItems.map((item) =>
-          ProductModel.updateOne(
-            { _id: item.productId },
-            { $inc: { stockQuantity: -item.quantity } },
-          ),
-        ),
-      );
 
       await CartModel.updateOne(
         { _id: cart._id },
@@ -233,9 +316,17 @@ ordersRouter.get("/track/:orderNumber", async (req, res, next) => {
           status: order.status,
           statusTimeline: order.statusTimeline,
           createdAt: order.createdAt,
+          currency: order.currency,
+          subTotal: order.subTotal,
+          shippingFee: order.shippingFee,
+          discountTotal: order.discountTotal,
           total: order.total,
           paymentMethod: order.paymentMethod,
           paymentStatus: order.paymentStatus,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          shippingAddress: order.shippingAddress,
+          items: order.items,
         },
       },
       requestId: getRequestId(res),
@@ -296,6 +387,8 @@ function serializeOrder(order: {
     quantity: number;
     unitPrice: number;
     lineTotal: number;
+    size?: string | null;
+    color?: string | null;
   }[];
 }) {
   return {
@@ -321,6 +414,8 @@ function serializeOrder(order: {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       lineTotal: item.lineTotal,
+      size: item.size ?? null,
+      color: item.color ?? null,
     })),
   };
 }

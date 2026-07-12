@@ -13,6 +13,8 @@ const cartItemSchema = new Schema(
     title: { type: String, required: true, trim: true, maxlength: 180 },
     slug: { type: String, required: true, trim: true, lowercase: true },
     imageUrl: { type: String, trim: true },
+    size: { type: String, trim: true, uppercase: true },
+    color: { type: String, trim: true },
   },
   { _id: false },
 );

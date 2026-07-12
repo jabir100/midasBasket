@@ -37,6 +37,46 @@ cartRouter.get("/", async (req, res, next) => {
   }
 });
 
+function resolveVariantStock(
+  product: {
+    stockQuantity: number;
+    variants?: { size: string; color: string; stockQuantity: number }[];
+  },
+  size: string | undefined,
+  color: string | undefined,
+): number {
+  if (!size || !color) {
+    return product.stockQuantity;
+  }
+
+  const variant = product.variants?.find(
+    (v) => v.size === size.toUpperCase() && v.color === color,
+  );
+
+  if (!variant) {
+    throw new AppError({
+      statusCode: 404,
+      code: "VARIANT_NOT_FOUND",
+      message: "Selected size/color combination was not found",
+    });
+  }
+
+  return variant.stockQuantity;
+}
+
+function matchesCartLine(
+  item: { productId: unknown; size?: string | null; color?: string | null },
+  productId: string,
+  size: string | undefined,
+  color: string | undefined,
+): boolean {
+  return (
+    String(item.productId) === productId &&
+    (item.size ?? undefined) === (size ?? undefined) &&
+    (item.color ?? undefined) === (color ?? undefined)
+  );
+}
+
 cartRouter.post("/items", async (req, res, next) => {
   try {
     const input = addCartItemSchema.parse(req.body);
@@ -52,6 +92,12 @@ cartRouter.post("/items", async (req, res, next) => {
         message: "Product was not found",
       });
     }
+
+    const availableStock = resolveVariantStock(
+      product,
+      input.size,
+      input.color,
+    );
 
     const scope = resolveCartScope(
       getPrincipal(res)?.userId,
@@ -74,12 +120,24 @@ cartRouter.post("/items", async (req, res, next) => {
       });
     }
 
-    const existing = cart.items.find(
-      (item) => String(item.productId) === input.productId,
+    const existing = cart.items.find((item) =>
+      matchesCartLine(item, input.productId, input.size, input.color),
     );
 
+    const nextQuantity = Math.min(
+      (existing?.quantity ?? 0) + input.quantity,
+      99,
+    );
+
+    if (nextQuantity > availableStock) {
+      throw new AppError({
+        statusCode: 422,
+        code: "INSUFFICIENT_STOCK",
+        message: "Not enough stock available for this selection",
+      });
+    }
+
     if (existing) {
-      const nextQuantity = Math.min(existing.quantity + input.quantity, 99);
       await CartModel.updateOne(
         scope.filter,
         {
@@ -93,7 +151,11 @@ cartRouter.post("/items", async (req, res, next) => {
         },
         {
           arrayFilters: [
-            { "item.productId": new Types.ObjectId(input.productId) },
+            {
+              "item.productId": new Types.ObjectId(input.productId),
+              "item.size": existing.size ?? null,
+              "item.color": existing.color ?? null,
+            },
           ],
         },
       );
@@ -107,6 +169,8 @@ cartRouter.post("/items", async (req, res, next) => {
             title: product.name,
             slug: product.slug,
             imageUrl: product.images[0]?.url ?? null,
+            size: input.size,
+            color: input.color,
           },
         },
       });
@@ -132,6 +196,29 @@ cartRouter.patch("/items/:productId", async (req, res, next) => {
       input.guestCartId,
     );
 
+    const cart = await CartModel.findOne(scope.filter).lean();
+    const existing = cart?.items.find((item) =>
+      matchesCartLine(item, req.params.productId, input.size, input.color),
+    );
+
+    if (existing) {
+      const product = await ProductModel.findById(req.params.productId).lean();
+      if (product) {
+        const availableStock = resolveVariantStock(
+          product,
+          existing.size ?? undefined,
+          existing.color ?? undefined,
+        );
+        if (input.quantity > availableStock) {
+          throw new AppError({
+            statusCode: 422,
+            code: "INSUFFICIENT_STOCK",
+            message: "Not enough stock available for this selection",
+          });
+        }
+      }
+    }
+
     const updateResult = await CartModel.updateOne(
       scope.filter,
       {
@@ -141,7 +228,11 @@ cartRouter.patch("/items/:productId", async (req, res, next) => {
       },
       {
         arrayFilters: [
-          { "item.productId": new Types.ObjectId(req.params.productId) },
+          {
+            "item.productId": new Types.ObjectId(req.params.productId),
+            "item.size": input.size ?? null,
+            "item.color": input.color ?? null,
+          },
         ],
       },
     );
@@ -183,7 +274,11 @@ cartRouter.delete("/items/:productId", async (req, res, next) => {
 
     const updateResult = await CartModel.updateOne(scope.filter, {
       $pull: {
-        items: { productId: new Types.ObjectId(req.params.productId) },
+        items: {
+          productId: new Types.ObjectId(req.params.productId),
+          size: query.size ?? null,
+          color: query.color ?? null,
+        },
       },
     });
 
@@ -309,6 +404,8 @@ function formatCart(
       title: string;
       slug: string;
       imageUrl?: string | null;
+      size?: string | null;
+      color?: string | null;
     }[];
   } | null,
 ) {
@@ -331,6 +428,8 @@ function formatCart(
       title: item.title,
       slug: item.slug,
       imageUrl: item.imageUrl ?? null,
+      size: item.size ?? null,
+      color: item.color ?? null,
     })),
     summary: {
       itemCount: items.reduce((total, item) => total + item.quantity, 0),

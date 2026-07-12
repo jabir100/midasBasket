@@ -399,10 +399,6 @@ function FormStatus({
     return <p className="form-muted">Working...</p>;
   }
 
-  if (error) {
-    return <p className="form-error">{error.message}</p>;
-  }
-
   return null;
 }
 

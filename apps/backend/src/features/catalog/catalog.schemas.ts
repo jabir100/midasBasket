@@ -17,7 +17,16 @@ const image = z.object({
   url: z.string().trim().url(),
   alt: z.string().trim().min(2).max(140),
   publicId: z.string().trim().min(1).optional(),
+  color: z.string().trim().min(1).max(40).optional(),
 });
+const variant = z.object({
+  size: z.string().trim().min(1).max(20),
+  color: z.string().trim().min(1).max(40),
+  stockQuantity: z.number().int().nonnegative(),
+  sku: z.string().trim().max(80).optional(),
+});
+
+export const MAX_PRODUCT_IMAGES = 8;
 
 export const categorySchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -43,8 +52,21 @@ export const productSchema = z.object({
   brandId: objectId,
   price: z.number().nonnegative(),
   compareAtPrice: z.number().nonnegative().optional(),
+  // Only meaningful when `variants` is empty (legacy no-variant products);
+  // ignored/overwritten server-side whenever variants are present.
   stockQuantity: z.number().int().nonnegative().optional(),
-  images: z.array(image).max(12).optional(),
+  variants: z
+    .array(variant)
+    .max(60)
+    .optional()
+    .refine(
+      (variants) =>
+        !variants ||
+        new Set(variants.map((v) => `${v.size}|${v.color}`)).size ===
+          variants.length,
+      { message: "Duplicate size+color combination in variants" },
+    ),
+  images: z.array(image).max(MAX_PRODUCT_IMAGES).optional(),
   seo: seo.optional(),
   tags: z.array(z.string().trim().min(1).max(60)).max(24).optional(),
   isFeatured: z.boolean().optional(),

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   ShoppingBag,
   Heart,
@@ -7,17 +7,15 @@ import {
   Receipt,
   LayoutGrid,
   User,
-  Bell,
   ChevronLeft,
   ChevronRight,
   LogOut,
 } from "lucide-react";
-import { Skeleton, Toast } from "@heroui/react";
-import type { ReactNode, SyntheticEvent } from "react";
+import { Toast } from "@heroui/react";
+import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 
 import { Card, CardBody } from "../../shared/ui/card.js";
-import { Button } from "../../shared/ui/button.js";
 import { listMyOrders } from "../orders/orders-api.js";
 import { getWishlist } from "../wishlist/wishlist-api.js";
 import { getStoredAccessToken, logoutCustomer } from "../auth/auth-api.js";
@@ -31,6 +29,11 @@ import {
   updateDashboardProfile,
   updateNotificationPreferences,
 } from "./dashboard-api.js";
+import { ProfilePanel } from "./profile-panel.js";
+import { AddressesPanel, type AddressForm } from "./addresses-panel.js";
+import { InvoicesPanel } from "./invoices-panel.js";
+import { MyOrdersPanel } from "./my-orders-panel.js";
+import { WishlistPanel } from "./wishlist-panel.js";
 
 export function CustomerDashboardPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -57,7 +60,7 @@ export function CustomerDashboardPage(): ReactNode {
   });
 
   const [profileForm, setProfileForm] = useState({ name: "", phone: "" });
-  const [addressForm, setAddressForm] = useState({
+  const [addressForm, setAddressForm] = useState<AddressForm>({
     label: "Home",
     line1: "",
     area: "",
@@ -326,405 +329,70 @@ export function CustomerDashboardPage(): ReactNode {
         )}
 
         {activePanel === "profile" && (
-          <div className="dashboard-pane-content">
-            <div className="section-heading">
-              <h3>Profile & Settings</h3>
-              <p>
-                Update your personal information and communication preferences.
-              </p>
-            </div>
-
-            <div className="dashboard-grid-two" style={{ marginTop: "1.5rem" }}>
-              <Card className="dashboard-card">
-                <CardBody>
-                  <h2>Personal Information</h2>
-                  <form
-                    className="auth-form"
-                    onSubmit={(event: SyntheticEvent<HTMLFormElement>) => {
-                      event.preventDefault();
-                      const payload = {
-                        ...(profileForm.name ? { name: profileForm.name } : {}),
-                        ...(profileForm.phone
-                          ? { phone: profileForm.phone }
-                          : {}),
-                      };
-                      if (Object.keys(payload).length === 0) {
-                        return;
-                      }
-                      updateProfileMutation.mutate(payload);
-                    }}
-                  >
-                    <label>
-                      <span>Name</span>
-                      <input
-                        defaultValue={profile?.user.name}
-                        onChange={(event) => {
-                          setProfileForm((current) => ({
-                            ...current,
-                            name: event.target.value,
-                          }));
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Phone</span>
-                      <input
-                        defaultValue={profile?.user.phone ?? ""}
-                        onChange={(event) => {
-                          setProfileForm((current) => ({
-                            ...current,
-                            phone: event.target.value,
-                          }));
-                        }}
-                      />
-                    </label>
-                    <Button
-                      type="submit"
-                      tone="secondary"
-                      disabled={updateProfileMutation.isPending}
-                    >
-                      Save profile
-                    </Button>
-                    {updateProfileMutation.error ? (
-                      <p className="form-error">
-                        {updateProfileMutation.error.message}
-                      </p>
-                    ) : null}
-                  </form>
-                </CardBody>
-              </Card>
-
-              <Card className="dashboard-card">
-                <CardBody>
-                  <h2>Notification Settings</h2>
-                  {notificationsQuery.data ? (
-                    <div className="dashboard-preferences">
-                      {Object.entries(notificationsQuery.data).map(
-                        ([key, value]) => (
-                          <label key={key}>
-                            <input
-                              type="checkbox"
-                              checked={value}
-                              onChange={(event) => {
-                                updateNotificationsMutation.mutate({
-                                  [key]: event.target.checked,
-                                });
-                              }}
-                            />
-                            <span>{toPreferenceLabel(key)}</span>
-                          </label>
-                        ),
-                      )}
-                    </div>
-                  ) : (
-                    <p className="form-muted">Loading preferences...</p>
-                  )}
-                  {updateNotificationsMutation.isPending ? (
-                    <p className="form-muted">Saving preferences...</p>
-                  ) : null}
-                  {updateNotificationsMutation.error ? (
-                    <p className="form-error">
-                      {updateNotificationsMutation.error.message}
-                    </p>
-                  ) : null}
-                  <p className="dashboard-helper-row">
-                    <Bell size={16} /> Transaction notifications stay enabled by
-                    default.
-                  </p>
-                </CardBody>
-              </Card>
-            </div>
-          </div>
+          <ProfilePanel
+            profile={profile}
+            onProfileFieldChange={(field, value) => {
+              setProfileForm((current) => ({ ...current, [field]: value }));
+            }}
+            onProfileSubmit={() => {
+              const payload = {
+                ...(profileForm.name ? { name: profileForm.name } : {}),
+                ...(profileForm.phone ? { phone: profileForm.phone } : {}),
+              };
+              if (Object.keys(payload).length === 0) {
+                return;
+              }
+              updateProfileMutation.mutate(payload);
+            }}
+            isSavingProfile={updateProfileMutation.isPending}
+            profileError={updateProfileMutation.error?.message ?? null}
+            notifications={notificationsQuery.data}
+            onNotificationChange={(key, value) => {
+              updateNotificationsMutation.mutate({ [key]: value });
+            }}
+            isSavingNotifications={updateNotificationsMutation.isPending}
+            notificationsError={updateNotificationsMutation.error?.message ?? null}
+          />
         )}
 
         {activePanel === "addresses" && (
-          <div className="dashboard-pane-content">
-            <div className="section-heading">
-              <h3>Saved Addresses</h3>
-              <p>
-                Manage your delivery and billing locations for faster checkout.
-              </p>
-            </div>
-
-            <div className="dashboard-grid-two" style={{ marginTop: "1.5rem" }}>
-              <Card className="dashboard-card">
-                <CardBody>
-                  <h2>Add New Address</h2>
-                  <form
-                    className="auth-form"
-                    onSubmit={(event: SyntheticEvent<HTMLFormElement>) => {
-                      event.preventDefault();
-                      createAddressMutation.mutate(addressForm);
-                    }}
-                  >
-                    <label>
-                      <span>Label</span>
-                      <input
-                        required
-                        value={addressForm.label}
-                        onChange={(event) => {
-                          setAddressForm((current) => ({
-                            ...current,
-                            label: event.target.value,
-                          }));
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Address line</span>
-                      <input
-                        required
-                        value={addressForm.line1}
-                        onChange={(event) => {
-                          setAddressForm((current) => ({
-                            ...current,
-                            line1: event.target.value,
-                          }));
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Area</span>
-                      <input
-                        required
-                        value={addressForm.area}
-                        onChange={(event) => {
-                          setAddressForm((current) => ({
-                            ...current,
-                            area: event.target.value,
-                          }));
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>City</span>
-                      <input
-                        required
-                        value={addressForm.city}
-                        onChange={(event) => {
-                          setAddressForm((current) => ({
-                            ...current,
-                            city: event.target.value,
-                          }));
-                        }}
-                      />
-                    </label>
-                    <label>
-                      <span>Country</span>
-                      <input
-                        required
-                        value={addressForm.country}
-                        onChange={(event) => {
-                          setAddressForm((current) => ({
-                            ...current,
-                            country: event.target.value,
-                          }));
-                        }}
-                      />
-                    </label>
-                    <Button
-                      type="submit"
-                      tone="secondary"
-                      disabled={createAddressMutation.isPending}
-                    >
-                      Add address
-                    </Button>
-                  </form>
-                </CardBody>
-              </Card>
-
-              <Card className="dashboard-card">
-                <CardBody>
-                  <h2>Address List</h2>
-                  <ul className="dashboard-address-list">
-                    {(addressesQuery.data ?? []).map((address) => (
-                      <li key={address.id}>
-                        <div style={{ display: "grid", gap: "0.25rem" }}>
-                          <strong>{address.label}</strong>
-                          <small style={{ color: "var(--color-midas-gray)" }}>
-                            {address.line1}, {address.area}, {address.city},{" "}
-                            {address.country}
-                          </small>
-                        </div>
-                        <Button
-                          tone="ghost"
-                          onClick={() => {
-                            deleteAddressMutation.mutate(address.id);
-                          }}
-                          disabled={deleteAddressMutation.isPending}
-                        >
-                          Remove
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                  {addressesQuery.data && addressesQuery.data.length === 0 ? (
-                    <p className="form-muted">No addresses saved yet.</p>
-                  ) : null}
-                </CardBody>
-              </Card>
-            </div>
-          </div>
+          <AddressesPanel
+            addressForm={addressForm}
+            onAddressFieldChange={(field, value) => {
+              setAddressForm((current) => ({ ...current, [field]: value }));
+            }}
+            onCreateAddress={() => {
+              createAddressMutation.mutate(addressForm);
+            }}
+            addresses={addressesQuery.data ?? []}
+            isLoading={addressesQuery.isLoading}
+            isCreating={createAddressMutation.isPending}
+            isDeleting={deleteAddressMutation.isPending}
+            onDeleteAddress={(addressId) => {
+              deleteAddressMutation.mutate(addressId);
+            }}
+          />
         )}
 
         {activePanel === "invoices" && (
-          <div className="dashboard-pane-content">
-            <div className="section-heading">
-              <h3>Invoices</h3>
-              <p>View and download invoices for your completed purchases.</p>
-            </div>
-
-            <div style={{ marginTop: "1.5rem" }}>
-              <Card className="dashboard-card">
-                <CardBody>
-                  <h2>Invoice Records</h2>
-                  <ul className="dashboard-invoice-list">
-                    {(invoicesQuery.data ?? []).map((invoice) => (
-                      <li key={invoice.id}>
-                        <div>
-                          <strong>{invoice.invoiceNumber}</strong>
-                          <small>
-                            {invoice.orderNumber} · {invoice.status} ·{" "}
-                            {invoice.paymentStatus}
-                          </small>
-                        </div>
-                        <span>
-                          {invoice.currency}{" "}
-                          {invoice.total.toLocaleString("en-BD")}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  {invoicesQuery.data && invoicesQuery.data.length === 0 ? (
-                    <p className="form-muted">No invoices generated yet.</p>
-                  ) : null}
-                </CardBody>
-              </Card>
-            </div>
-          </div>
+          <InvoicesPanel
+            invoices={invoicesQuery.data ?? []}
+            isLoading={invoicesQuery.isLoading}
+          />
         )}
 
         {activePanel === "orders" && (
-          <div className="dashboard-pane-content">
-            <div className="section-heading">
-              <h3>My Orders</h3>
-              <p>
-                Track history, payments, and dispatch statuses of your packages.
-              </p>
-            </div>
-
-            <div style={{ marginTop: "1.5rem" }}>
-              <Card className="dashboard-card">
-                <CardBody>
-                  <h2>Recent Orders</h2>
-                  {ordersQuery.isLoading ? (
-                    <div style={{ display: "grid", gap: "0.5rem" }}>
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                    </div>
-                  ) : null}
-                  <ul className="dashboard-invoice-list">
-                    {(ordersQuery.data ?? []).map((order) => (
-                      <li key={order.id}>
-                        <div>
-                          <strong>{order.orderNumber}</strong>
-                          <small>
-                            Status: {order.status} ·{" "}
-                            {new Date(order.createdAt ?? "").toLocaleDateString(
-                              "en-BD",
-                            )}
-                          </small>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <strong>
-                            {order.totals.currency}{" "}
-                            {order.totals.total.toLocaleString("en-BD")}
-                          </strong>
-                          <div
-                            style={{
-                              fontSize: "0.8rem",
-                              color: "var(--color-midas-gray)",
-                            }}
-                          >
-                            {order.paymentStatus}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  {ordersQuery.data && ordersQuery.data.length === 0 ? (
-                    <p className="form-muted">No orders placed yet.</p>
-                  ) : null}
-                </CardBody>
-              </Card>
-            </div>
-          </div>
+          <MyOrdersPanel
+            orders={ordersQuery.data ?? []}
+            isLoading={ordersQuery.isLoading}
+          />
         )}
 
         {activePanel === "wishlist" && (
-          <div className="dashboard-pane-content">
-            <div className="section-heading">
-              <h3>Wishlist</h3>
-              <p>
-                Your saved favorites. Add them to your cart directly from here.
-              </p>
-            </div>
-
-            <div style={{ marginTop: "1.5rem" }}>
-              <Card className="dashboard-card">
-                <CardBody>
-                  <h2>Saved Items</h2>
-                  {wishlistQuery.isLoading ? (
-                    <div style={{ display: "grid", gap: "0.5rem" }}>
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                      <Skeleton className="h-10 w-full rounded-lg" />
-                    </div>
-                  ) : null}
-                  <ul className="dashboard-invoice-list">
-                    {(wishlistQuery.data ?? []).map((item) => (
-                      <li
-                        key={item.productId}
-                        style={{
-                          display: "flex",
-                          gap: "1rem",
-                          alignItems: "center",
-                        }}
-                      >
-                        <div style={{ flexGrow: 1 }}>
-                          <strong>Product ID: {item.productId}</strong>
-                          <small
-                            style={{
-                              display: "block",
-                              color: "var(--color-midas-gray)",
-                            }}
-                          >
-                            Saved{" "}
-                            {new Date(item.addedAt).toLocaleDateString("en-BD")}
-                          </small>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <Link
-                            to="/products"
-                            className="ui-button ui-button-secondary"
-                            style={{
-                              minHeight: "2rem",
-                              padding: "0 0.75rem",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            Browse Products
-                          </Link>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  {wishlistQuery.data && wishlistQuery.data.length === 0 ? (
-                    <p className="form-muted">Your wishlist is empty.</p>
-                  ) : null}
-                </CardBody>
-              </Card>
-            </div>
-          </div>
+          <WishlistPanel
+            items={wishlistQuery.data ?? []}
+            isLoading={wishlistQuery.isLoading}
+          />
         )}
       </section>
     </div>
@@ -747,9 +415,3 @@ function MetricCard({
   );
 }
 
-function toPreferenceLabel(value: string): string {
-  return value
-    .replaceAll(/([A-Z])/g, " $1")
-    .trim()
-    .replace(/^./, (char) => char.toUpperCase());
-}

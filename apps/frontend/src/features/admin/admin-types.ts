@@ -1,4 +1,8 @@
-import type { AdminTaxonomy, HomepageSettings } from "./admin-api.js";
+import type {
+  AdminProductVariant,
+  AdminTaxonomy,
+  HomepageSettings,
+} from "./admin-api.js";
 
 export type AdminPanel =
   | "overview"
@@ -7,8 +11,17 @@ export type AdminPanel =
   | "brands"
   | "homepage"
   | "users"
-  | "orders"
-  | "carousel";
+  | "orders";
+
+export const orderStatuses = [
+  "placed",
+  "confirmed",
+  "packed",
+  "shipped",
+  "out-for-delivery",
+  "delivered",
+  "cancelled",
+] as const;
 
 export type TaxonomyForm = {
   name: string;
@@ -26,26 +39,37 @@ export const emptyTaxonomyForm: TaxonomyForm = {
   isFeatured: false,
 };
 
+export type ProductForm = {
+  name: string;
+  slug: string;
+  sku: string;
+  price: number;
+  compareAtPrice: number;
+  stockQuantity: number;
+  description: string;
+  shortDescription: string;
+  categoryId: string;
+  brandId: string;
+  isPublished: boolean;
+  variants: AdminProductVariant[];
+};
+
+export const emptyProductForm: ProductForm = {
+  name: "",
+  slug: "",
+  sku: "",
+  price: 0,
+  compareAtPrice: 0,
+  stockQuantity: 0,
+  description: "",
+  shortDescription: "",
+  categoryId: "",
+  brandId: "",
+  isPublished: true,
+  variants: [],
+};
+
 export const defaultHomepageForm: HomepageSettings = {
-  hero: {
-    eyebrow: "Premium essentials, delivered fast",
-    title: "Modern shopping for everyday wins",
-    description:
-      "A fast, secure, mobile-first ecommerce experience for curated products and trusted brands.",
-    primaryAction: { href: "/products", label: "Shop products" },
-    secondaryAction: { href: "/categories", label: "Browse categories" },
-  },
-  promoBanner: {
-    title: "Weekend essentials, sharper prices",
-    description:
-      "Feature seasonal offers, policy-led promises, or campaign messages from here.",
-    action: { href: "/products", label: "Explore offers" },
-  },
-  metrics: [
-    { value: "2k+", label: "Curated products" },
-    { value: "24h", label: "Fast dispatch target" },
-    { value: "100%", label: "Secure checkout focus" },
-  ],
   whyChooseUs: [
     {
       title: "Fresh selection",
@@ -61,6 +85,8 @@ export const defaultHomepageForm: HomepageSettings = {
         "Policy and service messaging stays visible on the storefront.",
     },
   ],
+  popularProductIds: [],
+  bestSellingProductIds: [],
 };
 
 export function slugify(value: string): string {

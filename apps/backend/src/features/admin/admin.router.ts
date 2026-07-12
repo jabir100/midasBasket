@@ -23,6 +23,7 @@ import {
   orderStatuses,
   type OrderStatus,
 } from "../orders/order.model.js";
+import { ProductModel } from "../catalog/catalog.model.js";
 
 export const adminRouter: ExpressRouter = Router();
 
@@ -237,6 +238,15 @@ adminRouter.get("/dashboard/orders", async (req, res, next) => {
       filter.paymentStatus = query.paymentStatus;
     }
 
+    if (query.search) {
+      filter.$or = [
+        { orderNumber: { $regex: query.search, $options: "i" } },
+        { customerName: { $regex: query.search, $options: "i" } },
+        { customerEmail: { $regex: query.search, $options: "i" } },
+        { customerPhone: { $regex: query.search, $options: "i" } },
+      ];
+    }
+
     const skip = (query.page - 1) * query.limit;
     const [orders, total] = await Promise.all([
       OrderModel.find(filter)
@@ -254,6 +264,8 @@ adminRouter.get("/dashboard/orders", async (req, res, next) => {
           orderNumber: order.orderNumber,
           customerName: order.customerName,
           customerEmail: order.customerEmail,
+          customerPhone: order.customerPhone,
+          paymentMethod: order.paymentMethod,
           status: order.status,
           paymentStatus: order.paymentStatus,
           total: order.total,
@@ -267,6 +279,51 @@ adminRouter.get("/dashboard/orders", async (req, res, next) => {
         limit: query.limit,
         total,
         pages: Math.ceil(total / query.limit),
+      },
+      requestId: getRequestId(res),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.get("/dashboard/orders/:id", async (req, res, next) => {
+  try {
+    const params = objectIdParamSchema.parse(req.params);
+    const order = await OrderModel.findById(params.id).lean();
+
+    if (!order) {
+      throw new AppError({
+        statusCode: 404,
+        code: "ORDER_NOT_FOUND",
+        message: "Order was not found",
+      });
+    }
+
+    sendSuccess(res, {
+      data: {
+        order: {
+          id: String(order._id),
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          customerPhone: order.customerPhone,
+          shippingAddress: order.shippingAddress,
+          notes: order.notes ?? null,
+          paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
+          status: order.status,
+          statusTimeline: order.statusTimeline,
+          items: order.items,
+          currency: order.currency,
+          couponCode: order.couponCode ?? null,
+          subTotal: order.subTotal,
+          shippingFee: order.shippingFee,
+          discountTotal: order.discountTotal,
+          total: order.total,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+        },
       },
       requestId: getRequestId(res),
     });
@@ -302,9 +359,41 @@ adminRouter.patch("/dashboard/orders/:id/status", async (req, res, next) => {
       });
     }
 
+    const isNewlyCancelled =
+      input.status === "cancelled" && order.status !== "cancelled";
+
     order.status = input.status;
     if (input.paymentStatus) {
       order.paymentStatus = input.paymentStatus;
+    }
+
+    if (isNewlyCancelled) {
+      await Promise.all(
+        order.items.map((item) => {
+          const update =
+            item.size && item.color
+              ? {
+                  $inc: {
+                    "variants.$[v].stockQuantity": item.quantity,
+                    stockQuantity: item.quantity,
+                  },
+                }
+              : { $inc: { stockQuantity: item.quantity } };
+          const options =
+            item.size && item.color
+              ? {
+                  arrayFilters: [
+                    { "v.size": item.size, "v.color": item.color },
+                  ],
+                }
+              : {};
+          return ProductModel.updateOne(
+            { _id: item.productId },
+            update,
+            options,
+          );
+        }),
+      );
     }
 
     order.statusTimeline.push({

@@ -3,6 +3,7 @@ import { apiClient } from "../../shared/http/api-client.js";
 export type CatalogImage = {
   url: string;
   alt: string;
+  color?: string;
 };
 
 export type CatalogCategory = {
@@ -21,6 +22,12 @@ export type CatalogBrand = {
   logo?: CatalogImage;
 };
 
+export type CatalogProductVariant = {
+  size: string;
+  color: string;
+  stockQuantity: number;
+};
+
 export type CatalogProduct = {
   _id: string;
   name: string;
@@ -30,6 +37,8 @@ export type CatalogProduct = {
   shortDescription?: string;
   price: number;
   compareAtPrice?: number;
+  stockQuantity: number;
+  variants: CatalogProductVariant[];
   images: CatalogImage[];
   tags: string[];
 };

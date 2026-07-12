@@ -65,6 +65,16 @@ const homepageSettingsSchema = new Schema(
     metrics: { type: [metricSchema], default: [] },
     promoBanner: { type: promoBannerSchema, default: () => ({}) },
     whyChooseUs: { type: [valuePropositionSchema], default: [] },
+    popularProductIds: {
+      type: [Schema.Types.ObjectId],
+      ref: "Product",
+      default: [],
+    },
+    bestSellingProductIds: {
+      type: [Schema.Types.ObjectId],
+      ref: "Product",
+      default: [],
+    },
   },
   { timestamps: true },
 );

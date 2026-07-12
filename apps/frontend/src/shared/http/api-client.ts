@@ -10,6 +10,24 @@ type ApiSuccess<TData> = {
   requestId: string;
 };
 
+type ApiErrorBody = {
+  code?: string;
+  message?: string;
+  details?: unknown;
+};
+
+type ApiErrorResponse = {
+  success: false;
+  error?: ApiErrorBody;
+  message?: string;
+  details?: unknown;
+  requestId?: string;
+};
+
+type ValidationDetails = {
+  fieldErrors?: Record<string, readonly string[] | undefined>;
+};
+
 type AuthPayload = {
   accessToken: string;
 };
@@ -45,14 +63,18 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as RetriableRequestConfig | undefined;
 
     if (!originalRequest || responseStatus !== 401 || originalRequest._retry) {
-      return Promise.reject(error);
+      return Promise.reject(normalizeApiError(error));
     }
 
     const requestUrl = originalRequest.url ?? "";
     if (isAuthEndpoint(requestUrl)) {
+      if (requestUrl.includes("/auth/refresh")) {
+        clearStoredAccessToken();
+        redirectToLogin();
+      }
+
       clearStoredAccessToken();
-      redirectToLogin();
-      return Promise.reject(error);
+      return Promise.reject(normalizeApiError(error));
     }
 
     originalRequest._retry = true;
@@ -64,7 +86,7 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       clearStoredAccessToken();
       redirectToLogin();
-      return Promise.reject(toError(refreshError));
+      return Promise.reject(normalizeApiError(refreshError));
     }
   },
 );
@@ -118,6 +140,114 @@ function isAuthEndpoint(url: string): boolean {
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error("Session refresh failed");
+}
+
+function normalizeApiError(error: unknown): Error {
+  if (!axios.isAxiosError(error)) {
+    return toError(error);
+  }
+
+  const responseData = error.response?.data as ApiErrorResponse | undefined;
+  const apiMessage = responseData?.error?.message ?? responseData?.message;
+  const apiCode = responseData?.error?.code;
+  const validationDetails = responseData?.error?.details as
+    ValidationDetails | undefined;
+
+  if (apiMessage) {
+    return new Error(
+      formatReadableMessage(apiCode, apiMessage, validationDetails),
+    );
+  }
+
+  if (apiCode === "VALIDATION_ERROR") {
+    return new Error("Please fix the highlighted fields.");
+  }
+
+  if (apiCode === "DUPLICATE_KEY_ERROR") {
+    return new Error("This value already exists. Please use a different one.");
+  }
+
+  if (error.response?.status === 401) {
+    return new Error("Your session expired. Please log in again.");
+  }
+
+  if (error.response?.status === 403) {
+    return new Error("You do not have permission to perform this action.");
+  }
+
+  if (error.response?.status === 404) {
+    return new Error("The requested item was not found.");
+  }
+
+  if (error.response?.status === 409) {
+    return new Error("This item already exists.");
+  }
+
+  if (error.response?.status === 422) {
+    return new Error("Please check the form values and try again.");
+  }
+
+  return new Error(error.message || "Something went wrong. Please try again.");
+}
+
+function formatReadableMessage(
+  apiCode: string | undefined,
+  apiMessage: string,
+  validationDetails?: ValidationDetails,
+): string {
+  if (apiCode === "VALIDATION_ERROR" && validationDetails?.fieldErrors) {
+    const fieldMessages = Object.entries(validationDetails.fieldErrors)
+      .map(([field, messages]) => {
+        const fieldLabel = formatFieldLabel(field);
+        const firstMessage = messages?.find(
+          (message) => message.trim().length > 0,
+        );
+
+        if (!firstMessage) {
+          return null;
+        }
+
+        return `${fieldLabel} ${simplifyValidationMessage(firstMessage)}`;
+      })
+      .filter((message): message is string => message !== null);
+
+    if (fieldMessages.length > 0) {
+      return fieldMessages.join(". ");
+    }
+  }
+
+  if (apiCode === "DUPLICATE_KEY_ERROR") {
+    return "This value already exists. Please use a different one.";
+  }
+
+  return apiMessage;
+}
+
+function formatFieldLabel(field: string): string {
+  const label = field
+    .replace(/[._-]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .trim();
+
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function simplifyValidationMessage(message: string): string {
+  const normalized = message.trim().replace(/\.$/, "");
+
+  if (/at least \d+ character\(s\)/i.test(normalized)) {
+    const match = /at least (\d+) character\(s\)/i.exec(normalized);
+    const minimumLength = match ? match[1] : undefined;
+    return minimumLength
+      ? `contain at least ${minimumLength} characters`
+      : normalized;
+  }
+
+  if (/invalid/i.test(normalized)) {
+    return "is invalid.";
+  }
+
+  return `${normalized.toLowerCase().replace(/\s*\.$/, "")}.`;
 }
 
 function redirectToLogin(): void {

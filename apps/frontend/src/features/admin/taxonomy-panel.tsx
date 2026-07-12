@@ -1,216 +1,333 @@
-import { Input, Skeleton, TextArea } from "@heroui/react";
-import { BadgeCheck, Eye, EyeOff, Tags, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+  BadgeCheck,
+  Eye,
+  EyeOff,
+  Pencil,
+  Plus,
+  Search,
+  Tags,
+  Trash2,
+} from "lucide-react";
 import type { ReactNode } from "react";
+import { useState } from "react";
+import { Modal, Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
 import type { AdminTaxonomy } from "./admin-api.js";
-import { AdminField, AdminSwitch } from "./admin-form-controls.js";
-import { slugify, type TaxonomyForm } from "./admin-types.js";
+import { AdminSearchInput } from "./admin-form-controls.js";
 
 export function TaxonomyPanel({
   description,
-  error,
-  form,
+  imageLabel,
   isLoading,
-  isSaving,
   items,
+  kind,
+  newRoute,
   onDelete,
   onFeature,
-  onFormChange,
-  onSubmit,
+  onSearchChange,
   onToggle,
+  search,
   title,
 }: Readonly<{
   description: string;
-  error?: string | undefined;
-  form: TaxonomyForm;
+  imageLabel: string;
   isLoading: boolean;
-  isSaving: boolean;
   items: AdminTaxonomy[];
+  kind: "category" | "brand";
+  newRoute: string;
   onDelete: (item: AdminTaxonomy) => void;
   onFeature: (item: AdminTaxonomy) => void;
-  onFormChange: (form: TaxonomyForm) => void;
-  onSubmit: () => void;
+  onSearchChange: (value: string) => void;
   onToggle: (item: AdminTaxonomy) => void;
+  search: string;
   title: string;
 }>): ReactNode {
+  const [viewingItem, setViewingItem] = useState<AdminTaxonomy | null>(null);
+
+  const imageColumnLabel = imageLabel.toLowerCase().includes("logo")
+    ? "Logo"
+    : "Image";
+
+  function resolveItemImage(
+    item: AdminTaxonomy,
+  ): { url: string; alt: string } | null {
+    if (item.image?.url) {
+      return { url: item.image.url, alt: item.image.alt };
+    }
+
+    if (item.logo?.url) {
+      return { url: item.logo.url, alt: item.logo.alt };
+    }
+
+    return null;
+  }
+
+  function EditLink({
+    children,
+    itemId,
+  }: Readonly<{ children: ReactNode; itemId: string }>): ReactNode {
+    return kind === "category" ? (
+      <Link to="/admin/categories/$categoryId" params={{ categoryId: itemId }}>
+        {children}
+      </Link>
+    ) : (
+      <Link to="/admin/brands/$brandId" params={{ brandId: itemId }}>
+        {children}
+      </Link>
+    );
+  }
+
   return (
     <div className="dashboard-pane-content">
-      <div className="section-heading">
+      <div
+        className="section-heading"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <div>
           <h3 className="admin-section-title">{title}</h3>
           <p className="admin-section-copy">{description}</p>
         </div>
+        <Link to={newRoute}>
+          <Button tone="primary" startContent={<Plus size={16} />}>
+            {`Add ${title.split(" ")[0] ?? title}`}
+          </Button>
+        </Link>
       </div>
 
-      <div className="admin-taxonomy-grid admin-panel-grid-offset">
-        <Card className="dashboard-card">
-          <CardBody>
-            <div className="admin-form-head">
-              <span className="dashboard-metric-icon">
-                <Tags size={18} />
-              </span>
-              <div>
-                <h2>Create entry</h2>
-                <p className="form-muted">
-                  Slug is generated from the name and can be edited before
-                  saving.
-                </p>
-              </div>
+      <Card className="dashboard-card" style={{ marginTop: "1.5rem" }}>
+        <CardBody>
+          <div className="admin-toolbar">
+            <div className="admin-toolbar-search">
+              <AdminSearchInput
+                icon={<Search size={16} />}
+                placeholder="Search by name or slug"
+                value={search}
+                onChange={onSearchChange}
+              />
             </div>
-            <form
-              className="admin-modern-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                onSubmit();
-              }}
-            >
-              <AdminField label="Name*">
-                <Input
-                  className="admin-heroui-input"
-                  required
-                  value={form.name}
-                  onChange={(event) => {
-                    onFormChange({
-                      ...form,
-                      name: event.target.value,
-                      slug: slugify(event.target.value),
-                    });
-                  }}
-                />
-              </AdminField>
-              <AdminField label="Slug*">
-                <Input
-                  className="admin-heroui-input"
-                  required
-                  value={form.slug}
-                  onChange={(event) => {
-                    onFormChange({ ...form, slug: event.target.value });
-                  }}
-                />
-              </AdminField>
-              <AdminField label="Description">
-                <TextArea
-                  className="admin-heroui-textarea"
-                  value={form.description}
-                  onChange={(event) => {
-                    onFormChange({ ...form, description: event.target.value });
-                  }}
-                />
-              </AdminField>
-              <div className="admin-form-grid two">
-                <AdminSwitch
-                  className="inline"
-                  isSelected={form.isActive}
-                  onChange={(isSelected) => {
-                    onFormChange({ ...form, isActive: isSelected });
-                  }}
-                >
-                  Active
-                </AdminSwitch>
-                <AdminSwitch
-                  className="inline"
-                  isSelected={form.isFeatured}
-                  onChange={(isSelected) => {
-                    onFormChange({ ...form, isFeatured: isSelected });
-                  }}
-                >
-                  Featured on homepage
-                </AdminSwitch>
-              </div>
-              <Button type="submit" tone="primary" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Create entry"}
-              </Button>
-              {error ? <p className="form-error">{error}</p> : null}
-            </form>
-          </CardBody>
-        </Card>
+          </div>
 
-        <Card className="dashboard-card">
-          <CardBody>
-            <h2>Current entries ({items.length})</h2>
-            {isLoading ? (
-              <div className="admin-skeleton-stack">
-                <Skeleton className="h-12 w-full rounded-lg" />
-                <Skeleton className="h-12 w-full rounded-lg" />
-              </div>
-            ) : null}
-            <ul className="admin-list admin-inline-list">
-              {items.map((item) => (
-                <li key={item._id}>
-                  <div>
-                    <strong>{item.name}</strong>
-                    <small>
-                      {item.slug} ·{" "}
-                      {(item.isActive ?? true) ? "Active" : "Hidden"} ·{" "}
-                      {item.isFeatured ? "Featured" : "Standard"}
-                    </small>
-                    {item.description ? (
-                      <small>{item.description}</small>
-                    ) : null}
-                  </div>
-                  <div className="admin-row-actions">
-                    <Button
-                      iconOnly
-                      tone={(item.isActive ?? true) ? "secondary" : "ghost"}
-                      title={(item.isActive ?? true) ? "Hide" : "Activate"}
-                      onClick={() => {
-                        onToggle(item);
-                      }}
-                      startContent={
-                        (item.isActive ?? true) ? (
-                          <Eye size={16} />
+          {isLoading ? (
+            <div className="admin-skeleton-stack">
+              <Skeleton className="h-12 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+            </div>
+          ) : null}
+
+          {!isLoading && items.length > 0 ? (
+            <div className="admin-table-shell">
+              <table
+                className="admin-table admin-table-compact"
+                role="table"
+                aria-label={`${title} table`}
+              >
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>{imageColumnLabel}</th>
+                    <th>Status</th>
+                    <th>Featured</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => {
+                    const entryImage = resolveItemImage(item);
+
+                    return (
+                      <tr key={item._id}>
+                        <td>
+                          <strong>{item.name}</strong>
+                        </td>
+                        <td>{item.slug}</td>
+                        <td>
+                          {entryImage ? (
+                            <img
+                              className="admin-taxonomy-thumb"
+                              src={entryImage.url}
+                              alt={entryImage.alt}
+                            />
+                          ) : (
+                            <span className="admin-table-muted">No image</span>
+                          )}
+                        </td>
+                        <td>
+                          <span
+                            className={`admin-pill ${(item.isActive ?? true) ? "active" : "inactive"}`}
+                          >
+                            {(item.isActive ?? true) ? "Active" : "Hidden"}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`admin-pill ${item.isFeatured ? "featured" : "plain"}`}
+                          >
+                            {item.isFeatured ? "Featured" : "Standard"}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="admin-row-actions">
+                            <Button
+                              iconOnly
+                              tone="ghost"
+                              title="View details"
+                              onClick={() => {
+                                setViewingItem(item);
+                              }}
+                              startContent={<Eye size={16} />}
+                            >
+                              View
+                            </Button>
+                            <EditLink itemId={item._id}>
+                              <Button
+                                iconOnly
+                                tone="ghost"
+                                title="Edit"
+                                startContent={<Pencil size={16} />}
+                              >
+                                Edit
+                              </Button>
+                            </EditLink>
+                            <Button
+                              iconOnly
+                              tone={
+                                (item.isActive ?? true) ? "secondary" : "ghost"
+                              }
+                              title={
+                                (item.isActive ?? true) ? "Hide" : "Activate"
+                              }
+                              onClick={() => {
+                                onToggle(item);
+                              }}
+                              startContent={
+                                (item.isActive ?? true) ? (
+                                  <Eye size={16} />
+                                ) : (
+                                  <EyeOff size={16} />
+                                )
+                              }
+                            >
+                              Toggle active
+                            </Button>
+                            <Button
+                              iconOnly
+                              tone={item.isFeatured ? "secondary" : "ghost"}
+                              title={
+                                item.isFeatured
+                                  ? "Remove from homepage"
+                                  : "Feature on homepage"
+                              }
+                              onClick={() => {
+                                onFeature(item);
+                              }}
+                              startContent={<BadgeCheck size={16} />}
+                            >
+                              Toggle featured
+                            </Button>
+                            <Button
+                              iconOnly
+                              tone="ghost"
+                              title="Delete"
+                              onClick={() => {
+                                if (confirm(`Delete ${item.name}?`)) {
+                                  onDelete(item);
+                                }
+                              }}
+                              startContent={
+                                <Trash2
+                                  size={16}
+                                  style={{ color: "var(--color-midas-red)" }}
+                                />
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+
+          {!isLoading && items.length === 0 ? (
+            <div className="admin-empty-state">
+              <Tags size={28} />
+              <p style={{ margin: 0 }}>No entries match search criteria.</p>
+            </div>
+          ) : null}
+        </CardBody>
+      </Card>
+
+      <Modal.Root
+        isOpen={Boolean(viewingItem)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewingItem(null);
+          }
+        }}
+      >
+        <Modal.Backdrop>
+          <Modal.Container size="lg">
+            <Modal.Dialog>
+              {viewingItem ? (
+                <>
+                  <Modal.Header>
+                    <Modal.Heading>{viewingItem.name}</Modal.Heading>
+                    <Modal.CloseTrigger />
+                  </Modal.Header>
+                  <Modal.Body>
+                    <div className="admin-product-view-grid">
+                      {(() => {
+                        const entryImage = resolveItemImage(viewingItem);
+                        return entryImage ? (
+                          <div className="admin-product-view-images">
+                            <img src={entryImage.url} alt={entryImage.alt} />
+                          </div>
                         ) : (
-                          <EyeOff size={16} />
-                        )
-                      }
-                    >
-                      Toggle active
-                    </Button>
-                    <Button
-                      iconOnly
-                      tone={item.isFeatured ? "secondary" : "ghost"}
-                      title={
-                        item.isFeatured
-                          ? "Remove from homepage"
-                          : "Feature on homepage"
-                      }
-                      onClick={() => {
-                        onFeature(item);
-                      }}
-                      startContent={<BadgeCheck size={16} />}
-                    >
-                      Toggle featured
-                    </Button>
-                    <Button
-                      iconOnly
-                      tone="ghost"
-                      title="Delete"
-                      onClick={() => {
-                        onDelete(item);
-                      }}
-                      startContent={
-                        <Trash2
-                          size={16}
-                          style={{ color: "var(--color-midas-red)" }}
-                        />
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </li>
-              ))}
-              {items.length === 0 && !isLoading ? (
-                <li className="admin-empty-row">
-                  <p className="form-muted">No entries yet.</p>
-                </li>
+                          <p className="form-muted">No {imageLabel.toLowerCase()} uploaded.</p>
+                        );
+                      })()}
+
+                      <div className="order-details-row">
+                        <span>Slug</span>
+                        <span>{viewingItem.slug}</span>
+                      </div>
+                      <div className="order-details-row">
+                        <span>Status</span>
+                        <span>{(viewingItem.isActive ?? true) ? "Active" : "Hidden"}</span>
+                      </div>
+                      <div className="order-details-row">
+                        <span>Featured</span>
+                        <span>{viewingItem.isFeatured ? "Featured" : "Standard"}</span>
+                      </div>
+
+                      {viewingItem.description ? (
+                        <p className="form-muted">{viewingItem.description}</p>
+                      ) : null}
+                    </div>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <EditLink itemId={viewingItem._id}>
+                      <Button tone="primary">{`Edit ${kind}`}</Button>
+                    </EditLink>
+                  </Modal.Footer>
+                </>
               ) : null}
-            </ul>
-          </CardBody>
-        </Card>
-      </div>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal.Root>
     </div>
   );
 }
