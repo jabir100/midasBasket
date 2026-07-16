@@ -1,0 +1,1 @@
+{"version":3,"file":"wishlist.schemas.js","sourceRoot":"","sources":["../../../src/features/wishlist/wishlist.schemas.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAExB,MAAM,QAAQ,GAAG,CAAC;KACf,MAAM,EAAE;KACR,IAAI,EAAE;KACN,KAAK,CAAC,gBAAgB,EAAE,8BAA8B,CAAC,CAAC;AAE3D,MAAM,CAAC,MAAM,qBAAqB,GAAG,CAAC,CAAC,MAAM,CAAC;IAC5C,SAAS,EAAE,QAAQ;CACpB,CAAC,CAAC"}
