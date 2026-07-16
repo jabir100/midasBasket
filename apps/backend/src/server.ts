@@ -8,10 +8,11 @@ import { connectRedis, disconnectRedis } from "./core/database/redis.js";
 import { logger } from "./core/logging/logger.js";
 
 async function bootstrap(): Promise<void> {
+  const app = createApp();
+
   await connectDatabase();
   await connectRedis();
 
-  const app = createApp();
   const server = app.listen(env.PORT, () => {
     logger.info(
       { port: env.PORT, basePath: env.API_BASE_PATH },

@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   LogOut,
   MapPin,
+  Menu,
   Receipt,
   ShoppingBag,
   User,
@@ -34,6 +35,7 @@ export function DashboardShell({
   onLogout: () => void;
 }>): ReactNode {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { pathname } = useLocation();
 
   function isActive(itemPath: string): boolean {
@@ -45,8 +47,33 @@ export function DashboardShell({
 
   return (
     <div className="dashboard-wrapper">
+      <div className="dashboard-mobile-topbar">
+        <button
+          type="button"
+          className="dashboard-mobile-menu-btn"
+          aria-label="Open sidebar menu"
+          onClick={() => {
+            setIsMobileOpen(true);
+          }}
+        >
+          <Menu size={20} />
+        </button>
+        <span className="dashboard-mobile-title">Dashboard</span>
+      </div>
+
+      {isMobileOpen && (
+        <button
+          type="button"
+          className="dashboard-mobile-backdrop"
+          aria-label="Close sidebar menu"
+          onClick={() => {
+            setIsMobileOpen(false);
+          }}
+        />
+      )}
+
       <aside
-        className={`dashboard-sidebar ${isSidebarCollapsed ? "collapsed" : ""}`}
+        className={`dashboard-sidebar ${isSidebarCollapsed ? "collapsed" : ""} ${isMobileOpen ? "mobile-open" : ""}`}
       >
         <button
           onClick={() => {
@@ -80,6 +107,9 @@ export function DashboardShell({
               to={item.to}
               className={`sidebar-nav-btn ${isActive(item.to) ? "active" : ""}`}
               title={isSidebarCollapsed ? item.label : undefined}
+              onClick={() => {
+                setIsMobileOpen(false);
+              }}
             >
               {item.icon}
               {!isSidebarCollapsed && <span>{item.label}</span>}

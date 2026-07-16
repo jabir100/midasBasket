@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   LogOut,
+  MoreVertical,
   Search,
   ShoppingBag,
   Truck,
@@ -14,6 +15,7 @@ import { Skeleton } from "@heroui/react";
 
 import { getCurrentUser, getStoredAccessToken, logoutCustomer } from "../../features/auth/auth-api.js";
 import { listProducts, type CatalogProduct } from "../../features/catalog/catalog-api.js";
+import { MobileDrawer } from "../ui/mobile-drawer.js";
 import { SiteFooter } from "./site-footer.js";
 
 export function AppShell({
@@ -29,6 +31,7 @@ export function AppShell({
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -281,9 +284,119 @@ export function AppShell({
             >
               <ShoppingBag size={20} />
             </Link>
+
+            <button
+              type="button"
+              className="ui-button ui-button-ghost ui-button-icon nav-menu-trigger"
+              aria-label="Open menu"
+              onClick={() => {
+                setIsMobileMenuOpen(true);
+              }}
+            >
+              <MoreVertical size={20} />
+            </button>
           </div>
         </div>
       </header>
+
+      <MobileDrawer
+        isOpen={isMobileMenuOpen}
+        onClose={() => {
+          setIsMobileMenuOpen(false);
+        }}
+        side="right"
+        title="Menu"
+      >
+        <form
+          onSubmit={(e) => {
+            handleSearchSubmit(e);
+            setIsMobileMenuOpen(false);
+          }}
+          className="mobile-drawer-nav-search"
+        >
+          <div className="nav-search-wrapper">
+            <input
+              type="text"
+              name="search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+              }}
+              placeholder="Search products..."
+              aria-label="Search products"
+              className="nav-search-input"
+              autoComplete="off"
+            />
+            <button type="submit" className="nav-search-btn" aria-label="Search">
+              <Search size={18} />
+            </button>
+          </div>
+        </form>
+
+        <nav className="mobile-drawer-nav-list">
+          <Link
+            to="/track"
+            className="mobile-drawer-nav-link"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <Truck size={18} />
+            Track order
+          </Link>
+
+          {user ? (
+            <>
+              <Link
+                to={user.role === "admin" ? "/admin" : "/dashboard"}
+                className="mobile-drawer-nav-link"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <LayoutDashboard size={18} />
+                Dashboard
+              </Link>
+              <hr className="mobile-drawer-nav-divider" />
+              <button
+                type="button"
+                className="mobile-drawer-nav-link"
+                disabled={logoutMutation.isPending}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  logoutMutation.mutate();
+                }}
+              >
+                <LogOut size={18} />
+                Log out
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="mobile-drawer-nav-link"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              <UserRound size={18} />
+              Log in
+            </Link>
+          )}
+
+          <Link
+            to="/cart"
+            className="mobile-drawer-nav-link"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <ShoppingBag size={18} />
+            Cart
+          </Link>
+        </nav>
+      </MobileDrawer>
+
       {children}
       <SiteFooter />
     </div>
