@@ -1,15 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { Skeleton, Toast } from "@heroui/react";
+import { Chip, Skeleton, Toast } from "@heroui/react";
 
 import { Badge } from "../../shared/ui/badge.js";
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { toAbsoluteUrl } from "../../shared/seo/seo.js";
 import { addCartItem } from "../cart/cart-api.js";
-import { addWishlistItem } from "../wishlist/wishlist-api.js";
 import {
   getProduct,
   listBrands,
@@ -47,37 +46,68 @@ function ProductSkeletonGrid(): ReactNode {
 
 function TaxonomySkeletonGrid(): ReactNode {
   return (
-    <div className="taxonomy-grid">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i} className="taxonomy-card">
-          <CardBody>
-            <div style={{ display: "grid", gap: "0.5rem" }}>
-              <Skeleton className="h-4 w-1/4 rounded-lg" />
-              <Skeleton className="h-6 w-3/4 rounded-lg" />
-              <Skeleton className="h-4 w-full rounded-lg" />
-            </div>
-          </CardBody>
-        </Card>
+    <div className="category-grid taxonomy-page-grid">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Skeleton key={i} className="taxonomy-tile-skeleton rounded-2xl" />
       ))}
     </div>
   );
 }
 
 export function CatalogPage(): ReactNode {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const search = useSearch({ from: "/products" });
-  const params = new URLSearchParams();
 
-  for (const [key, value] of Object.entries(search)) {
-    if (value) {
-      params.set(key, value);
+  const [availability, setAvailability] = useState<"all" | "in" | "out">("all");
+  const [priceCap, setPriceCap] = useState(100000);
+
+  const selectedCategory = search.category ?? "";
+  const selectedSort = search.sort ?? "newest";
+  const selectedLimit = search.limit ?? "9";
+
+  const params = useMemo(() => {
+    const next = new URLSearchParams();
+    if (search.search) {
+      next.set("search", search.search);
     }
-  }
+    if (search.category) {
+      next.set("category", search.category);
+    }
+    if (search.brand) {
+      next.set("brand", search.brand);
+    }
+    if (search.sort) {
+      next.set("sort", search.sort);
+    }
+    next.set("limit", search.limit ?? "9");
+    return next;
+  }, [search.brand, search.category, search.limit, search.search, search.sort]);
 
   const productsQuery = useQuery({
     queryKey: ["catalog", "products", params.toString()],
     queryFn: () => listProducts(params),
   });
+
+  const categoriesQuery = useQuery({
+    queryKey: ["catalog", "categories"],
+    queryFn: listCategories,
+  });
+
+  const filteredProducts = useMemo(() => {
+    const products = productsQuery.data?.products ?? [];
+
+    return products.filter((product) => {
+      const stockPass =
+        availability === "all"
+          ? true
+          : availability === "in"
+            ? product.stockQuantity > 0
+            : product.stockQuantity === 0;
+
+      return stockPass && product.price <= priceCap;
+    });
+  }, [availability, priceCap, productsQuery.data?.products]);
 
   const addToCartMutation = useMutation({
     mutationFn: (productId: string) => addCartItem({ productId, quantity: 1 }),
@@ -87,13 +117,21 @@ export function CatalogPage(): ReactNode {
     },
   });
 
-  const addToWishlistMutation = useMutation({
-    mutationFn: (productId: string) => addWishlistItem(productId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-      Toast.toast.success("Added to wishlist");
-    },
-  });
+  function updateProductSearch(next: {
+    category?: string;
+    sort?: "newest" | "price-asc" | "price-desc";
+    limit?: "9" | "12" | "18";
+  }): void {
+    void navigate({
+      to: "/products",
+      search: (prev) => ({
+        ...prev,
+        ...(next.category !== undefined ? { category: next.category } : {}),
+        ...(next.sort !== undefined ? { sort: next.sort } : {}),
+        ...(next.limit !== undefined ? { limit: next.limit } : {}),
+      }),
+    });
+  }
 
   return (
     <main className="page-shell catalog-page">
@@ -102,29 +140,139 @@ export function CatalogPage(): ReactNode {
         description="Browse our selection of premium quality groceries and everyday essentials."
       />
 
-      {productsQuery.isLoading ? (
-        <ProductSkeletonGrid />
-      ) : (
-        <ProductGrid
-          products={productsQuery.data?.products ?? []}
-          isLoading={false}
-          onAddToCart={(productId) => {
-            addToCartMutation.mutate(productId);
-          }}
-          onAddToWishlist={(productId) => {
-            addToWishlistMutation.mutate(productId);
-          }}
-          isMutating={
-            addToCartMutation.isPending || addToWishlistMutation.isPending
-          }
-        />
-      )}
+      <section className="storefront-products-layout">
+        <aside className="storefront-filter-panel" aria-label="Product filters">
+          <div className="storefront-filter-header">
+            <h4>Filters</h4>
+            <button
+              type="button"
+              className="storefront-filter-clear"
+              onClick={() => {
+                setAvailability("all");
+                setPriceCap(100000);
+                updateProductSearch({
+                  category: "",
+                  sort: "newest",
+                  limit: "9",
+                });
+              }}
+            >
+              Clear All
+            </button>
+          </div>
+
+          <div className="storefront-filter-group">
+            <h5>Availability</h5>
+            <label>
+              <input
+                type="checkbox"
+                checked={availability === "in"}
+                onChange={(event) => {
+                  setAvailability(event.target.checked ? "in" : "all");
+                }}
+              />
+              <span>In Stock</span>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={availability === "out"}
+                onChange={(event) => {
+                  setAvailability(event.target.checked ? "out" : "all");
+                }}
+              />
+              <span>Out of Stock</span>
+            </label>
+          </div>
+
+          <div className="storefront-filter-group">
+            <h5>Price Range</h5>
+            <input
+              type="range"
+              min={0}
+              max={100000}
+              step={500}
+              value={priceCap}
+              onChange={(event) => {
+                setPriceCap(Number(event.target.value));
+              }}
+            />
+            <p>BDT 0 - BDT {priceCap.toLocaleString("en-BD")}</p>
+          </div>
+
+          <div className="storefront-filter-group">
+            <h5>Categories</h5>
+            {categoriesQuery.isLoading ? (
+              <p className="form-muted">Loading...</p>
+            ) : null}
+            {(categoriesQuery.data ?? []).map((category) => (
+              <label key={category._id}>
+                <input
+                  type="checkbox"
+                  checked={selectedCategory === category.slug}
+                  onChange={(event) => {
+                    updateProductSearch({
+                      category: event.target.checked ? category.slug : "",
+                    });
+                  }}
+                />
+                <span>{category.name}</span>
+              </label>
+            ))}
+          </div>
+        </aside>
+
+        <div className="storefront-products-main">
+          <div className="storefront-products-toolbar">
+            <label>
+              <span>Sort By</span>
+              <select
+                value={selectedSort}
+                onChange={(event) => {
+                  updateProductSearch({
+                    sort: event.target.value as
+                      "newest" | "price-asc" | "price-desc",
+                  });
+                }}
+              >
+                <option value="newest">Newest</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </label>
+            <label>
+              <span>Show</span>
+              <select
+                value={selectedLimit}
+                onChange={(event) => {
+                  updateProductSearch({
+                    limit: event.target.value as "9" | "12" | "18",
+                  });
+                }}
+              >
+                <option value="9">9</option>
+                <option value="12">12</option>
+                <option value="18">18</option>
+              </select>
+            </label>
+          </div>
+
+          {productsQuery.isLoading ? (
+            <ProductSkeletonGrid />
+          ) : (
+            <ProductGrid
+              products={filteredProducts}
+              onAddToCart={(productId) => {
+                addToCartMutation.mutate(productId);
+              }}
+              isMutating={addToCartMutation.isPending}
+            />
+          )}
+        </div>
+      </section>
 
       {productsQuery.error ? (
         <p className="form-error">Unable to load products from the API.</p>
-      ) : null}
-      {addToWishlistMutation.error ? (
-        <p className="form-error">{addToWishlistMutation.error.message}</p>
       ) : null}
     </main>
   );
@@ -192,9 +340,13 @@ export function ProductDetailPage({
     },
   });
 
-  const canAddToCart = hasVariants
+  const isProductInStock = (product?.stockQuantity ?? 0) > 0;
+  const canSubmitAddToCart = hasVariants
     ? Boolean(selectedVariant && selectedVariant.stockQuantity > 0)
-    : (product?.stockQuantity ?? 0) > 0;
+    : isProductInStock;
+  const compareAtPrice = product?.compareAtPrice ?? 0;
+  const hasDiscount = Boolean(product && compareAtPrice > product.price);
+  const savings = hasDiscount ? compareAtPrice - (product?.price ?? 0) : 0;
 
   const productJsonLd = product
     ? {
@@ -223,6 +375,11 @@ export function ProductDetailPage({
       ) : null}
       {product ? (
         <section className="product-detail">
+          <div className="product-detail-breadcrumb">
+            <Link to="/products">Products</Link>
+            <span>/</span>
+            <span>{product.name}</span>
+          </div>
           <div className="product-media-gallery">
             <div className="product-media">
               {galleryImages[selectedImageIndex] ? (
@@ -256,8 +413,23 @@ export function ProductDetailPage({
           <div className="product-detail-copy">
             <Badge>{product.sku}</Badge>
             <h3>{product.name}</h3>
+            <p>{product.shortDescription ?? product.description}</p>
+            <div className="product-detail-price-row">
+              <strong>৳{product.price.toLocaleString("en-BD")}</strong>
+              {hasDiscount ? (
+                <>
+                  <del>৳{compareAtPrice.toLocaleString("en-BD")}</del>
+                  <span className="product-discount-pill">
+                    Save ৳{savings.toLocaleString("en-BD")}
+                  </span>
+                </>
+              ) : null}
+            </div>
+            <p className="product-detail-stock">
+              {isProductInStock ? "In stock" : "Out of stock"}
+            </p>
+
             <p>{product.description}</p>
-            <strong>৳{product.price.toLocaleString("en-BD")}</strong>
 
             {hasVariants ? (
               <div className="product-variant-picker">
@@ -308,12 +480,16 @@ export function ProductDetailPage({
 
             <Button
               tone="primary"
-              disabled={!canAddToCart || addToCartMutation.isPending}
+              disabled={!canSubmitAddToCart || addToCartMutation.isPending}
               onClick={() => {
                 addToCartMutation.mutate();
               }}
             >
-              {canAddToCart ? "Add to cart" : "Out of stock"}
+              {!isProductInStock
+                ? "Out of stock"
+                : hasVariants && !selectedVariant
+                  ? "Select options"
+                  : "Add to cart"}
             </Button>
           </div>
         </section>
@@ -348,14 +524,15 @@ export function CategoriesPage(): ReactNode {
       {categoriesQuery.isLoading ? (
         <TaxonomySkeletonGrid />
       ) : (
-        <div className="taxonomy-grid">
+        <div className="category-grid taxonomy-page-grid">
           {(categoriesQuery.data ?? []).map((category) => (
-            <TaxonomyCard
+            <TaxonomyTile
               key={category._id}
               name={category.name}
-              slug={category.slug}
-              {...(category.description
-                ? { description: category.description }
+              href={`/products?category=${category.slug}`}
+              variant="category"
+              {...(category.image
+                ? { image: category.image }
                 : {})}
             />
           ))}
@@ -383,13 +560,14 @@ export function BrandsPage(): ReactNode {
       {brandsQuery.isLoading ? (
         <TaxonomySkeletonGrid />
       ) : (
-        <div className="taxonomy-grid">
+        <div className="brand-grid taxonomy-page-grid">
           {(brandsQuery.data ?? []).map((brand) => (
-            <TaxonomyCard
+            <TaxonomyTile
               key={brand._id}
               name={brand.name}
-              slug={brand.slug}
-              {...(brand.description ? { description: brand.description } : {})}
+              href={`/products?brand=${brand.slug}`}
+              variant="brand"
+              {...(brand.logo ? { image: brand.logo } : {})}
             />
           ))}
         </div>
@@ -416,21 +594,15 @@ function CatalogHeader({
 }
 
 function ProductGrid({
-  isLoading,
   products,
   onAddToCart,
-  onAddToWishlist,
   isMutating,
 }: Readonly<{
-  isLoading: boolean;
   products: CatalogProduct[];
   onAddToCart: (productId: string) => void;
-  onAddToWishlist: (productId: string) => void;
   isMutating: boolean;
 }>): ReactNode {
-  if (isLoading) {
-    return <ProductSkeletonGrid />;
-  }
+  const navigate = useNavigate();
 
   if (products.length === 0) {
     return (
@@ -439,51 +611,96 @@ function ProductGrid({
   }
 
   return (
-    <div className="catalog-grid">
+    <div className="catalog-grid storefront-products-grid">
       {products.map((product) => (
-        <Card key={product._id} className="catalog-product-card">
-          <div className="catalog-product-media">
+        <Card
+          key={product._id}
+          className="catalog-product-card storefront-grid-product-card storefront-clickable-card"
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            void navigate({
+              to: "/products/$slug",
+              params: { slug: product.slug },
+            });
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              void navigate({
+                to: "/products/$slug",
+                params: { slug: product.slug },
+              });
+            }
+          }}
+        >
+          <div className="catalog-product-media storefront-grid-product-media">
+            <Chip
+              className={`storefront-stock-chip ${
+                product.stockQuantity <= 0
+                  ? "storefront-stock-chip-out"
+                  : product.stockQuantity <= 10
+                    ? "storefront-stock-chip-low"
+                    : "storefront-stock-chip-in"
+              }`}
+              size="sm"
+            >
+              {product.stockQuantity <= 0
+                ? "Out of stock"
+                : product.stockQuantity <= 10
+                  ? "Low stock"
+                  : "In stock"}
+            </Chip>
             {product.images[0] ? (
               <img src={product.images[0].url} alt={product.images[0].alt} />
             ) : (
               <span>{product.name}</span>
             )}
           </div>
-          <CardBody>
-            <Link to="/products/$slug" params={{ slug: product.slug }}>
-              <h2>{product.name}</h2>
-            </Link>
-            <p>{product.shortDescription ?? product.description}</p>
-            <strong>৳{product.price.toLocaleString("en-BD")}</strong>
-            <div className="catalog-card-actions">
+          <CardBody className="storefront-grid-product-content">
+            <p className="storefront-card-eyebrow">
+              {product.tags[0]?.toUpperCase() ?? "MIDAS BASKET"}
+            </p>
+            <h2>{product.name}</h2>
+            <div className="product-price-row">
+              <strong>৳{product.price.toLocaleString("en-BD")}</strong>
+              {product.compareAtPrice ? (
+                <del>৳{product.compareAtPrice.toLocaleString("en-BD")}</del>
+              ) : null}
+            </div>
+            <div className="catalog-card-actions storefront-card-actions-row">
               <Button
-                tone="secondary"
-                onClick={() => {
-                  onAddToWishlist(product._id);
+                tone="primary"
+                className="storefront-action-button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (product.variants.length > 0) {
+                    void navigate({
+                      to: "/products/$slug",
+                      params: { slug: product.slug },
+                    });
+                    return;
+                  }
+                  onAddToCart(product._id);
                 }}
                 disabled={isMutating}
               >
-                Wishlist
+                Add to Cart
               </Button>
-              {product.variants.length > 0 ? (
-                <Link
-                  to="/products/$slug"
-                  params={{ slug: product.slug }}
-                  className="ui-button ui-button-primary"
-                >
-                  Select options
-                </Link>
-              ) : (
-                <Button
-                  tone="primary"
-                  onClick={() => {
-                    onAddToCart(product._id);
-                  }}
-                  disabled={isMutating}
-                >
-                  Add to cart
-                </Button>
-              )}
+              <Button
+                tone="secondary"
+                className="storefront-action-button storefront-buy-now-button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void navigate({
+                    to: "/products/$slug",
+                    params: { slug: product.slug },
+                  });
+                }}
+                disabled={isMutating}
+              >
+                Buy Now
+              </Button>
             </div>
           </CardBody>
         </Card>
@@ -492,18 +709,42 @@ function ProductGrid({
   );
 }
 
-function TaxonomyCard({
-  description,
+function TaxonomyTile({
+  href,
+  image,
   name,
-  slug,
-}: Readonly<{ description?: string; name: string; slug: string }>): ReactNode {
+  variant,
+}: Readonly<{
+  href: string;
+  image?: { url: string; alt: string };
+  name: string;
+  variant: "category" | "brand";
+}>): ReactNode {
+  const cardClass = variant === "category" ? "category-card" : "brand-card";
+  const imageClass =
+    variant === "category" ? "category-card-image" : "brand-card-image";
+  const overlayClass =
+    variant === "category" ? "category-card-overlay" : "brand-card-overlay";
+  const contentClass =
+    variant === "category" ? "category-card-content" : "brand-card-content";
+  const ctaClass =
+    variant === "category" ? "category-card-cta" : "brand-card-cta";
+
   return (
-    <Card className="taxonomy-card">
-      <CardBody>
-        <span>{slug}</span>
-        <h2>{name}</h2>
-        <p>{description ?? "Catalog grouping ready for product discovery."}</p>
-      </CardBody>
-    </Card>
+    <a className={cardClass} href={href}>
+      {image ? (
+        <img className={imageClass} src={image.url} alt={image.alt} loading="lazy" />
+      ) : (
+        <span className={`${imageClass} taxonomy-tile-placeholder`} aria-hidden="true">
+          {name.charAt(0)}
+        </span>
+      )}
+      <span className={overlayClass} aria-hidden="true" />
+      <div className={contentClass}>
+        <span>{name}</span>
+        <strong>{variant === "category" ? "Shop category" : "Featured brand"}</strong>
+      </div>
+      <span className={ctaClass}>View Products</span>
+    </a>
   );
 }

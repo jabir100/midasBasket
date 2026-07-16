@@ -125,6 +125,7 @@ homepageRouter.get("/", async (_req, res, next) => {
       ...(product.compareAtPrice
         ? { compareAtPrice: product.compareAtPrice }
         : {}),
+      stockQuantity: product.stockQuantity,
       currency: "BDT" as const,
       rating: 0,
       reviewCount: 0,

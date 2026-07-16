@@ -1,4 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import {
+  Outlet,
+  createFileRoute,
+  useRouterState,
+} from "@tanstack/react-router";
 import { z } from "zod";
 
 import { CatalogPage } from "../features/catalog/catalog-pages.js";
@@ -13,6 +17,7 @@ const productSearchSchema = z.object({
   category: z.string().optional(),
   brand: z.string().optional(),
   sort: z.enum(["newest", "price-asc", "price-desc"]).optional(),
+  limit: z.enum(["9", "12", "18"]).optional(),
 });
 
 export const Route = createFileRoute("/products")({
@@ -37,5 +42,18 @@ export const Route = createFileRoute("/products")({
     ],
     links: [canonicalLink("/products")],
   }),
-  component: CatalogPage,
+  component: ProductsRoute,
 });
+
+function ProductsRoute() {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const isProductDetailPath = /^\/products\/[^/]+$/.test(pathname);
+
+  if (isProductDetailPath) {
+    return <Outlet />;
+  }
+
+  return <CatalogPage />;
+}

@@ -19,7 +19,12 @@ import {
 } from "./admin-api.js";
 import { AdminField, AdminSelect } from "./admin-form-controls.js";
 import { AdminShell } from "./admin-shell.js";
-import { emptyProductForm, slugify, type ProductForm } from "./admin-types.js";
+import {
+  emptyProductForm,
+  generateSkuFromName,
+  slugify,
+  type ProductForm,
+} from "./admin-types.js";
 
 type ExistingImage = {
   url: string;
@@ -130,7 +135,7 @@ export function AdminProductFormPage({
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
       Toast.toast.success("Product created");
-      void navigate({ to: "/admin" });
+      void navigate({ to: "/admin/products" });
     },
     onError: (error: Error) => {
       Toast.toast.danger(error.message || "Could not create product");
@@ -160,7 +165,7 @@ export function AdminProductFormPage({
         queryKey: ["admin", "product", productId],
       });
       Toast.toast.success("Product updated");
-      void navigate({ to: "/admin" });
+      void navigate({ to: "/admin/products" });
     },
     onError: (error: Error) => {
       Toast.toast.danger(error.message || "Could not update product");
@@ -174,15 +179,11 @@ export function AdminProductFormPage({
   if (isEditing && productQuery.isLoading) {
     return (
       <AdminShell
-        activePanel="products"
         adminName={userQuery.data.name}
         isLoggingOut={logoutMutation.isPending}
         navCounts={{}}
         onLogout={() => {
           logoutMutation.mutate();
-        }}
-        onSelectPanel={() => {
-          void navigate({ to: "/admin" });
         }}
       >
         <div className="dashboard-pane-content">Loading product…</div>
@@ -279,15 +280,11 @@ export function AdminProductFormPage({
 
   return (
     <AdminShell
-      activePanel="products"
       adminName={userQuery.data.name}
       isLoggingOut={logoutMutation.isPending}
       navCounts={{}}
       onLogout={() => {
         logoutMutation.mutate();
-      }}
-      onSelectPanel={() => {
-        void navigate({ to: "/admin" });
       }}
     >
       <div className="dashboard-pane-content order-details-page">
@@ -296,7 +293,7 @@ export function AdminProductFormPage({
             <Button
               tone="ghost"
               onClick={() => {
-                void navigate({ to: "/admin" });
+                void navigate({ to: "/admin/products" });
               }}
               startContent={<ChevronLeft size={14} />}
             >
@@ -353,27 +350,49 @@ export function AdminProductFormPage({
                   />
                 </AdminField>
                 <AdminField label="Slug*">
-                  <Input
-                    className="admin-heroui-input"
-                    required
-                    value={form.slug}
-                    onChange={(event) => {
-                      setForm({ ...form, slug: event.target.value });
-                    }}
-                  />
+                  <div className="admin-field-with-action">
+                    <Input
+                      className="admin-heroui-input"
+                      required
+                      value={form.slug}
+                      onChange={(event) => {
+                        setForm({ ...form, slug: event.target.value });
+                      }}
+                    />
+                    <Button
+                      tone="ghost"
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, slug: slugify(form.name) });
+                      }}
+                    >
+                      Generate
+                    </Button>
+                  </div>
                 </AdminField>
               </div>
 
               <div className="admin-form-grid three">
                 <AdminField label="SKU*">
-                  <Input
-                    className="admin-heroui-input"
-                    required
-                    value={form.sku}
-                    onChange={(event) => {
-                      setForm({ ...form, sku: event.target.value.toUpperCase() });
-                    }}
-                  />
+                  <div className="admin-field-with-action">
+                    <Input
+                      className="admin-heroui-input"
+                      required
+                      value={form.sku}
+                      onChange={(event) => {
+                        setForm({ ...form, sku: event.target.value.toUpperCase() });
+                      }}
+                    />
+                    <Button
+                      tone="ghost"
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, sku: generateSkuFromName(form.name) });
+                      }}
+                    >
+                      Generate
+                    </Button>
+                  </div>
                 </AdminField>
                 <AdminField label="Price (BDT)*">
                   <Input
@@ -494,10 +513,15 @@ export function AdminProductFormPage({
                       className="admin-heroui-input"
                       type="number"
                       placeholder="Stock"
-                      value={String(variant.stockQuantity)}
+                      value={
+                        variant.stockQuantity === 0
+                          ? ""
+                          : String(variant.stockQuantity)
+                      }
                       onChange={(event) => {
+                        const raw = event.target.value;
                         updateVariantRow(index, {
-                          stockQuantity: Number(event.target.value),
+                          stockQuantity: raw === "" ? 0 : Number(raw),
                         });
                       }}
                     />

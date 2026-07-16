@@ -42,6 +42,7 @@ export type HomepageProduct = {
   sku: string;
   price: number;
   compareAtPrice?: number;
+  stockQuantity: number;
   currency: "BDT";
   rating: number;
   reviewCount: number;

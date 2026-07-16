@@ -26,13 +26,28 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
-import { Route as AdminProductsNewRouteImport } from './routes/admin_.products.new'
-import { Route as AdminProductsProductIdRouteImport } from './routes/admin_.products.$productId'
-import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin_.orders.$orderId'
-import { Route as AdminCategoriesNewRouteImport } from './routes/admin_.categories.new'
-import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/admin_.categories.$categoryId'
-import { Route as AdminBrandsNewRouteImport } from './routes/admin_.brands.new'
-import { Route as AdminBrandsBrandIdRouteImport } from './routes/admin_.brands.$brandId'
+import { Route as DashboardWishlistRouteImport } from './routes/dashboard_.wishlist'
+import { Route as DashboardProfileRouteImport } from './routes/dashboard_.profile'
+import { Route as DashboardOrdersRouteImport } from './routes/dashboard_.orders'
+import { Route as DashboardInvoicesRouteImport } from './routes/dashboard_.invoices'
+import { Route as DashboardAddressesRouteImport } from './routes/dashboard_.addresses'
+import { Route as AdminUsersRouteImport } from './routes/admin_.users'
+import { Route as AdminProductsRouteImport } from './routes/admin_.products'
+import { Route as AdminOrdersRouteImport } from './routes/admin_.orders'
+import { Route as AdminHomepageRouteImport } from './routes/admin_.homepage'
+import { Route as AdminCategoriesRouteImport } from './routes/admin_.categories'
+import { Route as AdminBrandsRouteImport } from './routes/admin_.brands'
+import { Route as AdminProductsNewRouteImport } from './routes/admin_.products_.new'
+import { Route as AdminProductsProductIdRouteImport } from './routes/admin_.products_.$productId'
+import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin_.orders_.$orderId'
+import { Route as AdminHomepageWhyChooseUsRouteImport } from './routes/admin_.homepage_.why-choose-us'
+import { Route as AdminHomepagePopularProductsRouteImport } from './routes/admin_.homepage_.popular-products'
+import { Route as AdminHomepageCarouselRouteImport } from './routes/admin_.homepage_.carousel'
+import { Route as AdminHomepageBestSellingRouteImport } from './routes/admin_.homepage_.best-selling'
+import { Route as AdminCategoriesNewRouteImport } from './routes/admin_.categories_.new'
+import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/admin_.categories_.$categoryId'
+import { Route as AdminBrandsNewRouteImport } from './routes/admin_.brands_.new'
+import { Route as AdminBrandsBrandIdRouteImport } from './routes/admin_.brands_.$brandId'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -119,39 +134,117 @@ const ProductsSlugRoute = ProductsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ProductsRoute,
 } as any)
+const DashboardWishlistRoute = DashboardWishlistRouteImport.update({
+  id: '/dashboard_/wishlist',
+  path: '/dashboard/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/dashboard_/profile',
+  path: '/dashboard/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardOrdersRoute = DashboardOrdersRouteImport.update({
+  id: '/dashboard_/orders',
+  path: '/dashboard/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardInvoicesRoute = DashboardInvoicesRouteImport.update({
+  id: '/dashboard_/invoices',
+  path: '/dashboard/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAddressesRoute = DashboardAddressesRouteImport.update({
+  id: '/dashboard_/addresses',
+  path: '/dashboard/addresses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin_/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProductsRoute = AdminProductsRouteImport.update({
+  id: '/admin_/products',
+  path: '/admin/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/admin_/orders',
+  path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHomepageRoute = AdminHomepageRouteImport.update({
+  id: '/admin_/homepage',
+  path: '/admin/homepage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/admin_/categories',
+  path: '/admin/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBrandsRoute = AdminBrandsRouteImport.update({
+  id: '/admin_/brands',
+  path: '/admin/brands',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProductsNewRoute = AdminProductsNewRouteImport.update({
-  id: '/admin_/products/new',
+  id: '/admin_/products_/new',
   path: '/admin/products/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminProductsProductIdRoute = AdminProductsProductIdRouteImport.update({
-  id: '/admin_/products/$productId',
+  id: '/admin_/products_/$productId',
   path: '/admin/products/$productId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminOrdersOrderIdRoute = AdminOrdersOrderIdRouteImport.update({
-  id: '/admin_/orders/$orderId',
+  id: '/admin_/orders_/$orderId',
   path: '/admin/orders/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminHomepageWhyChooseUsRoute =
+  AdminHomepageWhyChooseUsRouteImport.update({
+    id: '/admin_/homepage_/why-choose-us',
+    path: '/admin/homepage/why-choose-us',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminHomepagePopularProductsRoute =
+  AdminHomepagePopularProductsRouteImport.update({
+    id: '/admin_/homepage_/popular-products',
+    path: '/admin/homepage/popular-products',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminHomepageCarouselRoute = AdminHomepageCarouselRouteImport.update({
+  id: '/admin_/homepage_/carousel',
+  path: '/admin/homepage/carousel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHomepageBestSellingRoute =
+  AdminHomepageBestSellingRouteImport.update({
+    id: '/admin_/homepage_/best-selling',
+    path: '/admin/homepage/best-selling',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminCategoriesNewRoute = AdminCategoriesNewRouteImport.update({
-  id: '/admin_/categories/new',
+  id: '/admin_/categories_/new',
   path: '/admin/categories/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCategoriesCategoryIdRoute =
   AdminCategoriesCategoryIdRouteImport.update({
-    id: '/admin_/categories/$categoryId',
+    id: '/admin_/categories_/$categoryId',
     path: '/admin/categories/$categoryId',
     getParentRoute: () => rootRouteImport,
   } as any)
 const AdminBrandsNewRoute = AdminBrandsNewRouteImport.update({
-  id: '/admin_/brands/new',
+  id: '/admin_/brands_/new',
   path: '/admin/brands/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminBrandsBrandIdRoute = AdminBrandsBrandIdRouteImport.update({
-  id: '/admin_/brands/$brandId',
+  id: '/admin_/brands_/$brandId',
   path: '/admin/brands/$brandId',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -173,11 +266,26 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/brands': typeof AdminBrandsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/dashboard/addresses': typeof DashboardAddressesRoute
+  '/dashboard/invoices': typeof DashboardInvoicesRoute
+  '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/wishlist': typeof DashboardWishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/brands/$brandId': typeof AdminBrandsBrandIdRoute
   '/admin/brands/new': typeof AdminBrandsNewRoute
   '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
+  '/admin/homepage/best-selling': typeof AdminHomepageBestSellingRoute
+  '/admin/homepage/carousel': typeof AdminHomepageCarouselRoute
+  '/admin/homepage/popular-products': typeof AdminHomepagePopularProductsRoute
+  '/admin/homepage/why-choose-us': typeof AdminHomepageWhyChooseUsRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
@@ -199,11 +307,26 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
+  '/admin/brands': typeof AdminBrandsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/orders': typeof AdminOrdersRoute
+  '/admin/products': typeof AdminProductsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/dashboard/addresses': typeof DashboardAddressesRoute
+  '/dashboard/invoices': typeof DashboardInvoicesRoute
+  '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/wishlist': typeof DashboardWishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/brands/$brandId': typeof AdminBrandsBrandIdRoute
   '/admin/brands/new': typeof AdminBrandsNewRoute
   '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
+  '/admin/homepage/best-selling': typeof AdminHomepageBestSellingRoute
+  '/admin/homepage/carousel': typeof AdminHomepageCarouselRoute
+  '/admin/homepage/popular-products': typeof AdminHomepagePopularProductsRoute
+  '/admin/homepage/why-choose-us': typeof AdminHomepageWhyChooseUsRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
@@ -226,14 +349,29 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
   '/wishlist': typeof WishlistRoute
+  '/admin_/brands': typeof AdminBrandsRoute
+  '/admin_/categories': typeof AdminCategoriesRoute
+  '/admin_/homepage': typeof AdminHomepageRoute
+  '/admin_/orders': typeof AdminOrdersRoute
+  '/admin_/products': typeof AdminProductsRoute
+  '/admin_/users': typeof AdminUsersRoute
+  '/dashboard_/addresses': typeof DashboardAddressesRoute
+  '/dashboard_/invoices': typeof DashboardInvoicesRoute
+  '/dashboard_/orders': typeof DashboardOrdersRoute
+  '/dashboard_/profile': typeof DashboardProfileRoute
+  '/dashboard_/wishlist': typeof DashboardWishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
-  '/admin_/brands/$brandId': typeof AdminBrandsBrandIdRoute
-  '/admin_/brands/new': typeof AdminBrandsNewRoute
-  '/admin_/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
-  '/admin_/categories/new': typeof AdminCategoriesNewRoute
-  '/admin_/orders/$orderId': typeof AdminOrdersOrderIdRoute
-  '/admin_/products/$productId': typeof AdminProductsProductIdRoute
-  '/admin_/products/new': typeof AdminProductsNewRoute
+  '/admin_/brands_/$brandId': typeof AdminBrandsBrandIdRoute
+  '/admin_/brands_/new': typeof AdminBrandsNewRoute
+  '/admin_/categories_/$categoryId': typeof AdminCategoriesCategoryIdRoute
+  '/admin_/categories_/new': typeof AdminCategoriesNewRoute
+  '/admin_/homepage_/best-selling': typeof AdminHomepageBestSellingRoute
+  '/admin_/homepage_/carousel': typeof AdminHomepageCarouselRoute
+  '/admin_/homepage_/popular-products': typeof AdminHomepagePopularProductsRoute
+  '/admin_/homepage_/why-choose-us': typeof AdminHomepageWhyChooseUsRoute
+  '/admin_/orders_/$orderId': typeof AdminOrdersOrderIdRoute
+  '/admin_/products_/$productId': typeof AdminProductsProductIdRoute
+  '/admin_/products_/new': typeof AdminProductsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -254,11 +392,26 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/track'
     | '/wishlist'
+    | '/admin/brands'
+    | '/admin/categories'
+    | '/admin/homepage'
+    | '/admin/orders'
+    | '/admin/products'
+    | '/admin/users'
+    | '/dashboard/addresses'
+    | '/dashboard/invoices'
+    | '/dashboard/orders'
+    | '/dashboard/profile'
+    | '/dashboard/wishlist'
     | '/products/$slug'
     | '/admin/brands/$brandId'
     | '/admin/brands/new'
     | '/admin/categories/$categoryId'
     | '/admin/categories/new'
+    | '/admin/homepage/best-selling'
+    | '/admin/homepage/carousel'
+    | '/admin/homepage/popular-products'
+    | '/admin/homepage/why-choose-us'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
@@ -280,11 +433,26 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/track'
     | '/wishlist'
+    | '/admin/brands'
+    | '/admin/categories'
+    | '/admin/homepage'
+    | '/admin/orders'
+    | '/admin/products'
+    | '/admin/users'
+    | '/dashboard/addresses'
+    | '/dashboard/invoices'
+    | '/dashboard/orders'
+    | '/dashboard/profile'
+    | '/dashboard/wishlist'
     | '/products/$slug'
     | '/admin/brands/$brandId'
     | '/admin/brands/new'
     | '/admin/categories/$categoryId'
     | '/admin/categories/new'
+    | '/admin/homepage/best-selling'
+    | '/admin/homepage/carousel'
+    | '/admin/homepage/popular-products'
+    | '/admin/homepage/why-choose-us'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
@@ -306,14 +474,29 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/track'
     | '/wishlist'
+    | '/admin_/brands'
+    | '/admin_/categories'
+    | '/admin_/homepage'
+    | '/admin_/orders'
+    | '/admin_/products'
+    | '/admin_/users'
+    | '/dashboard_/addresses'
+    | '/dashboard_/invoices'
+    | '/dashboard_/orders'
+    | '/dashboard_/profile'
+    | '/dashboard_/wishlist'
     | '/products/$slug'
-    | '/admin_/brands/$brandId'
-    | '/admin_/brands/new'
-    | '/admin_/categories/$categoryId'
-    | '/admin_/categories/new'
-    | '/admin_/orders/$orderId'
-    | '/admin_/products/$productId'
-    | '/admin_/products/new'
+    | '/admin_/brands_/$brandId'
+    | '/admin_/brands_/new'
+    | '/admin_/categories_/$categoryId'
+    | '/admin_/categories_/new'
+    | '/admin_/homepage_/best-selling'
+    | '/admin_/homepage_/carousel'
+    | '/admin_/homepage_/popular-products'
+    | '/admin_/homepage_/why-choose-us'
+    | '/admin_/orders_/$orderId'
+    | '/admin_/products_/$productId'
+    | '/admin_/products_/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -333,10 +516,25 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TrackRoute: typeof TrackRoute
   WishlistRoute: typeof WishlistRoute
+  AdminBrandsRoute: typeof AdminBrandsRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminHomepageRoute: typeof AdminHomepageRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminProductsRoute: typeof AdminProductsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  DashboardAddressesRoute: typeof DashboardAddressesRoute
+  DashboardInvoicesRoute: typeof DashboardInvoicesRoute
+  DashboardOrdersRoute: typeof DashboardOrdersRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardWishlistRoute: typeof DashboardWishlistRoute
   AdminBrandsBrandIdRoute: typeof AdminBrandsBrandIdRoute
   AdminBrandsNewRoute: typeof AdminBrandsNewRoute
   AdminCategoriesCategoryIdRoute: typeof AdminCategoriesCategoryIdRoute
   AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
+  AdminHomepageBestSellingRoute: typeof AdminHomepageBestSellingRoute
+  AdminHomepageCarouselRoute: typeof AdminHomepageCarouselRoute
+  AdminHomepagePopularProductsRoute: typeof AdminHomepagePopularProductsRoute
+  AdminHomepageWhyChooseUsRoute: typeof AdminHomepageWhyChooseUsRoute
   AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
   AdminProductsProductIdRoute: typeof AdminProductsProductIdRoute
   AdminProductsNewRoute: typeof AdminProductsNewRoute
@@ -463,50 +661,155 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsSlugRouteImport
       parentRoute: typeof ProductsRoute
     }
-    '/admin_/products/new': {
-      id: '/admin_/products/new'
+    '/dashboard_/wishlist': {
+      id: '/dashboard_/wishlist'
+      path: '/dashboard/wishlist'
+      fullPath: '/dashboard/wishlist'
+      preLoaderRoute: typeof DashboardWishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard_/profile': {
+      id: '/dashboard_/profile'
+      path: '/dashboard/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard_/orders': {
+      id: '/dashboard_/orders'
+      path: '/dashboard/orders'
+      fullPath: '/dashboard/orders'
+      preLoaderRoute: typeof DashboardOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard_/invoices': {
+      id: '/dashboard_/invoices'
+      path: '/dashboard/invoices'
+      fullPath: '/dashboard/invoices'
+      preLoaderRoute: typeof DashboardInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard_/addresses': {
+      id: '/dashboard_/addresses'
+      path: '/dashboard/addresses'
+      fullPath: '/dashboard/addresses'
+      preLoaderRoute: typeof DashboardAddressesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/users': {
+      id: '/admin_/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/products': {
+      id: '/admin_/products'
+      path: '/admin/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/orders': {
+      id: '/admin_/orders'
+      path: '/admin/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/homepage': {
+      id: '/admin_/homepage'
+      path: '/admin/homepage'
+      fullPath: '/admin/homepage'
+      preLoaderRoute: typeof AdminHomepageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/categories': {
+      id: '/admin_/categories'
+      path: '/admin/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/brands': {
+      id: '/admin_/brands'
+      path: '/admin/brands'
+      fullPath: '/admin/brands'
+      preLoaderRoute: typeof AdminBrandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/products_/new': {
+      id: '/admin_/products_/new'
       path: '/admin/products/new'
       fullPath: '/admin/products/new'
       preLoaderRoute: typeof AdminProductsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin_/products/$productId': {
-      id: '/admin_/products/$productId'
+    '/admin_/products_/$productId': {
+      id: '/admin_/products_/$productId'
       path: '/admin/products/$productId'
       fullPath: '/admin/products/$productId'
       preLoaderRoute: typeof AdminProductsProductIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin_/orders/$orderId': {
-      id: '/admin_/orders/$orderId'
+    '/admin_/orders_/$orderId': {
+      id: '/admin_/orders_/$orderId'
       path: '/admin/orders/$orderId'
       fullPath: '/admin/orders/$orderId'
       preLoaderRoute: typeof AdminOrdersOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin_/categories/new': {
-      id: '/admin_/categories/new'
+    '/admin_/homepage_/why-choose-us': {
+      id: '/admin_/homepage_/why-choose-us'
+      path: '/admin/homepage/why-choose-us'
+      fullPath: '/admin/homepage/why-choose-us'
+      preLoaderRoute: typeof AdminHomepageWhyChooseUsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/homepage_/popular-products': {
+      id: '/admin_/homepage_/popular-products'
+      path: '/admin/homepage/popular-products'
+      fullPath: '/admin/homepage/popular-products'
+      preLoaderRoute: typeof AdminHomepagePopularProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/homepage_/carousel': {
+      id: '/admin_/homepage_/carousel'
+      path: '/admin/homepage/carousel'
+      fullPath: '/admin/homepage/carousel'
+      preLoaderRoute: typeof AdminHomepageCarouselRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/homepage_/best-selling': {
+      id: '/admin_/homepage_/best-selling'
+      path: '/admin/homepage/best-selling'
+      fullPath: '/admin/homepage/best-selling'
+      preLoaderRoute: typeof AdminHomepageBestSellingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/categories_/new': {
+      id: '/admin_/categories_/new'
       path: '/admin/categories/new'
       fullPath: '/admin/categories/new'
       preLoaderRoute: typeof AdminCategoriesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin_/categories/$categoryId': {
-      id: '/admin_/categories/$categoryId'
+    '/admin_/categories_/$categoryId': {
+      id: '/admin_/categories_/$categoryId'
       path: '/admin/categories/$categoryId'
       fullPath: '/admin/categories/$categoryId'
       preLoaderRoute: typeof AdminCategoriesCategoryIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin_/brands/new': {
-      id: '/admin_/brands/new'
+    '/admin_/brands_/new': {
+      id: '/admin_/brands_/new'
       path: '/admin/brands/new'
       fullPath: '/admin/brands/new'
       preLoaderRoute: typeof AdminBrandsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin_/brands/$brandId': {
-      id: '/admin_/brands/$brandId'
+    '/admin_/brands_/$brandId': {
+      id: '/admin_/brands_/$brandId'
       path: '/admin/brands/$brandId'
       fullPath: '/admin/brands/$brandId'
       preLoaderRoute: typeof AdminBrandsBrandIdRouteImport
@@ -544,10 +847,25 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TrackRoute: TrackRoute,
   WishlistRoute: WishlistRoute,
+  AdminBrandsRoute: AdminBrandsRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminHomepageRoute: AdminHomepageRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminProductsRoute: AdminProductsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  DashboardAddressesRoute: DashboardAddressesRoute,
+  DashboardInvoicesRoute: DashboardInvoicesRoute,
+  DashboardOrdersRoute: DashboardOrdersRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
+  DashboardWishlistRoute: DashboardWishlistRoute,
   AdminBrandsBrandIdRoute: AdminBrandsBrandIdRoute,
   AdminBrandsNewRoute: AdminBrandsNewRoute,
   AdminCategoriesCategoryIdRoute: AdminCategoriesCategoryIdRoute,
   AdminCategoriesNewRoute: AdminCategoriesNewRoute,
+  AdminHomepageBestSellingRoute: AdminHomepageBestSellingRoute,
+  AdminHomepageCarouselRoute: AdminHomepageCarouselRoute,
+  AdminHomepagePopularProductsRoute: AdminHomepagePopularProductsRoute,
+  AdminHomepageWhyChooseUsRoute: AdminHomepageWhyChooseUsRoute,
   AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
   AdminProductsProductIdRoute: AdminProductsProductIdRoute,
   AdminProductsNewRoute: AdminProductsNewRoute,

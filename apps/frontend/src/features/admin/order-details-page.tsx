@@ -83,15 +83,11 @@ export function AdminOrderDetailsPage({
 
   return (
     <AdminShell
-      activePanel="orders"
       adminName={userQuery.data.name}
       isLoggingOut={logoutMutation.isPending}
       navCounts={{}}
       onLogout={() => {
         logoutMutation.mutate();
-      }}
-      onSelectPanel={() => {
-        void navigate({ to: "/admin" });
       }}
     >
     <div className="dashboard-pane-content order-details-page">

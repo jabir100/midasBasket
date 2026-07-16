@@ -1,8 +1,9 @@
+import { Chip } from "@heroui/react";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
 import type { ReactNode } from "react";
 import { useRef } from "react";
 
-import { Badge } from "../../shared/ui/badge.js";
 import type { HomepageProduct } from "./homepage.types.js";
 
 const formatter = new Intl.NumberFormat("en-BD", {
@@ -10,6 +11,43 @@ const formatter = new Intl.NumberFormat("en-BD", {
   maximumFractionDigits: 0,
   style: "currency",
 });
+
+const LOW_STOCK_THRESHOLD = 10;
+
+function StockChip({
+  stockQuantity,
+}: Readonly<{ stockQuantity: number }>): ReactNode {
+  if (stockQuantity <= 0) {
+    return (
+      <Chip
+        className="storefront-stock-chip storefront-stock-chip-out"
+        size="sm"
+      >
+        Out of stock
+      </Chip>
+    );
+  }
+
+  if (stockQuantity <= LOW_STOCK_THRESHOLD) {
+    return (
+      <Chip
+        className="storefront-stock-chip storefront-stock-chip-low"
+        size="sm"
+      >
+        Low stock
+      </Chip>
+    );
+  }
+
+  return (
+    <Chip
+      className="storefront-stock-chip storefront-stock-chip-in"
+      size="sm"
+    >
+      In stock
+    </Chip>
+  );
+}
 
 export function ProductSlider({
   products,
@@ -44,32 +82,44 @@ export function ProductSlider({
 
       <div className="product-slider-track" ref={trackRef}>
         {products.map((product) => (
-          <article className="product-card" key={product.id}>
-            <div className="product-media" aria-hidden="true">
-              {product.image.src ? (
-                <img src={product.image.src} alt={product.image.alt} />
-              ) : (
-                <PackageSearch size={28} />
-              )}
+          <Link
+            to="/products/$slug"
+            params={{ slug: product.slug }}
+            className="product-card storefront-product-card storefront-clickable-card"
+            key={product.id}
+          >
+            <div className="storefront-product-media-wrap">
+              <div
+                className="product-media storefront-product-media"
+                aria-hidden="true"
+              >
+                {product.image.src ? (
+                  <img src={product.image.src} alt={product.image.alt} />
+                ) : (
+                  <PackageSearch size={28} />
+                )}
+              </div>
+              <div className="storefront-product-badges-row">
+                {product.badge ? (
+                  <Chip className="storefront-product-badge-chip" size="sm">
+                    {product.badge}
+                  </Chip>
+                ) : (
+                  <span />
+                )}
+                <StockChip stockQuantity={product.stockQuantity} />
+              </div>
             </div>
-            <div className="product-content">
-              {product.badge ? <Badge>{product.badge}</Badge> : null}
-              <h3>
-                <a href={`/products/${product.slug}`}>{product.name}</a>
-              </h3>
-              <span>{product.sku}</span>
+            <div className="product-content storefront-product-content">
+              <h3>{product.name}</h3>
               <div className="product-price-row">
                 <strong>{formatter.format(product.price)}</strong>
                 {product.compareAtPrice ? (
                   <del>{formatter.format(product.compareAtPrice)}</del>
                 ) : null}
               </div>
-              <small>
-                {product.rating.toFixed(1)} rating · {product.reviewCount}{" "}
-                reviews
-              </small>
             </div>
-          </article>
+          </Link>
         ))}
       </div>
 

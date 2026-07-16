@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   BadgeCheck,
   ChevronLeft,
@@ -19,33 +19,42 @@ import type { AdminPanel } from "./admin-types.js";
 export type AdminNavCounts = Partial<Record<AdminPanel, number>>;
 
 export function AdminShell({
-  activePanel,
   adminName,
   children,
   isLoggingOut,
   navCounts,
   onLogout,
-  onSelectPanel,
 }: Readonly<{
-  activePanel: AdminPanel | null;
   adminName: string;
   children: ReactNode;
   isLoggingOut: boolean;
   navCounts: AdminNavCounts;
   onLogout: () => void;
-  onSelectPanel: (panel: AdminPanel) => void;
 }>): ReactNode {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { pathname } = useLocation();
 
-  const navItems: { id: AdminPanel; label: string; icon: ReactNode }[] = [
-    { id: "overview", label: "Overview", icon: <LayoutGrid size={18} /> },
-    { id: "products", label: "Products", icon: <Package size={18} /> },
-    { id: "categories", label: "Categories", icon: <Tags size={18} /> },
-    { id: "brands", label: "Brands", icon: <BadgeCheck size={18} /> },
-    { id: "homepage", label: "Homepage", icon: <Home size={18} /> },
-    { id: "users", label: "Users", icon: <Users size={18} /> },
-    { id: "orders", label: "Orders", icon: <ShoppingCart size={18} /> },
+  const navItems: {
+    id: AdminPanel;
+    label: string;
+    to: string;
+    icon: ReactNode;
+  }[] = [
+    { id: "overview", label: "Overview", to: "/admin", icon: <LayoutGrid size={18} /> },
+    { id: "products", label: "Products", to: "/admin/products", icon: <Package size={18} /> },
+    { id: "categories", label: "Categories", to: "/admin/categories", icon: <Tags size={18} /> },
+    { id: "brands", label: "Brands", to: "/admin/brands", icon: <BadgeCheck size={18} /> },
+    { id: "homepage", label: "Homepage", to: "/admin/homepage", icon: <Home size={18} /> },
+    { id: "users", label: "Users", to: "/admin/users", icon: <Users size={18} /> },
+    { id: "orders", label: "Orders", to: "/admin/orders", icon: <ShoppingCart size={18} /> },
   ];
+
+  function isActive(itemPath: string): boolean {
+    if (itemPath === "/admin") {
+      return pathname === "/admin";
+    }
+    return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+  }
 
   return (
     <div className="dashboard-wrapper">
@@ -69,7 +78,11 @@ export function AdminShell({
         </button>
 
         <div className="sidebar-brand">
-          <span className="sidebar-brand-symbol">M</span>
+          <img
+            className="sidebar-brand-symbol"
+            src="/favicon.png"
+            alt="Midas Basket"
+          />
           {!isSidebarCollapsed && <span>Midas Portal</span>}
         </div>
 
@@ -79,11 +92,8 @@ export function AdminShell({
             return (
               <Link
                 key={item.id}
-                to="/admin"
-                onClick={() => {
-                  onSelectPanel(item.id);
-                }}
-                className={`sidebar-nav-btn ${activePanel === item.id ? "active" : ""}`}
+                to={item.to}
+                className={`sidebar-nav-btn ${isActive(item.to) ? "active" : ""}`}
                 title={isSidebarCollapsed ? item.label : undefined}
               >
                 {item.icon}

@@ -7,7 +7,11 @@ import { Input, TextArea, Toast } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
-import { getCurrentUser, getStoredAccessToken, logoutCustomer } from "../auth/auth-api.js";
+import {
+  getCurrentUser,
+  getStoredAccessToken,
+  logoutCustomer,
+} from "../auth/auth-api.js";
 import {
   createAdminBrand,
   createAdminCategory,
@@ -16,7 +20,7 @@ import {
   updateAdminBrand,
   updateAdminCategory,
 } from "./admin-api.js";
-import { AdminField, AdminSwitch } from "./admin-form-controls.js";
+import { AdminField } from "./admin-form-controls.js";
 import { AdminShell } from "./admin-shell.js";
 import {
   emptyTaxonomyForm,
@@ -30,23 +34,20 @@ type TaxonomyKind = "category" | "brand";
 const KIND_CONFIG: Record<
   TaxonomyKind,
   {
-    activePanel: "categories" | "brands";
     backLabel: string;
     imageLabel: string;
     listRoute: string;
   }
 > = {
   category: {
-    activePanel: "categories",
     backLabel: "Back to categories",
     imageLabel: "Category image",
-    listRoute: "/admin",
+    listRoute: "/admin/categories",
   },
   brand: {
-    activePanel: "brands",
     backLabel: "Back to brands",
     imageLabel: "Brand logo",
-    listRoute: "/admin",
+    listRoute: "/admin/brands",
   },
 };
 
@@ -135,7 +136,8 @@ export function AdminTaxonomyFormPage({
 
   const createFn = kind === "category" ? createAdminCategory : createAdminBrand;
   const updateFn = kind === "category" ? updateAdminCategory : updateAdminBrand;
-  const queryKey = kind === "category" ? ["admin", "categories"] : ["admin", "brands"];
+  const queryKey =
+    kind === "category" ? ["admin", "categories"] : ["admin", "brands"];
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -145,7 +147,9 @@ export function AdminTaxonomyFormPage({
       ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey });
-      Toast.toast.success(`${kind === "category" ? "Category" : "Brand"} created`);
+      Toast.toast.success(
+        `${kind === "category" ? "Category" : "Brand"} created`,
+      );
       void navigate({ to: config.listRoute });
     },
     onError: (error: Error) => {
@@ -162,7 +166,9 @@ export function AdminTaxonomyFormPage({
       ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey });
-      Toast.toast.success(`${kind === "category" ? "Category" : "Brand"} updated`);
+      Toast.toast.success(
+        `${kind === "category" ? "Category" : "Brand"} updated`,
+      );
       void navigate({ to: config.listRoute });
     },
     onError: (error: Error) => {
@@ -177,15 +183,11 @@ export function AdminTaxonomyFormPage({
   if (isEditing && listQuery.isLoading) {
     return (
       <AdminShell
-        activePanel={config.activePanel}
         adminName={userQuery.data.name}
         isLoggingOut={logoutMutation.isPending}
         navCounts={{}}
         onLogout={() => {
           logoutMutation.mutate();
-        }}
-        onSelectPanel={() => {
-          void navigate({ to: "/admin" });
         }}
       >
         <div className="dashboard-pane-content">Loading {kind}…</div>
@@ -195,25 +197,21 @@ export function AdminTaxonomyFormPage({
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const currentImage: { url: string; alt: string } | null = editingItem
-    ? (editingItem.image?.url
-        ? { url: editingItem.image.url, alt: editingItem.image.alt }
-        : editingItem.logo?.url
-          ? { url: editingItem.logo.url, alt: editingItem.logo.alt }
-          : null)
+    ? editingItem.image?.url
+      ? { url: editingItem.image.url, alt: editingItem.image.alt }
+      : editingItem.logo?.url
+        ? { url: editingItem.logo.url, alt: editingItem.logo.alt }
+        : null
     : null;
   const effectivePreviewUrl = imagePreviewUrl ?? currentImage?.url ?? null;
 
   return (
     <AdminShell
-      activePanel={config.activePanel}
       adminName={userQuery.data.name}
       isLoggingOut={logoutMutation.isPending}
       navCounts={{}}
       onLogout={() => {
         logoutMutation.mutate();
-      }}
-      onSelectPanel={() => {
-        void navigate({ to: "/admin" });
       }}
     >
       <div className="dashboard-pane-content order-details-page">
@@ -222,7 +220,7 @@ export function AdminTaxonomyFormPage({
             <Button
               tone="ghost"
               onClick={() => {
-                void navigate({ to: "/admin" });
+                void navigate({ to: config.listRoute });
               }}
               startContent={<ChevronLeft size={14} />}
             >
@@ -241,9 +239,12 @@ export function AdminTaxonomyFormPage({
                 <Tags size={18} />
               </span>
               <div>
-                <h2>{kind === "category" ? "Category details" : "Brand details"}</h2>
+                <h2>
+                  {kind === "category" ? "Category details" : "Brand details"}
+                </h2>
                 <p className="form-muted">
-                  Slug is generated from the name and can be edited before saving.
+                  Slug is generated from the name and can be edited before
+                  saving.
                 </p>
               </div>
             </div>
@@ -276,14 +277,25 @@ export function AdminTaxonomyFormPage({
                   />
                 </AdminField>
                 <AdminField label="Slug*">
-                  <Input
-                    className="admin-heroui-input"
-                    required
-                    value={form.slug}
-                    onChange={(event) => {
-                      setForm({ ...form, slug: event.target.value });
-                    }}
-                  />
+                  <div className="admin-field-with-action">
+                    <Input
+                      className="admin-heroui-input"
+                      required
+                      value={form.slug}
+                      onChange={(event) => {
+                        setForm({ ...form, slug: event.target.value });
+                      }}
+                    />
+                    <Button
+                      tone="ghost"
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, slug: slugify(form.name) });
+                      }}
+                    >
+                      Generate
+                    </Button>
+                  </div>
                 </AdminField>
               </div>
 
@@ -339,24 +351,26 @@ export function AdminTaxonomyFormPage({
               ) : null}
 
               <div className="admin-form-grid two">
-                <AdminSwitch
-                  className="inline"
-                  isSelected={form.isActive}
-                  onChange={(isSelected) => {
-                    setForm({ ...form, isActive: isSelected });
-                  }}
-                >
-                  Active
-                </AdminSwitch>
-                <AdminSwitch
-                  className="inline"
-                  isSelected={form.isFeatured}
-                  onChange={(isSelected) => {
-                    setForm({ ...form, isFeatured: isSelected });
-                  }}
-                >
-                  Featured on homepage
-                </AdminSwitch>
+                <label className="admin-checkbox-control">
+                  <input
+                    type="checkbox"
+                    checked={form.isActive}
+                    onChange={(event) => {
+                      setForm({ ...form, isActive: event.target.checked });
+                    }}
+                  />
+                  <span>Active</span>
+                </label>
+                <label className="admin-checkbox-control">
+                  <input
+                    type="checkbox"
+                    checked={form.isFeatured}
+                    onChange={(event) => {
+                      setForm({ ...form, isFeatured: event.target.checked });
+                    }}
+                  />
+                  <span>Featured on homepage</span>
+                </label>
               </div>
 
               <div className="admin-form-actions">
@@ -370,7 +384,10 @@ export function AdminTaxonomyFormPage({
               </div>
               {(isEditing ? updateMutation.error : createMutation.error) ? (
                 <p className="form-error">
-                  {(isEditing ? updateMutation.error : createMutation.error)?.message}
+                  {
+                    (isEditing ? updateMutation.error : createMutation.error)
+                      ?.message
+                  }
                 </p>
               ) : null}
             </form>

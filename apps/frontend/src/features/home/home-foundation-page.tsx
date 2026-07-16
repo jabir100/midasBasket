@@ -1,4 +1,11 @@
-import { ArrowRight, BadgeCheck, Search, Sparkles, Store, Truck } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Search,
+  Sparkles,
+  Store,
+  Truck,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -27,7 +34,7 @@ export function HomeFoundationPage(): ReactNode {
     "@type": "Organization",
     name: "Midas Basket",
     url: toAbsoluteUrl("/"),
-    logo: toAbsoluteUrl("/favicon.svg"),
+    logo: toAbsoluteUrl("/logo_v2.png"),
   };
   const websiteJsonLd = {
     "@context": "https://schema.org",
@@ -102,7 +109,9 @@ export function HomeFoundationPage(): ReactNode {
               <div className="hero-product-card">
                 <Badge>Featured</Badge>
                 <strong>{homepage.popularProducts[0].name}</strong>
-                <span>{formatter.format(homepage.popularProducts[0].price)}</span>
+                <span>
+                  {formatter.format(homepage.popularProducts[0].price)}
+                </span>
               </div>
             ) : null}
             <div className="hero-service-row">
@@ -123,18 +132,28 @@ export function HomeFoundationPage(): ReactNode {
       >
         <SectionHeading
           eyebrow="Shop by need"
-          title="Featured categories"
+          title="Popular Categories"
           action={{ href: "/categories", label: "All categories" }}
         />
         <div className="category-grid">
           {homepage.featuredCategories.map((category) => (
             <a
               className="category-card"
-              href={`/categories/${category.slug}`}
+              href={`/products?category=${category.slug}`}
               key={category.id}
             >
-              <span>{category.name}</span>
-              <strong>{category.productCount} products</strong>
+              <img
+                className="category-card-image"
+                src={category.image.src}
+                alt={category.image.alt}
+                loading="lazy"
+              />
+              <span className="category-card-overlay" aria-hidden="true" />
+              <div className="category-card-content">
+                <span>{category.name}</span>
+                <strong>{category.productCount} products</strong>
+              </div>
+              <span className="category-card-cta">View Products</span>
             </a>
           ))}
         </div>
@@ -149,11 +168,22 @@ export function HomeFoundationPage(): ReactNode {
         <div className="brand-grid">
           {homepage.featuredBrands.map((brand) => (
             <a
-              href={`/brands/${brand.slug}`}
+              href={`/products?brand=${brand.slug}`}
               className="brand-card"
               key={brand.id}
             >
-              {brand.name}
+              <img
+                className="brand-card-image"
+                src={brand.logo.src}
+                alt={brand.logo.alt}
+                loading="lazy"
+              />
+              <span className="brand-card-overlay" aria-hidden="true" />
+              <div className="brand-card-content">
+                <span>{brand.name}</span>
+                <strong>Featured brand</strong>
+              </div>
+              <span className="brand-card-cta">View Products</span>
             </a>
           ))}
         </div>
@@ -167,7 +197,7 @@ export function HomeFoundationPage(): ReactNode {
           <SectionHeading
             eyebrow="Curated picks"
             title="Popular products"
-            action={{ href: "/products", label: "View products" }}
+            action={{ href: "/products", label: "More" }}
           />
           <ProductSlider products={homepage.popularProducts} />
         </section>
@@ -181,7 +211,7 @@ export function HomeFoundationPage(): ReactNode {
           <SectionHeading
             eyebrow="Customer favorites"
             title="Most selling"
-            action={{ href: "/products", label: "View products" }}
+            action={{ href: "/products", label: "More" }}
           />
           <ProductSlider products={homepage.bestSellingProducts} />
         </section>
@@ -208,10 +238,6 @@ export function HomeFoundationPage(): ReactNode {
         </div>
       </section>
 
-      <footer className="site-footer">
-        <strong>Midas Basket</strong>
-        <span>Fast, secure, premium ecommerce foundation.</span>
-      </footer>
     </main>
   );
 }
@@ -261,12 +287,11 @@ function SectionHeading({
     <div className="section-heading">
       <div>
         <span className="section-eyebrow">{eyebrow}</span>
-        <h2 id={`${title.toLowerCase().replaceAll(" ", "-")}-title`}>
+        <h3 id={`${title.toLowerCase().replaceAll(" ", "-")}-title`}>
           {title}
-        </h2>
+        </h3>
       </div>
       {action ? <a href={action.href}>{action.label}</a> : null}
     </div>
   );
 }
-

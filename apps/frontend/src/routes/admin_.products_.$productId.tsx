@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminProductFormPage } from "../features/admin/product-form-page.js";
 import { noIndexMeta } from "../shared/seo/seo.js";
 
-export const Route = createFileRoute("/admin_/products/$productId")({
+export const Route = createFileRoute("/admin_/products_/$productId")({
   head: () => ({
     meta: [{ title: "Edit Product | Midas Basket" }, noIndexMeta],
   }),

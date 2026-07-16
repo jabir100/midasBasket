@@ -40,7 +40,7 @@ export const Route = createRootRoute({
     ],
     links: [
       canonicalLink("/"),
-      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
   }),
   component: RootComponent,

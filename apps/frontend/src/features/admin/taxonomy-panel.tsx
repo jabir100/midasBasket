@@ -1,14 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  BadgeCheck,
-  Eye,
-  EyeOff,
-  Pencil,
-  Plus,
-  Search,
-  Tags,
-  Trash2,
-} from "lucide-react";
+import { Eye, Pencil, Plus, Search, Tags, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Modal, Skeleton } from "@heroui/react";
@@ -26,9 +17,7 @@ export function TaxonomyPanel({
   kind,
   newRoute,
   onDelete,
-  onFeature,
   onSearchChange,
-  onToggle,
   search,
   title,
 }: Readonly<{
@@ -39,9 +28,7 @@ export function TaxonomyPanel({
   kind: "category" | "brand";
   newRoute: string;
   onDelete: (item: AdminTaxonomy) => void;
-  onFeature: (item: AdminTaxonomy) => void;
   onSearchChange: (value: string) => void;
-  onToggle: (item: AdminTaxonomy) => void;
   search: string;
   title: string;
 }>): ReactNode {
@@ -198,42 +185,6 @@ export function TaxonomyPanel({
                             </EditLink>
                             <Button
                               iconOnly
-                              tone={
-                                (item.isActive ?? true) ? "secondary" : "ghost"
-                              }
-                              title={
-                                (item.isActive ?? true) ? "Hide" : "Activate"
-                              }
-                              onClick={() => {
-                                onToggle(item);
-                              }}
-                              startContent={
-                                (item.isActive ?? true) ? (
-                                  <Eye size={16} />
-                                ) : (
-                                  <EyeOff size={16} />
-                                )
-                              }
-                            >
-                              Toggle active
-                            </Button>
-                            <Button
-                              iconOnly
-                              tone={item.isFeatured ? "secondary" : "ghost"}
-                              title={
-                                item.isFeatured
-                                  ? "Remove from homepage"
-                                  : "Feature on homepage"
-                              }
-                              onClick={() => {
-                                onFeature(item);
-                              }}
-                              startContent={<BadgeCheck size={16} />}
-                            >
-                              Toggle featured
-                            </Button>
-                            <Button
-                              iconOnly
                               tone="ghost"
                               title="Delete"
                               onClick={() => {
@@ -295,7 +246,9 @@ export function TaxonomyPanel({
                             <img src={entryImage.url} alt={entryImage.alt} />
                           </div>
                         ) : (
-                          <p className="form-muted">No {imageLabel.toLowerCase()} uploaded.</p>
+                          <p className="form-muted">
+                            No {imageLabel.toLowerCase()} uploaded.
+                          </p>
                         );
                       })()}
 
@@ -305,11 +258,15 @@ export function TaxonomyPanel({
                       </div>
                       <div className="order-details-row">
                         <span>Status</span>
-                        <span>{(viewingItem.isActive ?? true) ? "Active" : "Hidden"}</span>
+                        <span>
+                          {(viewingItem.isActive ?? true) ? "Active" : "Hidden"}
+                        </span>
                       </div>
                       <div className="order-details-row">
                         <span>Featured</span>
-                        <span>{viewingItem.isFeatured ? "Featured" : "Standard"}</span>
+                        <span>
+                          {viewingItem.isFeatured ? "Featured" : "Standard"}
+                        </span>
                       </div>
 
                       {viewingItem.description ? (

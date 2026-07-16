@@ -1,5 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { Eye, EyeOff, Package, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import {
+  Eye,
+  Package,
+  Pencil,
+  Plus,
+  Search,
+  ToggleLeft,
+  ToggleRight,
+  Trash2,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Modal, Skeleton } from "@heroui/react";
@@ -107,7 +116,13 @@ export function ProductsPanel({
                   {products.map((product) => (
                     <tr key={product._id}>
                       <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.6rem",
+                          }}
+                        >
                           {product.images[0]?.url ? (
                             <img
                               src={product.images[0].url}
@@ -117,7 +132,10 @@ export function ProductsPanel({
                           ) : null}
                           <div>
                             <strong>{product.name}</strong>
-                            <small className="admin-table-muted" style={{ display: "block" }}>
+                            <small
+                              className="admin-table-muted"
+                              style={{ display: "block" }}
+                            >
                               SKU: {product.sku}
                             </small>
                           </div>
@@ -129,7 +147,10 @@ export function ProductsPanel({
                       <td>
                         {product.stockQuantity}
                         {product.variants.length > 0 ? (
-                          <small className="admin-table-muted" style={{ display: "block" }}>
+                          <small
+                            className="admin-table-muted"
+                            style={{ display: "block" }}
+                          >
                             {product.variants.length} variant
                             {product.variants.length === 1 ? "" : "s"}
                           </small>
@@ -171,16 +192,18 @@ export function ProductsPanel({
                           <Button
                             iconOnly
                             tone={product.isPublished ? "secondary" : "ghost"}
-                            title={product.isPublished ? "Unpublish" : "Publish"}
+                            title={
+                              product.isPublished ? "Unpublish" : "Publish"
+                            }
                             disabled={isTogglingPublish}
                             onClick={() => {
                               onTogglePublish(product);
                             }}
                             startContent={
                               product.isPublished ? (
-                                <Eye size={16} />
+                                <ToggleRight size={16} />
                               ) : (
-                                <EyeOff size={16} />
+                                <ToggleLeft size={16} />
                               )
                             }
                           >
@@ -270,7 +293,9 @@ export function ProductsPanel({
                       </div>
                       <div className="order-details-row">
                         <span>Price</span>
-                        <span>৳{viewingProduct.price.toLocaleString("en-BD")}</span>
+                        <span>
+                          ৳{viewingProduct.price.toLocaleString("en-BD")}
+                        </span>
                       </div>
                       <div className="order-details-row">
                         <span>Total stock</span>

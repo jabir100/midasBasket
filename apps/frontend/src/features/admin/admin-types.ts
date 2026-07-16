@@ -96,6 +96,20 @@ export function slugify(value: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+export function generateSkuFromName(value: string): string {
+  const words = value
+    .toUpperCase()
+    .replace(/[^A-Z0-9\s]+/g, "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return words
+    .slice(0, 4)
+    .map((word) => word.slice(0, 5))
+    .join("-");
+}
+
 export function toTaxonomyPayload(form: TaxonomyForm): Partial<AdminTaxonomy> {
   const payload: Partial<AdminTaxonomy> = {
     name: form.name,

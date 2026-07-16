@@ -1,21 +1,20 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Menu, Search, ShoppingBag, UserRound, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Search,
+  ShoppingBag,
+  Truck,
+  UserRound,
+} from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
 import { Skeleton } from "@heroui/react";
 
-import { Button } from "../ui/button.js";
 import { getCurrentUser, getStoredAccessToken, logoutCustomer } from "../../features/auth/auth-api.js";
 import { listProducts, type CatalogProduct } from "../../features/catalog/catalog-api.js";
-
-const publicNavItems = [
-  { href: "/categories", label: "Categories" },
-  { href: "/brands", label: "Brands" },
-  { href: "/products", label: "Products" },
-  { href: "/wishlist", label: "Wishlist" },
-  { href: "/track", label: "Track Order" },
-] as const;
+import { SiteFooter } from "./site-footer.js";
 
 export function AppShell({
   children,
@@ -29,7 +28,9 @@ export function AppShell({
   const [searchResults, setSearchResults] = useState<CatalogProduct[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   const { data: user } = useQuery({
     queryKey: ["auth", "me"],
@@ -53,33 +54,42 @@ export function AppShell({
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setIsSearchLoading(true);
-      try {
-        const params = new URLSearchParams();
-        params.set("search", searchQuery);
-        params.set("limit", "5");
-        const res = await listProducts(params);
-        setSearchResults(res.products);
-      } catch (err) {
-        console.error("Live search failed:", err);
-      } finally {
-        setIsSearchLoading(false);
-      }
+    const timer = setTimeout(() => {
+      void (async () => {
+        setIsSearchLoading(true);
+        try {
+          const params = new URLSearchParams();
+          params.set("search", searchQuery);
+          params.set("limit", "5");
+          const res = await listProducts(params);
+          setSearchResults(res.products);
+        } catch (err) {
+          console.error("Live search failed:", err);
+        } finally {
+          setIsSearchLoading(false);
+        }
+      })();
     }, 250);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [searchQuery]);
 
-  // Click outside to close live search popup
+  // Click outside to close live search popup and account menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
         setShowPopup(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const isDashboardOrAdmin = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
@@ -95,9 +105,9 @@ export function AppShell({
   const handleSearchSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setShowPopup(false);
-    navigate({
+    void navigate({
       to: "/products",
-      search: (prev: any) => ({
+      search: (prev) => ({
         ...prev,
         search: searchQuery.trim() || undefined,
       }),
@@ -109,17 +119,13 @@ export function AppShell({
       <header className="site-header">
         <div className="site-header-inner">
           <Link className="brand-mark" to="/" aria-label="Midas Basket home">
-            <span className="brand-symbol">M</span>
-            <span>Midas Basket</span>
+            <img
+              className="brand-logo"
+              src="/logo_v2.png"
+              alt="Midas Basket"
+            />
           </Link>
-          <nav className="desktop-nav" aria-label="Primary navigation">
-            {publicNavItems.map((item) => (
-              <Link key={item.label} to={item.href}>
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          
+
           <form onSubmit={handleSearchSubmit} className="nav-search-form">
             <div className="nav-search-wrapper" ref={popupRef}>
               <input
@@ -130,27 +136,42 @@ export function AppShell({
                   setSearchQuery(e.target.value);
                   setShowPopup(true);
                 }}
-                onFocus={() => setShowPopup(true)}
+                onFocus={() => {
+                  setShowPopup(true);
+                }}
                 placeholder="Search products..."
                 aria-label="Search products"
                 className="nav-search-input"
                 autoComplete="off"
               />
-              <button type="submit" className="nav-search-btn" aria-label="Search">
+              <button
+                type="submit"
+                className="nav-search-btn"
+                aria-label="Search"
+              >
                 <Search size={18} />
               </button>
 
               {showPopup && searchQuery.trim() && (
                 <div className="nav-search-popup">
                   {isSearchLoading ? (
-                    <div style={{ padding: "1rem", display: "grid", gap: "0.5rem" }}>
+                    <div
+                      style={{
+                        padding: "1rem",
+                        display: "grid",
+                        gap: "0.5rem",
+                      }}
+                    >
                       <Skeleton className="h-6 w-full rounded" />
                       <Skeleton className="h-6 w-3/4 rounded" />
                     </div>
                   ) : searchResults.length > 0 ? (
                     <ul className="nav-search-results-list">
                       {searchResults.map((product) => (
-                        <li key={product._id} className="nav-search-result-item">
+                        <li
+                          key={product._id}
+                          className="nav-search-result-item"
+                        >
                           <Link
                             to="/products/$slug"
                             params={{ slug: product.slug }}
@@ -162,21 +183,30 @@ export function AppShell({
                           >
                             <div className="nav-search-result-media">
                               {product.images[0] ? (
-                                <img src={product.images[0].url} alt={product.images[0].alt} />
+                                <img
+                                  src={product.images[0].url}
+                                  alt={product.images[0].alt}
+                                />
                               ) : (
                                 <div className="media-placeholder">M</div>
                               )}
                             </div>
                             <div className="nav-search-result-info">
-                              <span className="nav-search-result-name">{product.name}</span>
-                              <span className="nav-search-result-price">৳{product.price.toLocaleString("en-BD")}</span>
+                              <span className="nav-search-result-name">
+                                {product.name}
+                              </span>
+                              <span className="nav-search-result-price">
+                                ৳{product.price.toLocaleString("en-BD")}
+                              </span>
                             </div>
                           </Link>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <div className="nav-search-no-results">No products found.</div>
+                    <div className="nav-search-no-results">
+                      No products found.
+                    </div>
                   )}
                 </div>
               )}
@@ -184,31 +214,66 @@ export function AppShell({
           </form>
 
           <div className="header-actions">
-            {user ? (
-              <>
+            <Link
+              to="/track"
+              className="ui-button ui-button-ghost ui-button-icon"
+              aria-label="Track order"
+            >
+              <Truck size={20} />
+            </Link>
+
+            <div className="user-menu-wrapper" ref={userMenuRef}>
+              {user ? (
+                <>
+                  <button
+                    type="button"
+                    className="ui-button ui-button-ghost ui-button-icon"
+                    aria-label="Account menu"
+                    aria-expanded={isUserMenuOpen}
+                    onClick={() => {
+                      setIsUserMenuOpen((open) => !open);
+                    }}
+                  >
+                    <UserRound size={20} />
+                  </button>
+                  {isUserMenuOpen && (
+                    <div className="user-menu-dropdown">
+                      <Link
+                        to={user.role === "admin" ? "/admin" : "/dashboard"}
+                        className="user-menu-item"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                        }}
+                      >
+                        <LayoutDashboard size={16} />
+                        Dashboard
+                      </Link>
+                      <button
+                        type="button"
+                        className="user-menu-item"
+                        disabled={logoutMutation.isPending}
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          logoutMutation.mutate();
+                        }}
+                      >
+                        <LogOut size={16} />
+                        Log out
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
                 <Link
-                  to={user.role === "admin" ? "/admin" : "/dashboard"}
+                  to="/login"
                   className="ui-button ui-button-ghost ui-button-icon"
-                  aria-label={user.role === "admin" ? "Admin dashboard" : "Customer dashboard"}
+                  aria-label="Log in"
                 >
                   <UserRound size={20} />
                 </Link>
-                <Button
-                  iconOnly
-                  tone="ghost"
-                  aria-label="Log out"
-                  disabled={logoutMutation.isPending}
-                  onClick={() => { logoutMutation.mutate(); }}
-                  startContent={<LogOut size={20} />}
-                >
-                  Log out
-                </Button>
-              </>
-            ) : (
-              <Link to="/login" className="ui-button ui-button-secondary">
-                Log in
-              </Link>
-            )}
+              )}
+            </div>
+
             <Link
               to="/cart"
               className="ui-button ui-button-primary ui-button-icon"
@@ -216,19 +281,11 @@ export function AppShell({
             >
               <ShoppingBag size={20} />
             </Link>
-            <Button
-              iconOnly
-              tone="ghost"
-              aria-label="Open navigation"
-              className="mobile-menu-button"
-              startContent={<Menu size={20} />}
-            >
-              Menu
-            </Button>
           </div>
         </div>
       </header>
       {children}
+      <SiteFooter />
     </div>
   );
 }
