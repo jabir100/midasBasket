@@ -24,10 +24,8 @@ const cartSchema = new Schema(
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      index: true,
-      sparse: true,
     },
-    guestCartId: { type: String, trim: true, index: true, sparse: true },
+    guestCartId: { type: String, trim: true },
     items: { type: [cartItemSchema], default: [] },
     couponCode: { type: String, trim: true, uppercase: true },
     currency: { type: String, trim: true, uppercase: true, default: "BDT" },
