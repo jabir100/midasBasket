@@ -69,7 +69,7 @@ export function CheckoutPage(): ReactNode {
   return (
     <main className="page-shell checkout-page">
       <section className="section-heading catalog-heading">
-        <h3 style={{ margin: 0 }}>Single-page checkout</h3>
+        <h3 style={{ margin: 0 }}>Checkout</h3>
         <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
           Confirm your details and place your order using Cash on Delivery.
         </p>
