@@ -1,4 +1,4 @@
-import { Ban, CircleCheck, Search, Users } from "lucide-react";
+import { Ban, CircleCheck, Search, ShieldCheck, ShieldOff, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { Skeleton } from "@heroui/react";
 
@@ -21,22 +21,28 @@ const statusOptions = [
 ];
 
 export function UsersPanel({
+  currentUserId,
   isLoading,
+  isUpdatingRole,
   isUpdatingStatus,
   onRoleFilterChange,
   onSearchChange,
   onStatusFilterChange,
+  onToggleRole,
   onToggleStatus,
   roleFilter,
   search,
   statusFilter,
   users,
 }: Readonly<{
+  currentUserId: string | undefined;
   isLoading: boolean;
+  isUpdatingRole: boolean;
   isUpdatingStatus: boolean;
   onRoleFilterChange: (role: string) => void;
   onSearchChange: (value: string) => void;
   onStatusFilterChange: (status: string) => void;
+  onToggleRole: (user: AdminUser) => void;
   onToggleStatus: (user: AdminUser) => void;
   roleFilter: string;
   search: string;
@@ -137,6 +143,30 @@ export function UsersPanel({
                       </td>
                       <td>
                         <div className="admin-row-actions">
+                          <Button
+                            iconOnly
+                            tone="ghost"
+                            title={
+                              user.id === currentUserId
+                                ? "You cannot change your own role"
+                                : user.role === "admin"
+                                  ? "Make customer"
+                                  : "Make admin"
+                            }
+                            disabled={isUpdatingRole || user.id === currentUserId}
+                            onClick={() => {
+                              onToggleRole(user);
+                            }}
+                            startContent={
+                              user.role === "admin" ? (
+                                <ShieldOff size={16} />
+                              ) : (
+                                <ShieldCheck size={16} />
+                              )
+                            }
+                          >
+                            {user.role === "admin" ? "Make customer" : "Make admin"}
+                          </Button>
                           <Button
                             iconOnly
                             tone={user.status === "blocked" ? "secondary" : "ghost"}

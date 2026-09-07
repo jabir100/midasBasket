@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useSearch } from "@tanstack/react-router";
 import {
   CreditCard,
   MapPin,
@@ -7,7 +8,7 @@ import {
   User,
 } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input, Toast } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
@@ -19,7 +20,12 @@ import { trackOrder } from "./orders-api.js";
 import { TrackingStepper } from "./tracking-stepper.js";
 
 export function TrackOrderPage(): ReactNode {
-  const [trackForm, setTrackForm] = useState({ orderNumber: "", email: "" });
+  const search = useSearch({ from: "/track" });
+  const [trackForm, setTrackForm] = useState({
+    orderNumber: search.orderNumber ?? "",
+    email: search.email ?? "",
+  });
+  const hasAutoSubmitted = useRef(false);
 
   const trackMutation = useMutation({
     mutationFn: (input: { orderNumber: string; email?: string }) =>
@@ -33,6 +39,18 @@ export function TrackOrderPage(): ReactNode {
       Toast.toast.danger(error.message || "Order was not found");
     },
   });
+
+  useEffect(() => {
+    if (hasAutoSubmitted.current || !search.orderNumber) {
+      return;
+    }
+
+    hasAutoSubmitted.current = true;
+    trackMutation.mutate({
+      orderNumber: search.orderNumber,
+      ...(search.email ? { email: search.email } : {}),
+    });
+  }, [search.orderNumber, search.email]);
 
   const order = trackMutation.data;
 

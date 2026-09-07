@@ -1,10 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Banknote,
   ChevronDown,
   ChevronUp,
-  CircleCheck,
   PackageSearch,
   Truck,
 } from "lucide-react";
@@ -36,6 +35,8 @@ const initialCheckoutState: CheckoutInput = {
 
 export function CheckoutPage(): ReactNode {
   const token = getStoredAccessToken();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<CheckoutInput>(initialCheckoutState);
   const cartQuery = useQuery({ queryKey: ["cart"], queryFn: getCart });
   const profileQuery = useQuery({
@@ -59,9 +60,17 @@ export function CheckoutPage(): ReactNode {
 
   const checkoutMutation = useMutation({
     mutationFn: checkoutOrder,
-    onSuccess: (order) => {
+    onSuccess: async (order, variables) => {
       Toast.toast.success("Order placed", {
         description: order.orderNumber,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["cart"] });
+      await navigate({
+        to: "/track",
+        search: {
+          orderNumber: order.orderNumber,
+          email: variables.customerEmail,
+        },
       });
     },
   });
@@ -291,18 +300,6 @@ export function CheckoutPage(): ReactNode {
             <div className="checkout-trust-row">
               <Truck size={16} /> Cash on delivery, pay when it arrives
             </div>
-
-            {checkoutMutation.data ? (
-              <div className="checkout-success">
-                <CircleCheck size={28} className="tone-success" />
-                <strong>
-                  Order placed: {checkoutMutation.data.orderNumber}
-                </strong>
-                <Link to="/track" className="ui-button ui-button-secondary">
-                  Track this order
-                </Link>
-              </div>
-            ) : null}
           </CardBody>
         </Card>
       </section>

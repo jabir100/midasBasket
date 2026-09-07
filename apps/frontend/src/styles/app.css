@@ -999,6 +999,37 @@ a {
   background: #ffffff;
 }
 
+.password-input-wrapper {
+  position: relative;
+}
+
+.auth-form .password-input-wrapper input {
+  padding-right: 2.75rem;
+}
+
+.password-toggle-button {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-midas-gray);
+  cursor: pointer;
+}
+
+.password-toggle-button:hover {
+  color: var(--color-midas-red);
+  background: var(--color-midas-red-soft);
+}
+
 .form-link,
 .form-muted,
 .form-error,
@@ -1021,6 +1052,19 @@ a {
 .form-success {
   color: #047857;
   font-weight: 600;
+}
+
+.form-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-midas-red);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .account-summary {
@@ -2778,6 +2822,46 @@ a {
   min-width: 1.35rem;
   height: 1.35rem;
   padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--color-midas-red-soft);
+  color: var(--color-midas-red);
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.cart-nav-link {
+  position: relative;
+}
+
+.cart-count-badge {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--color-midas-red);
+  border: 1.5px solid var(--color-midas-red);
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(16, 16, 16, 0.18);
+}
+
+.cart-count-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  margin-left: auto;
   border-radius: 999px;
   background: var(--color-midas-red-soft);
   color: var(--color-midas-red);

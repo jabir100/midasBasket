@@ -9,6 +9,11 @@ import {
   requireRoles,
 } from "../auth/authorization.middleware.js";
 import { UserModel } from "../users/user.model.js";
+import {
+  notifyAccountStatusChanged,
+  notifyOrderStatusChanged,
+  notifyRoleChanged,
+} from "../notifications/notification.service.js";
 import { AuditLogModel } from "./audit-log.model.js";
 import {
   adminOrdersQuerySchema,
@@ -205,6 +210,22 @@ adminRouter.patch("/dashboard/users/:id", async (req, res, next) => {
       },
     });
 
+    if (input.role) {
+      void notifyRoleChanged({
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      });
+    }
+
+    if (input.status) {
+      void notifyAccountStatusChanged({
+        email: user.email,
+        name: user.name,
+        status: user.status,
+      });
+    }
+
     sendSuccess(res, {
       data: {
         user: {
@@ -361,6 +382,7 @@ adminRouter.patch("/dashboard/orders/:id/status", async (req, res, next) => {
 
     const isNewlyCancelled =
       input.status === "cancelled" && order.status !== "cancelled";
+    const isStatusChanged = order.status !== input.status;
 
     order.status = input.status;
     if (input.paymentStatus) {
@@ -415,6 +437,28 @@ adminRouter.patch("/dashboard/orders/:id/status", async (req, res, next) => {
         paymentStatus: order.paymentStatus,
       },
     });
+
+    if (isStatusChanged) {
+      void notifyOrderStatusChanged(
+        {
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          status: order.status,
+          total: order.total,
+          currency: order.currency,
+          items: order.items.map((item) => ({
+            title: item.title,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            lineTotal: item.lineTotal,
+            size: item.size ?? null,
+            color: item.color ?? null,
+          })),
+        },
+        order.userId?.toString(),
+      );
+    }
 
     sendSuccess(res, {
       data: {
