@@ -15,6 +15,7 @@ import { Skeleton } from "@heroui/react";
 
 import { getCurrentUser, getStoredAccessToken, logoutCustomer } from "../../features/auth/auth-api.js";
 import { listProducts, type CatalogProduct } from "../../features/catalog/catalog-api.js";
+import { getCart } from "../../features/cart/cart-api.js";
 import { MobileDrawer } from "../ui/mobile-drawer.js";
 import { SiteFooter } from "./site-footer.js";
 
@@ -41,6 +42,13 @@ export function AppShell({
     enabled: !!token,
     retry: false,
   });
+
+  const { data: cart } = useQuery({
+    queryKey: ["cart"],
+    queryFn: getCart,
+  });
+  const cartItemCount = cart?.summary.itemCount ?? 0;
+  const cartBadgeLabel = cartItemCount > 99 ? "99+" : String(cartItemCount);
 
   const logoutMutation = useMutation({
     mutationFn: logoutCustomer,
@@ -279,10 +287,17 @@ export function AppShell({
 
             <Link
               to="/cart"
-              className="ui-button ui-button-primary ui-button-icon"
-              aria-label="Shopping cart"
+              className="ui-button ui-button-primary ui-button-icon cart-nav-link"
+              aria-label={
+                cartItemCount > 0
+                  ? `Shopping cart, ${cartBadgeLabel} item${cartItemCount === 1 ? "" : "s"}`
+                  : "Shopping cart"
+              }
             >
               <ShoppingBag size={20} />
+              {cartItemCount > 0 ? (
+                <span className="cart-count-badge">{cartBadgeLabel}</span>
+              ) : null}
             </Link>
 
             <button
@@ -393,6 +408,9 @@ export function AppShell({
           >
             <ShoppingBag size={18} />
             Cart
+            {cartItemCount > 0 ? (
+              <span className="cart-count-pill">{cartBadgeLabel}</span>
+            ) : null}
           </Link>
         </nav>
       </MobileDrawer>

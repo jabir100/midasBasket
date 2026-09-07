@@ -1,12 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { KeyRound, LogOut, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useState } from "react";
-import { Skeleton, Toast } from "@heroui/react";
+import { Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
+import { PasswordInput } from "../../shared/ui/password-input.js";
 import {
   getCurrentUser,
   loginCustomer,
@@ -70,10 +71,10 @@ export function RegisterPage(): ReactNode {
         </label>
         <label>
           <span>Password</span>
-          <input
+          <PasswordInput
             required
             minLength={8}
-            type="password"
+            autoComplete="new-password"
             value={form.password}
             onChange={(event) => {
               setForm({ ...form, password: event.target.value });
@@ -135,9 +136,9 @@ export function LoginPage(): ReactNode {
         </label>
         <label>
           <span>Password</span>
-          <input
+          <PasswordInput
             required
-            type="password"
+            autoComplete="current-password"
             value={form.password}
             onChange={(event) => {
               setForm({ ...form, password: event.target.value });
@@ -159,12 +160,46 @@ export function LoginPage(): ReactNode {
 
 export function ForgotPasswordPage(): ReactNode {
   const [email, setEmail] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
   const mutation = useMutation({
     mutationFn: requestPasswordReset,
-    onSuccess: () => {
-      Toast.toast.success("Reset request accepted");
+    onSuccess: (_data, submittedFor) => {
+      setSubmittedEmail(submittedFor);
     },
   });
+
+  if (submittedEmail) {
+    return (
+      <AuthFrame
+        eyebrow="Password help"
+        title="Check your email"
+        description="If an active account exists, the backend accepts the request without exposing account presence."
+        icon={<Mail size={22} />}
+        animationType="forgot"
+      >
+        <div className="auth-form">
+          <p className="form-success">
+            If an account exists for <strong>{submittedEmail}</strong>, a
+            password reset link is on its way. The link expires in 1 hour.
+          </p>
+          <p className="form-muted">
+            Didn't get it? Check your spam folder, or try again below.
+          </p>
+          <Button
+            tone="secondary"
+            onClick={() => {
+              setSubmittedEmail(null);
+            }}
+          >
+            Try a different email
+          </Button>
+          <p className="form-link">
+            <Link to="/login">Back to login</Link>
+          </p>
+        </div>
+      </AuthFrame>
+    );
+  }
 
   return (
     <AuthFrame
@@ -197,19 +232,60 @@ export function ForgotPasswordPage(): ReactNode {
           Send reset request
         </Button>
         <FormStatus error={mutation.error} pending={mutation.isPending} />
+        <p className="form-link">
+          <Link to="/login">Back to login</Link>
+        </p>
       </form>
     </AuthFrame>
   );
 }
 
 export function ResetPasswordPage(): ReactNode {
-  const [form, setForm] = useState({ token: "", password: "" });
+  const navigate = useNavigate();
+  const search = useSearch({ from: "/reset-password" });
+  const [form, setForm] = useState({
+    token: search.token ?? "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [showTokenField, setShowTokenField] = useState(!search.token);
+  const [isComplete, setIsComplete] = useState(false);
   const mutation = useMutation({
     mutationFn: resetPassword,
     onSuccess: () => {
-      Toast.toast.success("Password reset complete");
+      setIsComplete(true);
     },
   });
+
+  const passwordsMismatch =
+    form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
+
+  if (isComplete) {
+    return (
+      <AuthFrame
+        eyebrow="New password"
+        title="Password updated"
+        description="Password reset consumes the token and revokes active sessions for the account."
+        icon={<KeyRound size={22} />}
+        animationType="reset"
+      >
+        <div className="auth-form">
+          <p className="form-success">
+            Your password has been changed and every active session was
+            signed out.
+          </p>
+          <Button
+            tone="primary"
+            onClick={() => {
+              void navigate({ to: "/login" });
+            }}
+          >
+            Continue to login
+          </Button>
+        </div>
+      </AuthFrame>
+    );
+  }
 
   return (
     <AuthFrame
@@ -223,36 +299,78 @@ export function ResetPasswordPage(): ReactNode {
         className="auth-form"
         onSubmit={(event) => {
           submitForm(event, () => {
-            mutation.mutate(form);
+            if (passwordsMismatch) {
+              return;
+            }
+            mutation.mutate({ token: form.token, password: form.password });
           });
         }}
       >
-        <label>
-          <span>Reset token</span>
-          <input
-            required
-            value={form.token}
-            onChange={(event) => {
-              setForm({ ...form, token: event.target.value });
-            }}
-          />
-        </label>
+        {showTokenField ? (
+          <label>
+            <span>Reset token</span>
+            <input
+              required
+              value={form.token}
+              onChange={(event) => {
+                setForm({ ...form, token: event.target.value });
+              }}
+            />
+          </label>
+        ) : (
+          <div>
+            <p className="form-muted">
+              Resetting your password using the link from your email.
+            </p>
+            <button
+              type="button"
+              className="form-link-button"
+              onClick={() => {
+                setShowTokenField(true);
+              }}
+            >
+              Enter a reset token manually instead
+            </button>
+          </div>
+        )}
         <label>
           <span>New password</span>
-          <input
+          <PasswordInput
             required
             minLength={8}
-            type="password"
+            autoComplete="new-password"
             value={form.password}
             onChange={(event) => {
               setForm({ ...form, password: event.target.value });
             }}
           />
         </label>
-        <Button type="submit" tone="primary" disabled={mutation.isPending}>
+        <label>
+          <span>Confirm new password</span>
+          <PasswordInput
+            required
+            minLength={8}
+            autoComplete="new-password"
+            value={form.confirmPassword}
+            onChange={(event) => {
+              setForm({ ...form, confirmPassword: event.target.value });
+            }}
+          />
+        </label>
+        {passwordsMismatch ? (
+          <p className="form-error">Passwords do not match</p>
+        ) : null}
+        <Button
+          type="submit"
+          tone="primary"
+          disabled={mutation.isPending || passwordsMismatch}
+        >
           Reset password
         </Button>
         <FormStatus error={mutation.error} pending={mutation.isPending} />
+        <p className="form-link">
+          <Link to="/login">Back to login</Link>
+        </p>
       </form>
     </AuthFrame>
   );
@@ -397,6 +515,10 @@ function FormStatus({
 }: Readonly<{ error: Error | null; pending: boolean }>): ReactNode {
   if (pending) {
     return <p className="form-muted">Working...</p>;
+  }
+
+  if (error) {
+    return <p className="form-error">{error.message}</p>;
   }
 
   return null;

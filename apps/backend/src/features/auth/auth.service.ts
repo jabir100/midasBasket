@@ -20,6 +20,11 @@ import {
   issueRefreshToken,
   verifyRefreshToken,
 } from "./token.service.js";
+import {
+  notifyPasswordChanged,
+  notifyPasswordResetRequested,
+  notifyWelcome,
+} from "../notifications/notification.service.js";
 
 export type AuthUserDto = {
   id: string;
@@ -53,6 +58,8 @@ export async function registerCustomer(
     passwordHash: await hashPassword(input.password),
     role: "customer",
   });
+
+  void notifyWelcome({ email: user.email, name: user.name });
 
   return createAuthResult({
     id: user._id.toString(),
@@ -180,6 +187,12 @@ export async function createPasswordReset(
     expiresAt: new Date(Date.now() + 60 * 60 * 1000),
   });
 
+  void notifyPasswordResetRequested({
+    email: user.email,
+    name: user.name,
+    resetToken,
+  });
+
   return env.NODE_ENV === "production" ? {} : { resetToken };
 }
 
@@ -198,9 +211,10 @@ export async function resetPassword(input: ResetPasswordInput): Promise<void> {
     });
   }
 
-  await UserModel.updateOne(
-    { _id: resetToken.userId },
+  const user = await UserModel.findByIdAndUpdate(
+    resetToken.userId,
     { $set: { passwordHash: await hashPassword(input.password) } },
+    { new: true },
   );
   resetToken.consumedAt = new Date();
   await resetToken.save();
@@ -208,6 +222,10 @@ export async function resetPassword(input: ResetPasswordInput): Promise<void> {
     { userId: resetToken.userId, revokedAt: { $exists: false } },
     { $set: { revokedAt: new Date() } },
   );
+
+  if (user) {
+    void notifyPasswordChanged({ email: user.email, name: user.name });
+  }
 }
 
 export function getRefreshCookieOptions(): ReturnType<
