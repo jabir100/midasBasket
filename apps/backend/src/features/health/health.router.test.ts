@@ -12,10 +12,7 @@ process.env.COOKIE_DOMAIN = "localhost";
 const { createApp } = await import("../../app.js");
 
 type HealthResponseBody = {
-  data: {
-    uptimeSeconds: unknown;
-    timestamp: unknown;
-  };
+  data: Record<string, unknown>;
   requestId: unknown;
 };
 
@@ -28,13 +25,16 @@ describe("GET /api/v1/health", () => {
     expect(response.headers["x-robots-tag"]).toBe("noindex, nofollow");
     expect(response.body).toMatchObject({
       success: true,
-      data: {
-        status: "ok",
-        environment: "test",
-      },
+      data: { status: "ok" },
     });
-    expect(body.data.uptimeSeconds).toEqual(expect.any(Number));
     expect(body.data.timestamp).toEqual(expect.any(String));
     expect(body.requestId).toEqual(expect.any(String));
+  });
+
+  it("does not expose runtime details on the public endpoint", async () => {
+    const response = await request(createApp()).get("/api/v1/health");
+    const body = response.body as HealthResponseBody;
+
+    expect(Object.keys(body.data).sort()).toEqual(["status", "timestamp"]);
   });
 });

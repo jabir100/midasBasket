@@ -4,6 +4,7 @@ import { sendSuccess } from "../../core/http/send-response.js";
 import { authenticateAccessToken } from "../auth/authentication.middleware.js";
 import { requireRoles } from "../auth/authorization.middleware.js";
 import { BrandModel, CategoryModel, ProductModel } from "../catalog/catalog.model.js";
+import { toPublicStock } from "../catalog/catalog.serializers.js";
 import { getHomepageCache, invalidateHomepageCache, setHomepageCache, } from "./homepage-cache.service.js";
 import { BlogModel, HomepageSettingsModel, TestimonialModel, CarouselSlideModel, } from "./homepage.model.js";
 import { blogSchema, homepageSettingsSchema, testimonialSchema, carouselSlideSchema, } from "./homepage.schemas.js";
@@ -72,12 +73,11 @@ homepageRouter.get("/", async (_req, res, next) => {
             id: String(product._id),
             name: product.name,
             slug: product.slug,
-            sku: product.sku,
             price: product.price,
             ...(product.compareAtPrice
                 ? { compareAtPrice: product.compareAtPrice }
                 : {}),
-            stockQuantity: product.stockQuantity,
+            stockQuantity: toPublicStock(product.stockQuantity),
             currency: "BDT",
             rating: 0,
             reviewCount: 0,
@@ -110,8 +110,6 @@ homepageRouter.get("/", async (_req, res, next) => {
                     linkHref: slide.linkHref,
                     title: slide.title ?? "",
                     description: slide.description ?? "",
-                    sortOrder: slide.sortOrder,
-                    isActive: slide.isActive,
                 })),
                 hero: {
                     eyebrow: hero.eyebrow ?? "",

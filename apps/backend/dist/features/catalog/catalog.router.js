@@ -10,6 +10,7 @@ import { authenticateAccessToken } from "../auth/authentication.middleware.js";
 import { requireRoles } from "../auth/authorization.middleware.js";
 import { invalidateHomepageCache } from "../homepage/homepage-cache.service.js";
 import { BrandModel, CategoryModel, ProductModel } from "./catalog.model.js";
+import { toPublicBrand, toPublicCategory, toPublicProduct, } from "./catalog.serializers.js";
 import { brandSchema, categorySchema, listQuerySchema, MAX_PRODUCT_IMAGES, productSchema, } from "./catalog.schemas.js";
 export const catalogRouter = Router();
 const adminRouter = Router();
@@ -173,7 +174,10 @@ catalogRouter.get("/categories", async (_req, res, next) => {
         const categories = await CategoryModel.find({ isActive: true })
             .sort({ name: 1 })
             .lean();
-        sendSuccess(res, { data: { categories }, requestId: getRequestId(res) });
+        sendSuccess(res, {
+            data: { categories: categories.map(toPublicCategory) },
+            requestId: getRequestId(res),
+        });
     }
     catch (error) {
         next(error);
@@ -185,7 +189,10 @@ catalogRouter.get("/brands", async (_req, res, next) => {
         const brands = await BrandModel.find({ isActive: true })
             .sort({ name: 1 })
             .lean();
-        sendSuccess(res, { data: { brands }, requestId: getRequestId(res) });
+        sendSuccess(res, {
+            data: { brands: brands.map(toPublicBrand) },
+            requestId: getRequestId(res),
+        });
     }
     catch (error) {
         next(error);
@@ -224,7 +231,7 @@ catalogRouter.get("/products", async (req, res, next) => {
             ProductModel.countDocuments(filter),
         ]);
         sendSuccess(res, {
-            data: { products },
+            data: { products: products.map(toPublicProduct) },
             meta: {
                 page: query.page,
                 limit: query.limit,
@@ -252,7 +259,10 @@ catalogRouter.get("/products/:slug", async (req, res, next) => {
                 message: "Product was not found",
             });
         }
-        sendSuccess(res, { data: { product }, requestId: getRequestId(res) });
+        sendSuccess(res, {
+            data: { product: toPublicProduct(product) },
+            requestId: getRequestId(res),
+        });
     }
     catch (error) {
         next(error);

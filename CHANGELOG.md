@@ -2,6 +2,22 @@
 
 All notable changes to Midas Basket will be documented in this file.
 
+## 2026-09-24
+
+### Security
+
+- Public catalog endpoints (`/catalog/products`, `/catalog/products/:slug`, `/catalog/categories`, `/catalog/brands`) no longer return raw database documents. They use allow-list serializers in `catalog.serializers.ts`, so Cloudinary `publicId`, `__v`, admin flags, timestamps, raw `categoryId`/`brandId`, `seo`, and per-variant `sku` are no longer exposed.
+- Public stock counts are capped (`toPublicStock`): the storefront only distinguishes out of stock, low stock (10 or fewer), and in stock, so anything above the low-stock threshold is reported as 11 instead of the real inventory.
+- The homepage payload no longer includes product `sku` or carousel `isActive`/`sortOrder`. The Redis key moved to `homepage:v2:payload` so payloads cached in the old shape are not served.
+- The public `/health` endpoint now returns only `status` and `timestamp` (no `environment` or `uptimeSeconds`).
+
+### Changed
+
+- The homepage and product detail routes now use TanStack Router loaders, so the first request is server-rendered with real content (no loading skeleton) and the browser makes no API call for it on initial load. Product pages also get real titles, descriptions, and `og:image` from the product.
+- An unknown product slug now returns a real HTTP 404 instead of a 200 page with an error message.
+- Added ISR route rules for `/` and `/products/*` (60 second expiration, query string ignored in the cache key) in `apps/frontend/vite.config.ts`. ISR is applied by the Vercel preset and ignored by other presets.
+- `apiClient` errors are now `ApiError` instances carrying the HTTP `status`.
+
 ## 2026-07-05
 
 ### Added

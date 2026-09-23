@@ -32,7 +32,11 @@ const envSchema = z.object({
     .optional(),
   JWT_ACCESS_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
-  JWT_ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  JWT_ACCESS_TOKEN_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(3_600),
   JWT_REFRESH_TOKEN_TTL_SECONDS: z.coerce
     .number()
     .int()

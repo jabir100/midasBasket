@@ -33,6 +33,11 @@ type ExistingImage = {
   color?: string;
 };
 
+function countWords(text: string): number {
+  const trimmed = text.trim();
+  return trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
+}
+
 export function AdminProductFormPage({
   productId,
 }: Readonly<{ productId?: string }>): ReactNode {
@@ -448,7 +453,21 @@ export function AdminProductFormPage({
                 />
               </div>
 
-              <AdminField label="Short description">
+              <AdminField
+                label="Short description"
+                hint={
+                  <span
+                    className={
+                      form.shortDescription.length > 300
+                        ? "admin-field-hint is-warning"
+                        : "admin-field-hint"
+                    }
+                  >
+                    {countWords(form.shortDescription)} words &middot;{" "}
+                    {form.shortDescription.length}/300 characters
+                  </span>
+                }
+              >
                 <Input
                   className="admin-heroui-input"
                   value={form.shortDescription}
@@ -458,7 +477,21 @@ export function AdminProductFormPage({
                 />
               </AdminField>
 
-              <AdminField label="Full description*">
+              <AdminField
+                label="Full description*"
+                hint={
+                  <span
+                    className={
+                      form.description.length > 5_000
+                        ? "admin-field-hint is-warning"
+                        : "admin-field-hint"
+                    }
+                  >
+                    {countWords(form.description)} words &middot;{" "}
+                    {form.description.length}/5000 characters
+                  </span>
+                }
+              >
                 <TextArea
                   className="admin-heroui-textarea"
                   required

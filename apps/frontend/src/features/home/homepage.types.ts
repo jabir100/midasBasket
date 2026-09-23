@@ -39,7 +39,6 @@ export type HomepageProduct = {
   id: string;
   name: string;
   slug: string;
-  sku: string;
   price: number;
   compareAtPrice?: number;
   stockQuantity: number;
@@ -62,8 +61,6 @@ export type HomepageCarouselSlide = {
   linkHref: string;
   title?: string;
   description?: string;
-  sortOrder: number;
-  isActive: boolean;
 };
 
 export type HomepagePayload = {

@@ -280,11 +280,16 @@ export function CatalogPage(): ReactNode {
 
 export function ProductDetailPage({
   slug,
-}: Readonly<{ slug: string }>): ReactNode {
+  initialProduct,
+}: Readonly<{
+  slug: string;
+  initialProduct?: CatalogProduct;
+}>): ReactNode {
   const queryClient = useQueryClient();
   const productQuery = useQuery({
     queryKey: ["catalog", "product", slug],
     queryFn: () => getProduct(slug),
+    ...(initialProduct ? { initialData: initialProduct } : {}),
   });
   const product = productQuery.data;
   const hasVariants = (product?.variants.length ?? 0) > 0;

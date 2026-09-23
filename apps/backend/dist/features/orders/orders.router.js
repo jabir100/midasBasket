@@ -8,6 +8,7 @@ import { authenticateAccessToken, authenticateOptionalAccessToken, } from "../au
 import { getPrincipal } from "../auth/authorization.middleware.js";
 import { CartModel } from "../cart/cart.model.js";
 import { ProductModel } from "../catalog/catalog.model.js";
+import { notifyAdminsNewOrder, notifyOrderPlaced, } from "../notifications/notification.service.js";
 import { OrderModel } from "./order.model.js";
 import { checkoutSchema, orderIdParamSchema, trackOrderQuerySchema, } from "./order.schemas.js";
 export const ordersRouter = Router();
@@ -167,10 +168,25 @@ ordersRouter.post("/checkout", authenticateOptionalAccessToken, async (req, res,
             $set: { items: [] },
             $unset: { couponCode: "" },
         });
+        const orderObject = order.toObject();
+        const notifiableOrder = {
+            orderNumber: orderObject.orderNumber,
+            customerName: orderObject.customerName,
+            customerEmail: orderObject.customerEmail,
+            status: orderObject.status,
+            total: orderObject.total,
+            currency: orderObject.currency,
+            items: orderObject.items,
+        };
+        void notifyOrderPlaced(notifiableOrder, principal?.userId);
+        void notifyAdminsNewOrder({
+            ...notifiableOrder,
+            id: String(orderObject._id),
+        });
         sendSuccess(res, {
             statusCode: 201,
             data: {
-                order: serializeOrder(order.toObject()),
+                order: serializeOrder(orderObject),
             },
             requestId: getRequestId(res),
         });

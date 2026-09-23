@@ -1,7 +1,7 @@
 import { getRedisClient } from "../../core/database/redis.js";
 import { logger } from "../../core/logging/logger.js";
 
-const HOMEPAGE_CACHE_KEY = "homepage:v1:payload";
+const HOMEPAGE_CACHE_KEY = "homepage:v2:payload";
 const HOMEPAGE_CACHE_TTL = 3600;
 
 const homepageCacheKeys = [HOMEPAGE_CACHE_KEY] as const;
