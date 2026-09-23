@@ -3,7 +3,7 @@ export declare const orderStatuses: readonly ["placed", "confirmed", "packed", "
 declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, any, any, any>, {}, {}, {}, {}, {
     timestamps: true;
 }, {
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -19,17 +19,17 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -75,7 +75,7 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps, import("mongoose").Document<unknown, {}, import("mongoose").FlatRecord<{
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -91,17 +91,17 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -149,7 +149,7 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
 } & import("mongoose").DefaultTimestampProps>, {}, import("mongoose").MergeType<import("mongoose").DefaultSchemaOptions, {
     timestamps: true;
 }>> & import("mongoose").FlatRecord<{
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -165,17 +165,17 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -228,7 +228,7 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
 export type OrderStatus = (typeof orderStatuses)[number];
 export type OrderDocument = InferSchemaType<typeof orderSchema>;
 export declare const OrderModel: import("mongoose").Model<{
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -244,17 +244,17 @@ export declare const OrderModel: import("mongoose").Model<{
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -300,7 +300,7 @@ export declare const OrderModel: import("mongoose").Model<{
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps, {}, {}, {}, import("mongoose").Document<unknown, {}, {
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -316,17 +316,17 @@ export declare const OrderModel: import("mongoose").Model<{
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -374,7 +374,7 @@ export declare const OrderModel: import("mongoose").Model<{
 } & import("mongoose").DefaultTimestampProps, {}, {
     timestamps: true;
 }> & {
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -390,17 +390,17 @@ export declare const OrderModel: import("mongoose").Model<{
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -452,7 +452,7 @@ export declare const OrderModel: import("mongoose").Model<{
 }, Schema<any, import("mongoose").Model<any, any, any, any, any, any>, {}, {}, {}, {}, {
     timestamps: true;
 }, {
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -468,17 +468,17 @@ export declare const OrderModel: import("mongoose").Model<{
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -524,7 +524,7 @@ export declare const OrderModel: import("mongoose").Model<{
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps, import("mongoose").Document<unknown, {}, import("mongoose").FlatRecord<{
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -540,17 +540,17 @@ export declare const OrderModel: import("mongoose").Model<{
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
@@ -598,7 +598,7 @@ export declare const OrderModel: import("mongoose").Model<{
 } & import("mongoose").DefaultTimestampProps>, {}, import("mongoose").MergeType<import("mongoose").DefaultSchemaOptions, {
     timestamps: true;
 }>> & import("mongoose").FlatRecord<{
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
     customerEmail: string;
@@ -614,17 +614,17 @@ export declare const OrderModel: import("mongoose").Model<{
     paymentMethod: "cod";
     paymentStatus: "pending" | "paid" | "failed";
     statusTimeline: import("mongoose").Types.DocumentArray<{
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }, import("mongoose").Types.Subdocument<import("bson").ObjectId, any, {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;
     }> & {
-        status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+        status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
         timestamp: NativeDate;
         updatedBy: string;
         note?: string | null;

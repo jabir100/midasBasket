@@ -27,7 +27,11 @@ const envSchema = z.object({
         .optional(),
     JWT_ACCESS_SECRET: z.string().min(32),
     JWT_REFRESH_SECRET: z.string().min(32),
-    JWT_ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+    JWT_ACCESS_TOKEN_TTL_SECONDS: z.coerce
+        .number()
+        .int()
+        .positive()
+        .default(3_600),
     JWT_REFRESH_TOKEN_TTL_SECONDS: z.coerce
         .number()
         .int()
@@ -37,6 +41,12 @@ const envSchema = z.object({
     CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
     CLOUDINARY_API_KEY: z.string().min(1).optional(),
     CLOUDINARY_API_SECRET: z.string().min(1).optional(),
+    EMAIL_HOST: z.string().min(1).default("smtp.gmail.com"),
+    EMAIL_PORT: z.coerce.number().int().min(1).max(65_535).default(587),
+    EMAIL_USER: z.string().min(1).optional(),
+    EMAIL_PASSWORD: z.string().min(1).optional(),
+    EMAIL_FROM_NAME: z.string().min(1).default("Midas Basket"),
+    EMAIL_FROM_ADDRESS: z.string().email().optional(),
 });
 export const env = Object.freeze(envSchema.parse(process.env));
 //# sourceMappingURL=env.js.map

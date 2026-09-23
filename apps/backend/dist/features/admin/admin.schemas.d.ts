@@ -36,11 +36,11 @@ export declare const adminOrdersQuerySchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     limit: number;
     page: number;
-    status?: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled" | undefined;
+    status?: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed" | undefined;
     search?: string | undefined;
     paymentStatus?: "pending" | "paid" | "failed" | undefined;
 }, {
-    status?: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled" | undefined;
+    status?: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed" | undefined;
     limit?: number | undefined;
     search?: string | undefined;
     paymentStatus?: "pending" | "paid" | "failed" | undefined;
@@ -67,11 +67,11 @@ export declare const orderStatusUpdateSchema: z.ZodObject<{
     paymentStatus: z.ZodOptional<z.ZodEnum<["pending", "paid", "failed"]>>;
     note: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     note?: string | undefined;
     paymentStatus?: "pending" | "paid" | "failed" | undefined;
 }, {
-    status: "placed" | "confirmed" | "packed" | "shipped" | "out-for-delivery" | "delivered" | "cancelled";
+    status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     note?: string | undefined;
     paymentStatus?: "pending" | "paid" | "failed" | undefined;
 }>;

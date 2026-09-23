@@ -8,6 +8,7 @@ import { AuthSessionModel } from "./auth-session.model.js";
 import { PasswordResetTokenModel } from "./password-reset-token.model.js";
 import { hashPassword, verifyPassword } from "./password.service.js";
 import { issueAccessToken, issueRefreshToken, verifyRefreshToken, } from "./token.service.js";
+import { notifyPasswordChanged, notifyPasswordResetRequested, notifyWelcome, } from "../notifications/notification.service.js";
 export async function registerCustomer(input) {
     const existingUser = await UserModel.exists({ email: input.email });
     if (existingUser) {
@@ -23,6 +24,7 @@ export async function registerCustomer(input) {
         passwordHash: await hashPassword(input.password),
         role: "customer",
     });
+    void notifyWelcome({ email: user.email, name: user.name });
     return createAuthResult({
         id: user._id.toString(),
         name: user.name,
@@ -112,6 +114,11 @@ export async function createPasswordReset(input) {
         tokenHash: hashToken(resetToken),
         expiresAt: new Date(Date.now() + 60 * 60 * 1000),
     });
+    void notifyPasswordResetRequested({
+        email: user.email,
+        name: user.name,
+        resetToken,
+    });
     return env.NODE_ENV === "production" ? {} : { resetToken };
 }
 export async function resetPassword(input) {
@@ -127,10 +134,13 @@ export async function resetPassword(input) {
             message: "Password reset token is invalid or expired",
         });
     }
-    await UserModel.updateOne({ _id: resetToken.userId }, { $set: { passwordHash: await hashPassword(input.password) } });
+    const user = await UserModel.findByIdAndUpdate(resetToken.userId, { $set: { passwordHash: await hashPassword(input.password) } }, { new: true });
     resetToken.consumedAt = new Date();
     await resetToken.save();
     await AuthSessionModel.updateMany({ userId: resetToken.userId, revokedAt: { $exists: false } }, { $set: { revokedAt: new Date() } });
+    if (user) {
+        void notifyPasswordChanged({ email: user.email, name: user.name });
+    }
 }
 export function getRefreshCookieOptions() {
     return createRefreshTokenCookieOptions();

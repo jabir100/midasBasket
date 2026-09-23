@@ -8,6 +8,9 @@ export declare const env: Readonly<{
     JWT_REFRESH_SECRET: string;
     JWT_ACCESS_TOKEN_TTL_SECONDS: number;
     JWT_REFRESH_TOKEN_TTL_SECONDS: number;
+    EMAIL_HOST: string;
+    EMAIL_PORT: number;
+    EMAIL_FROM_NAME: string;
     REDIS_URL?: string | undefined;
     REDIS_HOST?: string | undefined;
     REDIS_PORT?: number | undefined;
@@ -18,6 +21,9 @@ export declare const env: Readonly<{
     CLOUDINARY_CLOUD_NAME?: string | undefined;
     CLOUDINARY_API_KEY?: string | undefined;
     CLOUDINARY_API_SECRET?: string | undefined;
+    EMAIL_USER?: string | undefined;
+    EMAIL_PASSWORD?: string | undefined;
+    EMAIL_FROM_ADDRESS?: string | undefined;
 }>;
 export type AppEnvironment = typeof env;
 //# sourceMappingURL=env.d.ts.map

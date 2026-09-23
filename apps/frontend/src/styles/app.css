@@ -1898,6 +1898,23 @@ a {
   font-weight: 700;
 }
 
+.admin-field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.admin-field-hint {
+  color: var(--color-midas-gray);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.admin-field-hint.is-warning {
+  color: var(--color-midas-red);
+}
+
 .admin-form-grid,
 .admin-taxonomy-grid,
 .admin-homepage-grid,

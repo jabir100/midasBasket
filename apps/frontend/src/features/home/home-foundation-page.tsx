@@ -16,6 +16,7 @@ import { Chip } from "../../shared/ui/chip.js";
 import { toAbsoluteUrl } from "../../shared/seo/seo.js";
 import { HomeCarousel } from "./home-carousel.js";
 import { fetchHomepage } from "./homepage-api.js";
+import type { HomepagePayload } from "./homepage.types.js";
 import { ProductSlider } from "./product-slider.js";
 
 const formatter = new Intl.NumberFormat("en-BD", {
@@ -24,10 +25,13 @@ const formatter = new Intl.NumberFormat("en-BD", {
   style: "currency",
 });
 
-export function HomeFoundationPage(): ReactNode {
+export function HomeFoundationPage({
+  initialHomepage,
+}: Readonly<{ initialHomepage?: HomepagePayload }>): ReactNode {
   const { data: homepage, isLoading } = useQuery({
     queryKey: ["homepage"],
     queryFn: fetchHomepage,
+    ...(initialHomepage ? { initialData: initialHomepage } : {}),
   });
   const organizationJsonLd = {
     "@context": "https://schema.org",

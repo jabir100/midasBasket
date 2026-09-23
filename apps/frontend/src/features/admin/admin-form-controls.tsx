@@ -101,11 +101,19 @@ type RepeaterItem = {
 
 export function AdminField({
   children,
+  hint,
   label,
-}: Readonly<{ children: ReactNode; label: string }>): ReactNode {
+}: Readonly<{
+  children: ReactNode;
+  hint?: ReactNode;
+  label: string;
+}>): ReactNode {
   return (
     <label className="admin-field">
-      <span>{label}</span>
+      <span className="admin-field-label-row">
+        <span>{label}</span>
+        {hint}
+      </span>
       {children}
     </label>
   );

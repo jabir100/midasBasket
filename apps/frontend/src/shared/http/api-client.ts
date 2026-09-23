@@ -36,6 +36,20 @@ type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+export function isNotFoundError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404;
+}
+
 export const apiClient = axios.create({
   baseURL: frontendEnv.VITE_API_BASE_URL,
   withCredentials: true,
@@ -143,6 +157,16 @@ function toError(error: unknown): Error {
 }
 
 function normalizeApiError(error: unknown): Error {
+  const normalized = buildNormalizedError(error);
+
+  if (axios.isAxiosError(error) && error.response) {
+    return new ApiError(normalized.message, error.response.status);
+  }
+
+  return normalized;
+}
+
+function buildNormalizedError(error: unknown): Error {
   if (!axios.isAxiosError(error)) {
     return toError(error);
   }
