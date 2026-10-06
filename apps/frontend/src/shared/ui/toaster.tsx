@@ -1,50 +1,83 @@
+import { Toast } from "@heroui/react";
 import {
   CircleAlert,
   CircleCheck,
   Info,
   LoaderCircle,
   TriangleAlert,
-  X,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Toaster as SonnerToaster } from "sonner";
 
-export { toast } from "sonner";
+type ToastVariant = "default" | "accent" | "success" | "warning" | "danger";
+type ToastOptions = Parameters<typeof Toast.toast.success>[1];
 
-/** App-wide toast host, styled with the Midas theme (see `.midas-toast` in app.css). */
+const variantIcons: Record<ToastVariant, ReactNode> = {
+  default: <Info size={18} />,
+  accent: <Info size={18} />,
+  success: <CircleCheck size={18} />,
+  warning: <TriangleAlert size={18} />,
+  danger: <CircleAlert size={18} />,
+};
+
+const placement = "bottom end";
+
+/** Thin wrapper over HeroUI's toast queue so call sites stay library-agnostic. */
+export const toast = {
+  success: (message: ReactNode, options?: ToastOptions) =>
+    Toast.toast.success(message, options),
+  error: (message: ReactNode, options?: ToastOptions) =>
+    Toast.toast.danger(message, options),
+  warning: (message: ReactNode, options?: ToastOptions) =>
+    Toast.toast.warning(message, options),
+  info: (message: ReactNode, options?: ToastOptions) =>
+    Toast.toast.info(message, options),
+};
+
+/** App-wide toast host, rendered with the Midas theme (see `.midas-toast` in app.css). */
 export function Toaster(): ReactNode {
   return (
-    <SonnerToaster
-      position="bottom-right"
-      closeButton
-      visibleToasts={4}
-      gap={10}
-      icons={{
-        success: <CircleCheck size={18} />,
-        error: <CircleAlert size={18} />,
-        warning: <TriangleAlert size={18} />,
-        info: <Info size={18} />,
-        loading: <LoaderCircle size={18} className="midas-toast-spin" />,
-        close: <X size={14} />,
+    <Toast.Provider placement={placement} width={380} gap={10}>
+      {({ toast: queued }) => {
+        const { actionProps, description, indicator, isLoading, title } =
+          queued.content;
+        const variant = queued.content.variant ?? "default";
+
+        return (
+          <Toast
+            toast={queued}
+            placement={placement}
+            variant={variant}
+            className={`midas-toast midas-toast-${variant}`}
+          >
+            {indicator === null ? null : (
+              <Toast.Indicator className="midas-toast-icon">
+                {isLoading ? (
+                  <LoaderCircle size={18} className="midas-toast-spin" />
+                ) : (
+                  (indicator ?? variantIcons[variant])
+                )}
+              </Toast.Indicator>
+            )}
+            <Toast.Content className="midas-toast-content">
+              {title ? (
+                <Toast.Title className="midas-toast-title">{title}</Toast.Title>
+              ) : null}
+              {description ? (
+                <Toast.Description className="midas-toast-description">
+                  {description}
+                </Toast.Description>
+              ) : null}
+            </Toast.Content>
+            {actionProps?.children ? (
+              <Toast.ActionButton
+                {...actionProps}
+                className="midas-toast-action"
+              />
+            ) : null}
+            <Toast.CloseButton className="midas-toast-close" />
+          </Toast>
+        );
       }}
-      toastOptions={{
-        unstyled: true,
-        classNames: {
-          toast: "midas-toast",
-          icon: "midas-toast-icon",
-          content: "midas-toast-content",
-          title: "midas-toast-title",
-          description: "midas-toast-description",
-          closeButton: "midas-toast-close",
-          actionButton: "midas-toast-action",
-          cancelButton: "midas-toast-cancel",
-          success: "midas-toast-success",
-          error: "midas-toast-error",
-          warning: "midas-toast-warning",
-          info: "midas-toast-info",
-          loading: "midas-toast-loading",
-        },
-      }}
-    />
+    </Toast.Provider>
   );
 }
