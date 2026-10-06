@@ -3,9 +3,11 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { Toast } from "@heroui/react";
 import type { ReactNode } from "react";
 import { useState } from "react";
+
+import { ConfirmDialogHost } from "../ui/confirm-dialog.js";
+import { Toaster, toast } from "../ui/toaster.js";
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Please try again.";
@@ -19,7 +21,7 @@ export function Providers({
       new QueryClient({
         mutationCache: new MutationCache({
           onError: (error) => {
-            Toast.toast.danger("Action failed", {
+            toast.error("Action failed", {
               description: getErrorMessage(error),
             });
           },
@@ -36,7 +38,8 @@ export function Providers({
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <Toast.Provider placement="bottom end" />
+      <Toaster />
+      <ConfirmDialogHost />
     </QueryClientProvider>
   );
 }

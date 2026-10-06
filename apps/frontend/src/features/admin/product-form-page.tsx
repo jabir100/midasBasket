@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, GripVertical, Package, Plus, Trash2, X } from "lucide-react";
 import type { DragEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { Input, TextArea, Toast } from "@heroui/react";
+import { Input, TextArea } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -25,6 +25,7 @@ import {
   slugify,
   type ProductForm,
 } from "./admin-types.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 type ExistingImage = {
   url: string;
@@ -139,11 +140,11 @@ export function AdminProductFormPage({
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
-      Toast.toast.success("Product created");
+      toast.success("Product created");
       void navigate({ to: "/admin/products" });
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || "Could not create product");
+      toast.error(error.message || "Could not create product");
     },
   });
 
@@ -169,11 +170,11 @@ export function AdminProductFormPage({
       await queryClient.invalidateQueries({
         queryKey: ["admin", "product", productId],
       });
-      Toast.toast.success("Product updated");
+      toast.success("Product updated");
       void navigate({ to: "/admin/products" });
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || "Could not update product");
+      toast.error(error.message || "Could not update product");
     },
   });
 
@@ -331,7 +332,7 @@ export function AdminProductFormPage({
                 event.preventDefault();
 
                 if (!form.categoryId || !form.brandId) {
-                  Toast.toast.warning("Select category and brand");
+                  toast.warning("Select category and brand");
                   return;
                 }
 

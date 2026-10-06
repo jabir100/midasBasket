@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Toast } from "@heroui/react";
 
 import { listAdminOrders, updateOrderStatus } from "./admin-api.js";
 import { AdminPageShell } from "./admin-page-shell.js";
 import { OrdersPanel } from "./orders-panel.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function AdminOrdersPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -49,7 +49,7 @@ export function AdminOrdersPage(): ReactNode {
       await queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "summary"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "audit"] });
-      Toast.toast.success("Order updated");
+      toast.success("Order updated");
     },
   });
 

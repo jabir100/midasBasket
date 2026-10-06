@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Skeleton, Toast } from "@heroui/react";
+import { Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
+import { confirmDialog } from "../../shared/ui/confirm-dialog.js";
 import {
   createCarouselSlide,
   deleteCarouselSlide,
@@ -14,6 +15,7 @@ import {
 } from "./admin-api.js";
 import { AdminPageShell } from "./admin-page-shell.js";
 import { HomepageSectionHeader } from "./homepage-section-header.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function AdminHomepageCarouselPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -47,7 +49,7 @@ export function AdminHomepageCarouselPage(): ReactNode {
         "slide-file-input",
       ) as HTMLInputElement | null;
       if (fileInput) fileInput.value = "";
-      Toast.toast.success("Carousel slide uploaded");
+      toast.success("Carousel slide uploaded");
     },
   });
 
@@ -55,7 +57,7 @@ export function AdminHomepageCarouselPage(): ReactNode {
     mutationFn: deleteCarouselSlide,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "carousel"] });
-      Toast.toast.success("Carousel slide deleted");
+      toast.success("Carousel slide deleted");
     },
   });
 
@@ -69,7 +71,7 @@ export function AdminHomepageCarouselPage(): ReactNode {
     }) => toggleCarouselSlideActive(slideId, isActive),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "carousel"] });
-      Toast.toast.success("Carousel visibility updated");
+      toast.success("Carousel visibility updated");
     },
   });
 
@@ -290,9 +292,13 @@ export function AdminHomepageCarouselPage(): ReactNode {
                         title="Delete slide"
                         disabled={deleteSlideMutation.isPending}
                         onClick={() => {
-                          if (confirm("Are you sure you want to delete this slide?")) {
-                            deleteSlideMutation.mutate(slide.id);
-                          }
+                          void confirmDialog({
+                            title: "Delete this slide?",
+                            description: `"${slide.title ?? "Untitled slide"}" will be removed from the storefront carousel and its image deleted. This can't be undone.`,
+                            confirmLabel: "Delete slide",
+                          }).then((confirmed) => {
+                            if (confirmed) deleteSlideMutation.mutate(slide.id);
+                          });
                         }}
                         startContent={
                           <Trash2 size={16} style={{ color: "var(--color-midas-red)" }} />

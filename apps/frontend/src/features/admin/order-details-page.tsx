@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, MapPin, Receipt, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { Skeleton, Toast } from "@heroui/react";
+import { Skeleton } from "@heroui/react";
 
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { Button } from "../../shared/ui/button.js";
@@ -21,6 +21,7 @@ import {
 } from "./status-badge.js";
 import { AdminTableSelect } from "./admin-form-controls.js";
 import { AdminShell } from "./admin-shell.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function AdminOrderDetailsPage({
   orderId,
@@ -71,7 +72,7 @@ export function AdminOrderDetailsPage({
       });
       await queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
       setNote("");
-      Toast.toast.success("Order status updated");
+      toast.success("Order status updated");
     },
   });
 

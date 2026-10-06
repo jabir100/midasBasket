@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { Input, Skeleton, Toast } from "@heroui/react";
+import { Input, Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -19,6 +19,7 @@ import { AdminField } from "../admin/admin-form-controls.js";
 import { OrderStatusBadge } from "../admin/status-badge.js";
 import { OrderItemsDetail } from "./order-items-detail.js";
 import { checkoutOrder, listMyOrders, type CheckoutInput } from "./orders-api.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 const initialCheckoutState: CheckoutInput = {
   customerName: "",
@@ -61,7 +62,7 @@ export function CheckoutPage(): ReactNode {
   const checkoutMutation = useMutation({
     mutationFn: checkoutOrder,
     onSuccess: async (order, variables) => {
-      Toast.toast.success("Order placed", {
+      toast.success("Order placed", {
         description: order.orderNumber,
       });
       await queryClient.invalidateQueries({ queryKey: ["cart"] });

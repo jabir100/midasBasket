@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Toast } from "@heroui/react";
 
 import {
   deleteAdminProduct,
@@ -12,6 +11,7 @@ import {
 } from "./admin-api.js";
 import { AdminPageShell } from "./admin-page-shell.js";
 import { ProductsPanel } from "./products-panel.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function AdminProductsPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -40,7 +40,7 @@ export function AdminProductsPage(): ReactNode {
     }) => updateAdminProduct(productId, { isPublished }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
-      Toast.toast.success("Product visibility updated");
+      toast.success("Product visibility updated");
     },
   });
 
@@ -48,7 +48,7 @@ export function AdminProductsPage(): ReactNode {
     mutationFn: deleteAdminProduct,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
-      Toast.toast.success("Product deleted");
+      toast.success("Product deleted");
     },
   });
 

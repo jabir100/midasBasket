@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Toast } from "@heroui/react";
 
 import { deleteAdminBrand, listAdminBrands } from "./admin-api.js";
 import { AdminPageShell } from "./admin-page-shell.js";
 import { TaxonomyPanel } from "./taxonomy-panel.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function AdminBrandsPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -21,7 +21,7 @@ export function AdminBrandsPage(): ReactNode {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "brands"] });
       await queryClient.invalidateQueries({ queryKey: ["homepage"] });
-      Toast.toast.success("Brand deleted");
+      toast.success("Brand deleted");
     },
   });
 

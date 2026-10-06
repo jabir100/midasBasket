@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Toast } from "@heroui/react";
 
 import {
   createUserAddress,
@@ -10,6 +9,7 @@ import {
 } from "./dashboard-api.js";
 import { AddressesPanel, type AddressForm } from "./addresses-panel.js";
 import { DashboardPageShell } from "./dashboard-page-shell.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function DashboardAddressesPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -38,7 +38,7 @@ export function DashboardAddressesPage(): ReactNode {
       });
       await queryClient.invalidateQueries({ queryKey: ["dashboard", "addresses"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard", "profile"] });
-      Toast.toast.success("Address added");
+      toast.success("Address added");
     },
   });
 
@@ -47,7 +47,7 @@ export function DashboardAddressesPage(): ReactNode {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["dashboard", "addresses"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboard", "profile"] });
-      Toast.toast.success("Address deleted");
+      toast.success("Address deleted");
     },
   });
 

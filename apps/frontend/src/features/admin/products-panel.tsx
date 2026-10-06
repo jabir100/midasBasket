@@ -15,6 +15,7 @@ import { Modal, Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
+import { confirmDialog } from "../../shared/ui/confirm-dialog.js";
 import type { AdminProduct, AdminTaxonomy } from "./admin-api.js";
 import { AdminSearchInput } from "./admin-form-controls.js";
 
@@ -215,9 +216,14 @@ export function ProductsPanel({
                             title="Delete"
                             disabled={isDeleting}
                             onClick={() => {
-                              if (confirm(`Delete ${product.name}?`)) {
-                                onDelete(product);
-                              }
+                              void confirmDialog({
+                                title: `Delete ${product.name}?`,
+                                description:
+                                  "This product will be permanently removed from the catalog. This can't be undone.",
+                                confirmLabel: "Delete product",
+                              }).then((confirmed) => {
+                                if (confirmed) onDelete(product);
+                              });
                             }}
                             startContent={
                               <Trash2

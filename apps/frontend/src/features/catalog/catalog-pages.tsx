@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { Chip, Skeleton, Toast } from "@heroui/react";
+import { Chip, Skeleton } from "@heroui/react";
 
 import { Badge } from "../../shared/ui/badge.js";
 import { Button } from "../../shared/ui/button.js";
@@ -16,6 +16,7 @@ import {
   listProducts,
   type CatalogProduct,
 } from "./catalog-api.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 function ProductSkeletonGrid(): ReactNode {
   return (
@@ -113,7 +114,7 @@ export function CatalogPage(): ReactNode {
     mutationFn: (productId: string) => addCartItem({ productId, quantity: 1 }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["cart"] });
-      Toast.toast.success("Added to cart");
+      toast.success("Added to cart");
     },
   });
 
@@ -338,10 +339,10 @@ export function ProductDetailPage({
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["cart"] });
-      Toast.toast.success("Added to cart");
+      toast.success("Added to cart");
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || "Could not add to cart");
+      toast.error(error.message || "Could not add to cart");
     },
   });
 

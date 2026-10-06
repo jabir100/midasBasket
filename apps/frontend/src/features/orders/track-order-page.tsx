@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useEffect, useRef, useState } from "react";
-import { Input, Toast } from "@heroui/react";
+import { Input } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -18,6 +18,7 @@ import { OrderStatusBadge, PaymentStatusBadge } from "../admin/status-badge.js";
 import { OrderItemsDetail } from "./order-items-detail.js";
 import { trackOrder } from "./orders-api.js";
 import { TrackingStepper } from "./tracking-stepper.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function TrackOrderPage(): ReactNode {
   const search = useSearch({ from: "/track" });
@@ -31,12 +32,12 @@ export function TrackOrderPage(): ReactNode {
     mutationFn: (input: { orderNumber: string; email?: string }) =>
       trackOrder(input.orderNumber, input.email),
     onSuccess: (order) => {
-      Toast.toast.success("Order found", {
+      toast.success("Order found", {
         description: order.orderNumber,
       });
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || "Order was not found");
+      toast.error(error.message || "Order was not found");
     },
   });
 

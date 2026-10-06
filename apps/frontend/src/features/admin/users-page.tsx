@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Toast } from "@heroui/react";
 
 import { getCurrentUser } from "../auth/auth-api.js";
 import { listAdminUsers, updateAdminUser } from "./admin-api.js";
 import { AdminPageShell } from "./admin-page-shell.js";
 import { UsersPanel } from "./users-panel.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function AdminUsersPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -42,10 +42,10 @@ export function AdminUsersPage(): ReactNode {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "summary"] });
-      Toast.toast.success("User status updated");
+      toast.success("User status updated");
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || "Could not update user status");
+      toast.error(error.message || "Could not update user status");
     },
   });
 
@@ -60,10 +60,10 @@ export function AdminUsersPage(): ReactNode {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
       await queryClient.invalidateQueries({ queryKey: ["admin", "summary"] });
-      Toast.toast.success("User role updated");
+      toast.success("User role updated");
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || "Could not update user role");
+      toast.error(error.message || "Could not update user role");
     },
   });
 

@@ -411,7 +411,12 @@ adminRouter.delete("/blogs/:id", async (req, res, next) => {
 adminRouter.get("/carousel", async (_req, res, next) => {
   try {
     const slides = await CarouselSlideModel.find().sort({ sortOrder: 1 }).lean();
-    sendSuccess(res, { data: { slides }, requestId: getRequestId(res) });
+    sendSuccess(res, {
+      data: {
+        slides: slides.map(({ _id, ...slide }) => ({ ...slide, id: String(_id) })),
+      },
+      requestId: getRequestId(res),
+    });
   } catch (error) {
     next(error);
   }

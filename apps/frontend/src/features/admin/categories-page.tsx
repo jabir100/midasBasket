@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Toast } from "@heroui/react";
 
 import { deleteAdminCategory, listAdminCategories } from "./admin-api.js";
 import { AdminPageShell } from "./admin-page-shell.js";
 import { TaxonomyPanel } from "./taxonomy-panel.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function AdminCategoriesPage(): ReactNode {
   const queryClient = useQueryClient();
@@ -23,7 +23,7 @@ export function AdminCategoriesPage(): ReactNode {
         queryKey: ["admin", "categories"],
       });
       await queryClient.invalidateQueries({ queryKey: ["homepage"] });
-      Toast.toast.success("Category deleted");
+      toast.success("Category deleted");
     },
   });
 
