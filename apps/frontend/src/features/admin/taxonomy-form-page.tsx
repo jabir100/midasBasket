@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, Tags } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { Input, TextArea, Toast } from "@heroui/react";
+import { Input, TextArea } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
@@ -28,6 +28,7 @@ import {
   toTaxonomyPayload,
   type TaxonomyForm,
 } from "./admin-types.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 type TaxonomyKind = "category" | "brand";
 
@@ -147,13 +148,13 @@ export function AdminTaxonomyFormPage({
       ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey });
-      Toast.toast.success(
+      toast.success(
         `${kind === "category" ? "Category" : "Brand"} created`,
       );
       void navigate({ to: config.listRoute });
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || `Could not create ${kind}`);
+      toast.error(error.message || `Could not create ${kind}`);
     },
   });
 
@@ -166,13 +167,13 @@ export function AdminTaxonomyFormPage({
       ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey });
-      Toast.toast.success(
+      toast.success(
         `${kind === "category" ? "Category" : "Brand"} updated`,
       );
       void navigate({ to: config.listRoute });
     },
     onError: (error: Error) => {
-      Toast.toast.danger(error.message || `Could not update ${kind}`);
+      toast.error(error.message || `Could not update ${kind}`);
     },
   });
 

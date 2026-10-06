@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { Toast } from "@heroui/react";
 
 import {
   getDashboardProfile,
@@ -11,6 +10,7 @@ import {
 } from "./dashboard-api.js";
 import { DashboardPageShell } from "./dashboard-page-shell.js";
 import { ProfilePanel } from "./profile-panel.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 export function DashboardProfilePage(): ReactNode {
   const queryClient = useQueryClient();
@@ -29,7 +29,7 @@ export function DashboardProfilePage(): ReactNode {
     mutationFn: updateDashboardProfile,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["dashboard", "profile"] });
-      Toast.toast.success("Profile updated");
+      toast.success("Profile updated");
     },
   });
 
@@ -39,7 +39,7 @@ export function DashboardProfilePage(): ReactNode {
       await queryClient.invalidateQueries({
         queryKey: ["dashboard", "notifications"],
       });
-      Toast.toast.success("Notification preferences updated");
+      toast.success("Notification preferences updated");
     },
   });
 

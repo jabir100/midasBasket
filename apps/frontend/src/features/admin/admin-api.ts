@@ -202,9 +202,15 @@ export type AdminCarouselSlide = {
 
 export async function getAdminCarouselSlides(): Promise<AdminCarouselSlide[]> {
   const response = await apiClient.get<
-    ApiSuccess<{ slides: AdminCarouselSlide[] }>
+    ApiSuccess<{
+      slides: (Omit<AdminCarouselSlide, "id"> & { id?: string; _id?: string })[];
+    }>
   >("/homepage/admin/carousel");
-  return response.data.data.slides;
+  // Raw Mongo documents expose `_id`; normalise so callers can rely on `id`.
+  return response.data.data.slides.map(({ _id, ...slide }) => ({
+    ...slide,
+    id: slide.id ?? _id ?? "",
+  }));
 }
 
 export async function createCarouselSlide(

@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Download, Eye, Search, ShoppingCart } from "lucide-react";
 import type { ReactNode } from "react";
-import { Skeleton, Toast } from "@heroui/react";
+import { Skeleton } from "@heroui/react";
 
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { Button } from "../../shared/ui/button.js";
@@ -16,6 +16,7 @@ import {
 } from "./status-badge.js";
 import { AdminSearchInput, AdminTableSelect } from "./admin-form-controls.js";
 import { printInvoice } from "./invoice.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 const paymentStatusOptions = [
   { id: "pending", label: "Pending" },
@@ -62,7 +63,7 @@ export function OrdersPanel({
       printInvoice(order);
     },
     onError: () => {
-      Toast.toast.danger("Could not load invoice details");
+      toast.error("Could not load invoice details");
     },
   });
 

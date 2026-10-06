@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Toast } from "@heroui/react";
 
 import {
   getHomepageSettings,
@@ -8,6 +7,7 @@ import {
   type HomepageSettings,
 } from "./admin-api.js";
 import { defaultHomepageForm } from "./admin-types.js";
+import { toast } from "../../shared/ui/toaster.js";
 
 function normalizeHomepageSettings(input: HomepageSettings): HomepageSettings {
   const whyChooseUs =
@@ -59,7 +59,7 @@ export function useHomepageSettingsForm(): {
         queryKey: ["admin", "homepage", "settings"],
       });
       await queryClient.invalidateQueries({ queryKey: ["homepage"] });
-      Toast.toast.success("Homepage settings saved");
+      toast.success("Homepage settings saved");
     },
   });
 

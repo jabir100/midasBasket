@@ -6,6 +6,7 @@ import { Modal, Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
+import { confirmDialog } from "../../shared/ui/confirm-dialog.js";
 import type { AdminTaxonomy } from "./admin-api.js";
 import { AdminSearchInput } from "./admin-form-controls.js";
 
@@ -188,9 +189,14 @@ export function TaxonomyPanel({
                               tone="ghost"
                               title="Delete"
                               onClick={() => {
-                                if (confirm(`Delete ${item.name}?`)) {
-                                  onDelete(item);
-                                }
+                                void confirmDialog({
+                                  title: `Delete ${item.name}?`,
+                                  description:
+                                    "This will be permanently removed. This can't be undone.",
+                                  confirmLabel: "Delete",
+                                }).then((confirmed) => {
+                                  if (confirmed) onDelete(item);
+                                });
                               }}
                               startContent={
                                 <Trash2
