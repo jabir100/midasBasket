@@ -9,9 +9,10 @@ import type { ReactNode } from "react";
 import { AppShell } from "../shared/layout/app-shell.js";
 import { Providers } from "../shared/providers/providers.js";
 import {
-  canonicalLink,
+  defaultSocialImage,
   indexFollowMeta,
-  toAbsoluteUrl,
+  SITE_NAME,
+  socialImageMeta,
 } from "../shared/seo/seo.js";
 import "../styles/app.css";
 
@@ -24,24 +25,31 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Midas Basket is being rebuilt as a premium, fast, secure, and SEO-friendly ecommerce experience.",
+          "Shop curated essentials, featured brands, and premium everyday finds from Midas Basket.",
       },
       indexFollowMeta,
-      { property: "og:site_name", content: "Midas Basket" },
+      { property: "og:site_name", content: SITE_NAME },
       { property: "og:type", content: "website" },
       { property: "og:title", content: "Midas Basket | Premium Ecommerce" },
       {
         property: "og:description",
         content:
-          "Premium ecommerce storefront engineered for speed, trust, and mobile-first shopping.",
+          "Shop curated essentials, featured brands, and premium everyday finds from Midas Basket.",
       },
-      { property: "og:url", content: toAbsoluteUrl("/") },
+      /*
+       * Fallback card for routes that set no image of their own. Width and
+       * height are left out on purpose: child routes override tags one
+       * property at a time, so dimensions set here would leak onto a child
+       * image of a different size. Canonical and og:url are per page for the
+       * same reason; <link> tags are not deduplicated at all.
+       */
+      ...socialImageMeta({
+        url: defaultSocialImage.url,
+        alt: defaultSocialImage.alt,
+      }),
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [
-      canonicalLink("/"),
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
-    ],
+    links: [{ rel: "icon", href: "/favicon.png", type: "image/png" }],
   }),
   component: RootComponent,
 });

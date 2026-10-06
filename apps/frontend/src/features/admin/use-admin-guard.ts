@@ -11,6 +11,7 @@ import {
   getAdminCarouselSlides,
   listAdminBrands,
   listAdminCategories,
+  listAdminContactMessages,
   listAdminOrders,
   listAdminProducts,
   listAdminUsers,
@@ -77,6 +78,12 @@ export function useAdminGuard(): {
     enabled: isAdmin,
   });
 
+  const unreadMessagesQuery = useQuery({
+    queryKey: ["admin", "contact-messages", "unread-count"],
+    queryFn: () => listAdminContactMessages({ status: "new", limit: 1 }),
+    enabled: isAdmin,
+  });
+
   const logoutMutation = useMutation({
     mutationFn: logoutCustomer,
     onSuccess: async () => {
@@ -92,6 +99,7 @@ export function useAdminGuard(): {
     homepage: (carouselQuery.data ?? []).length,
     users: (usersQuery.data ?? []).length,
     orders: (ordersQuery.data ?? []).length,
+    messages: unreadMessagesQuery.data?.meta.unread ?? 0,
   };
 
   return {

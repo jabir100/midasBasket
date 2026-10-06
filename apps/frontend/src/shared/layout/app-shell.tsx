@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
+  Headset,
   LayoutDashboard,
   LogOut,
   MoreVertical,
@@ -358,6 +359,17 @@ export function AppShell({
           >
             <Truck size={18} />
             Track order
+          </Link>
+
+          <Link
+            to="/contact"
+            className="mobile-drawer-nav-link"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <Headset size={18} />
+            Contact us
           </Link>
 
           {user ? (

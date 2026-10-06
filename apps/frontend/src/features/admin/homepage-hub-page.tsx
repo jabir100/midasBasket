@@ -1,22 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Home, Image, Sparkles, TrendingUp } from "lucide-react";
+import {
+  ChevronRight,
+  Contact,
+  Home,
+  Image,
+  Share2,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { AdminPageShell } from "./admin-page-shell.js";
-import { getAdminCarouselSlides, getHomepageSettings } from "./admin-api.js";
+import {
+  getAdminCarouselSlides,
+  getHomepageSettings,
+  listAdminSocialLinks,
+} from "./admin-api.js";
+
+type SectionCounts = {
+  carousel: number;
+  popular: number;
+  bestSelling: number;
+  socialLinks: number;
+};
 
 const sections: {
   to: string;
   icon: ReactNode;
   title: string;
   description: string;
-  count: (
-    carouselCount: number,
-    popularCount: number,
-    bestSellingCount: number,
-  ) => number;
+  count: (counts: SectionCounts) => number;
 }[] = [
   {
     to: "/admin/homepage/carousel",
@@ -24,7 +39,7 @@ const sections: {
     title: "Carousel",
     description:
       "Upload, reorder by sort value, activate, or remove banner slides shown at the top of the storefront.",
-    count: (carouselCount) => carouselCount,
+    count: (counts) => counts.carousel,
   },
   {
     to: "/admin/homepage/popular-products",
@@ -32,7 +47,7 @@ const sections: {
     title: "Popular products",
     description:
       "Pick which products appear in the storefront's \"Popular products\" slider, and in what order.",
-    count: (_carouselCount, popularCount) => popularCount,
+    count: (counts) => counts.popular,
   },
   {
     to: "/admin/homepage/best-selling",
@@ -40,13 +55,29 @@ const sections: {
     title: "Most selling",
     description:
       "Pick which products appear in the storefront's \"Most selling\" slider, and in what order.",
-    count: (_carouselCount, _popularCount, bestSellingCount) => bestSellingCount,
+    count: (counts) => counts.bestSelling,
   },
   {
     to: "/admin/homepage/why-choose-us",
     icon: <Home size={20} />,
     title: "Why choose us",
     description: "Policy/value cards shown above the footer on the storefront.",
+    count: () => 0,
+  },
+  {
+    to: "/admin/homepage/social-links",
+    icon: <Share2 size={20} />,
+    title: "Social media",
+    description:
+      "Add, edit, hide, or remove social profile links shown in the footer and on the contact page.",
+    count: (counts) => counts.socialLinks,
+  },
+  {
+    to: "/admin/homepage/contact-details",
+    icon: <Contact size={20} />,
+    title: "Contact details",
+    description:
+      "Phone, WhatsApp, email, address, and business hours shown on the contact page and in the footer.",
     count: () => 0,
   },
 ];
@@ -60,11 +91,17 @@ export function AdminHomepageHubPage(): ReactNode {
     queryKey: ["admin", "homepage", "settings"],
     queryFn: getHomepageSettings,
   });
+  const socialLinksQuery = useQuery({
+    queryKey: ["admin", "social-links"],
+    queryFn: listAdminSocialLinks,
+  });
 
-  const carouselCount = carouselQuery.data?.length ?? 0;
-  const popularCount = homepageSettingsQuery.data?.popularProductIds?.length ?? 0;
-  const bestSellingCount =
-    homepageSettingsQuery.data?.bestSellingProductIds?.length ?? 0;
+  const counts: SectionCounts = {
+    carousel: carouselQuery.data?.length ?? 0,
+    popular: homepageSettingsQuery.data?.popularProductIds?.length ?? 0,
+    bestSelling: homepageSettingsQuery.data?.bestSellingProductIds?.length ?? 0,
+    socialLinks: socialLinksQuery.data?.length ?? 0,
+  };
 
   return (
     <AdminPageShell>
@@ -73,8 +110,8 @@ export function AdminHomepageHubPage(): ReactNode {
           <div>
             <h3 className="admin-section-title">Homepage configuration</h3>
             <p className="admin-section-copy">
-              Manage the storefront carousel, curated product sliders, and the
-              why-choose-us section.
+              Manage the storefront carousel, curated product sliders, the
+              why-choose-us section, and your contact and social media details.
             </p>
           </div>
         </div>
@@ -94,11 +131,10 @@ export function AdminHomepageHubPage(): ReactNode {
                     </div>
                     <ChevronRight size={18} style={{ color: "var(--color-midas-gray)" }} />
                   </div>
-                  {section.count(carouselCount, popularCount, bestSellingCount) > 0 ? (
+                  {section.count(counts) > 0 ? (
                     <p style={{ marginTop: "0.75rem", marginBottom: 0 }}>
                       <small className="admin-table-muted">
-                        {section.count(carouselCount, popularCount, bestSellingCount)}{" "}
-                        configured
+                        {section.count(counts)} configured
                       </small>
                     </p>
                   ) : null}

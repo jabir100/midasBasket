@@ -3,12 +3,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { getProduct } from "../../features/catalog/catalog-api.js";
 import { ProductDetailPage } from "../../features/catalog/catalog-pages.js";
 import { isNotFoundError } from "../../shared/http/api-client.js";
-import {
-  canonicalLink,
-  humanizeSlug,
-  indexFollowMeta,
-  toAbsoluteUrl,
-} from "../../shared/seo/seo.js";
+import { humanizeSlug, pageSeo, toSocialImage } from "../../shared/seo/seo.js";
 
 const MAX_DESCRIPTION_LENGTH = 160;
 
@@ -41,25 +36,56 @@ export const Route = createFileRoute("/products/$slug")({
   },
   staleTime: Number.POSITIVE_INFINITY,
   head: ({ params, loaderData }) => {
-    const productName = loaderData?.name ?? humanizeSlug(params.slug);
-    const description = loaderData
-      ? toMetaDescription(loaderData.shortDescription ?? loaderData.description)
-      : `View ${productName} details, pricing, and availability on Midas Basket.`;
-    const image = loaderData?.images[0]?.url;
     const path = `/products/${params.slug}`;
 
+    if (!loaderData) {
+      const productName = humanizeSlug(params.slug);
+
+      return pageSeo({
+        title: `${productName} | Midas Basket`,
+        description: `View ${productName} details, pricing, and availability on Midas Basket.`,
+        path,
+      });
+    }
+
+    const firstImage = loaderData.images[0];
+    const seo = pageSeo({
+      title: `${loaderData.name} | Midas Basket`,
+      description: toMetaDescription(
+        loaderData.shortDescription ?? loaderData.description,
+      ),
+      path,
+      type: "product",
+      ...(firstImage
+        ? {
+            image: toSocialImage({
+              url: firstImage.url,
+              alt: firstImage.alt || loaderData.name,
+            }),
+          }
+        : {}),
+    });
+
     return {
+      ...seo,
       meta: [
-        { title: `${productName} | Midas Basket` },
-        { name: "description", content: description },
-        indexFollowMeta,
-        { property: "og:title", content: `${productName} | Midas Basket` },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "product" },
-        { property: "og:url", content: toAbsoluteUrl(path) },
-        ...(image ? [{ property: "og:image", content: image }] : []),
+        ...seo.meta,
+        {
+          property: "product:price:amount",
+          content: loaderData.price.toFixed(2),
+        },
+        { property: "product:price:currency", content: "BDT" },
+        {
+          property: "product:availability",
+          content: loaderData.stockQuantity > 0 ? "in stock" : "out of stock",
+        },
+        // Shown as a label/value row by Slack and Discord link unfurls.
+        { name: "twitter:label1", content: "Price" },
+        {
+          name: "twitter:data1",
+          content: `৳${loaderData.price.toLocaleString("en-BD")}`,
+        },
       ],
-      links: [canonicalLink(path)],
     };
   },
   notFoundComponent: ProductNotFound,

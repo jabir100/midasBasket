@@ -93,6 +93,22 @@ export function PaymentMethodBadge({
   );
 }
 
+const contactMessageStatusTone: Record<string, StatusTone> = {
+  new: "info",
+  read: "neutral",
+  resolved: "success",
+};
+
+export function ContactMessageStatusBadge({
+  status,
+}: Readonly<{ status: string }>): ReactNode {
+  return (
+    <StatusBadge tone={contactMessageStatusTone[status] ?? "neutral"}>
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </StatusBadge>
+  );
+}
+
 const userStatusTone: Record<string, StatusTone> = {
   active: "success",
   blocked: "danger",

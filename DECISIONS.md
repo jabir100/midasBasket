@@ -133,3 +133,15 @@ Decision: Start Phase 4 with a static-first frontend homepage section compositio
 Trade-offs: This creates a temporary local data layer, but it lets layout, SEO structure, responsiveness, and performance work progress without blocking on later catalog/admin modules.
 
 Consequences: Static homepage data must stay isolated and typed so it can be replaced by API data without rewriting section components.
+
+## 2026-10-07: Admin-Managed Contact Channels, Social Links, And Contact Form Inbox
+
+Status: Accepted
+
+Context: The client needs to manage their social media links, phone, WhatsApp, and email without code changes, show them in the footer and on a public contact page, and read contact form submissions in the admin dashboard.
+
+Decision: Add a backend `contact` feature (`/api/v1/contact`) with a singleton `ContactDetails` document, a `SocialLink` collection (CRUD, sort order, visibility), and a `ContactMessage` collection. The public `GET /contact` payload is Redis-cached and invalidated by admin mutations, separate from the homepage payload because the footer renders on every page. Submissions are rate limited (5 per 10 minutes per IP) and use a hidden honeypot field instead of a CAPTCHA. Social links accept only `http(s)` URLs. Brand icons are inlined from Simple Icons (CC0) because Lucide brand icons are deprecated.
+
+Trade-offs: The honeypot and rate limit stop casual spam but not targeted abuse; a CAPTCHA can be added later if spam appears. Opening a message in the admin marks it read on the server, which keeps the inbox simple at the cost of a GET with a side effect.
+
+Consequences: Admin settings live under Homepage → Social media / Contact details; submissions live under the Messages sidebar item with an unread badge. Admins are not emailed about new messages yet.
