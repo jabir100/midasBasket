@@ -160,23 +160,23 @@ declare const testimonialSchema: Schema<any, import("mongoose").Model<any, any, 
 }, {
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps, import("mongoose").Document<unknown, {}, import("mongoose").FlatRecord<{
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps>, {}, import("mongoose").MergeType<import("mongoose").DefaultSchemaOptions, {
     timestamps: true;
 }>> & import("mongoose").FlatRecord<{
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
@@ -597,23 +597,23 @@ export declare const HomepageSettingsModel: import("mongoose").Model<{
 export declare const TestimonialModel: import("mongoose").Model<{
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps, {}, {}, {}, import("mongoose").Document<unknown, {}, {
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps, {}, {
     timestamps: true;
 }> & {
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps & {
     _id: import("mongoose").Types.ObjectId;
 } & {
@@ -623,23 +623,23 @@ export declare const TestimonialModel: import("mongoose").Model<{
 }, {
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps, import("mongoose").Document<unknown, {}, import("mongoose").FlatRecord<{
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps>, {}, import("mongoose").MergeType<import("mongoose").DefaultSchemaOptions, {
     timestamps: true;
 }>> & import("mongoose").FlatRecord<{
     customerName: string;
     isActive: boolean;
+    sortOrder: number;
     quote: string;
     rating: number;
-    sortOrder: number;
 } & import("mongoose").DefaultTimestampProps> & {
     _id: import("mongoose").Types.ObjectId;
 } & {

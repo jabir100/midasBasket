@@ -23,7 +23,7 @@ export function AdminHomepagePopularProductsPage(): ReactNode {
       <div className="dashboard-pane-content">
         <HomepageSectionHeader
           title="Popular products"
-          description={'Pick which products appear in the storefront\'s "Popular products" slider, and in what order.'}
+          description={'Products shown in the homepage "Popular products" slider, in order.'}
         />
 
         <Card className="dashboard-card" style={{ marginTop: "1.5rem", maxWidth: "640px" }}>

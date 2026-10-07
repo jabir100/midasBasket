@@ -39,7 +39,7 @@ export function AdminCategoriesPage(): ReactNode {
         kind="category"
         newRoute="/admin/categories/new"
         title="Category management"
-        description="Create storefront categories and control whether they appear in homepage highlights."
+        description="Add categories and choose which ones appear on the homepage."
         imageLabel="Category image"
         items={filteredCategories}
         isLoading={categoriesQuery.isLoading}

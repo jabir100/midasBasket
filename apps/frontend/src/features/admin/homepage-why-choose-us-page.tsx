@@ -16,7 +16,7 @@ export function AdminHomepageWhyChooseUsPage(): ReactNode {
       <div className="dashboard-pane-content">
         <HomepageSectionHeader
           title="Why choose us"
-          description="Policy/value cards shown above the footer on the storefront."
+          description="Cards shown above the footer on the homepage."
         />
 
         <Card className="dashboard-card" style={{ marginTop: "1.5rem", maxWidth: "640px" }}>

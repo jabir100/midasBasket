@@ -45,7 +45,7 @@ export function ProfilePanel({
     <div className="dashboard-pane-content">
       <div className="section-heading">
         <h3>Profile & Settings</h3>
-        <p>Update your personal information and communication preferences.</p>
+        <p>Your details and email preferences.</p>
       </div>
 
       <div className="dashboard-grid-two" style={{ marginTop: "1.5rem" }}>

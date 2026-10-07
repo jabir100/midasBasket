@@ -37,7 +37,7 @@ export function AdminBrandsPage(): ReactNode {
         kind="brand"
         newRoute="/admin/brands/new"
         title="Brand management"
-        description="Manage active brands and decide which partners are featured on the homepage."
+        description="Add brands and choose which ones appear on the homepage."
         imageLabel="Brand logo"
         items={filteredBrands}
         isLoading={brandsQuery.isLoading}

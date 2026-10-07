@@ -90,9 +90,9 @@ homepageRouter.get("/", async (_req, res, next) => {
             ...(product.isFeatured ? { badge: "Featured" } : {}),
         });
         const hero = settings?.hero ?? {
-            eyebrow: "Premium essentials, delivered fast",
-            title: "Modern shopping for everyday wins",
-            description: "A fast, secure, mobile-first ecommerce experience for curated products, trusted brands, and smooth checkout.",
+            eyebrow: "Groceries and everyday essentials",
+            title: "Everything for your basket, delivered",
+            description: "Shop groceries, home care, and beauty from brands you know. Pay cash on delivery.",
             primaryAction: { href: "/products", label: "Shop products" },
             secondaryAction: { href: "/offers", label: "View offers" },
         };
@@ -113,7 +113,7 @@ homepageRouter.get("/", async (_req, res, next) => {
                 })),
                 hero: {
                     eyebrow: hero.eyebrow ?? "",
-                    title: hero.title ?? "Modern shopping for everyday wins",
+                    title: hero.title ?? "Everything for your basket, delivered",
                     description: hero.description ?? "",
                     primaryAction: hero.primaryAction ?? {
                         href: "/products",
@@ -163,19 +163,19 @@ homepageRouter.get("/", async (_req, res, next) => {
                     }))
                     : [
                         {
-                            id: "secure",
-                            title: "Security-led platform",
-                            description: "Backend-first authorization, HTTP-only session strategy, strict validation, and audit-ready foundations.",
+                            id: "cash-on-delivery",
+                            title: "Cash on delivery",
+                            description: "Pay when your order arrives. No card needed.",
                         },
                         {
-                            id: "fast",
-                            title: "Built for speed",
-                            description: "SSR-friendly sections, cache-backed homepage, lean interactions, and semantic HTML.",
+                            id: "tracking",
+                            title: "Order tracking",
+                            description: "Follow every order from packing to your door with a tracking code.",
                         },
                         {
-                            id: "curated",
-                            title: "Curated buying experience",
-                            description: "Clear category paths, product highlights, trusted brands, and friction-light shopping journeys.",
+                            id: "brands",
+                            title: "Brands you know",
+                            description: "Products from established brands, sorted by category so they are easy to find.",
                         },
                     ],
                 generatedAt: new Date().toISOString(),
@@ -336,7 +336,12 @@ adminRouter.delete("/blogs/:id", async (req, res, next) => {
 adminRouter.get("/carousel", async (_req, res, next) => {
     try {
         const slides = await CarouselSlideModel.find().sort({ sortOrder: 1 }).lean();
-        sendSuccess(res, { data: { slides }, requestId: getRequestId(res) });
+        sendSuccess(res, {
+            data: {
+                slides: slides.map(({ _id, ...slide }) => ({ ...slide, id: String(_id) })),
+            },
+            requestId: getRequestId(res),
+        });
     }
     catch (error) {
         next(error);

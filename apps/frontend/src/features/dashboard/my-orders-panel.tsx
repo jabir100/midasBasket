@@ -21,7 +21,7 @@ export function MyOrdersPanel({
     <div className="dashboard-pane-content">
       <div className="section-heading">
         <h3>My Orders</h3>
-        <p>Track history, payments, and dispatch statuses of your packages.</p>
+        <p>Your past orders and their delivery status.</p>
       </div>
 
       <Card className="dashboard-card" style={{ marginTop: "1.5rem" }}>

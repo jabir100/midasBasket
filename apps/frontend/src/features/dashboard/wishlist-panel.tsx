@@ -17,7 +17,7 @@ export function WishlistPanel({
     <div className="dashboard-pane-content">
       <div className="section-heading">
         <h3>Wishlist</h3>
-        <p>Your saved favorites. Add them to your cart directly from here.</p>
+        <p>Items you saved for later.</p>
       </div>
 
       <Card className="dashboard-card" style={{ marginTop: "1.5rem" }}>

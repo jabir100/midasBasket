@@ -23,7 +23,7 @@ export function AdminHomepageBestSellingPage(): ReactNode {
       <div className="dashboard-pane-content">
         <HomepageSectionHeader
           title="Most selling"
-          description={'Pick which products appear in the storefront\'s "Most selling" slider, and in what order.'}
+          description={'Products shown in the homepage "Most selling" slider, in order.'}
         />
 
         <Card className="dashboard-card" style={{ marginTop: "1.5rem", maxWidth: "640px" }}>

@@ -73,8 +73,7 @@ export function OrdersPanel({
         <div>
           <h3 className="admin-section-title">Order management</h3>
           <p className="admin-section-copy">
-            Track fulfilment, update statuses, and open an order for full
-            details.
+            Open an order to see details or update its status.
           </p>
         </div>
       </div>

@@ -109,7 +109,7 @@ export function AdminHomepageSocialLinksPage(): ReactNode {
       <div className="dashboard-pane-content">
         <HomepageSectionHeader
           title="Social media"
-          description="Profile links shown as icons in the site footer and on the contact page. Lower sort order appears first."
+          description="Icons shown in the footer and on the contact page. Lower sort order appears first."
           action={
             <Button
               tone="primary"

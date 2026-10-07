@@ -110,8 +110,8 @@ export function AdminHomepageHubPage(): ReactNode {
           <div>
             <h3 className="admin-section-title">Homepage configuration</h3>
             <p className="admin-section-copy">
-              Manage the storefront carousel, curated product sliders, the
-              why-choose-us section, and your contact and social media details.
+              Edit what customers see on the homepage, contact page, and
+              footer.
             </p>
           </div>
         </div>

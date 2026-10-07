@@ -322,7 +322,7 @@ export function OrdersPage(): ReactNode {
       <section className="section-heading catalog-heading">
         <h3 style={{ margin: 0 }}>My Orders</h3>
         <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
-          Review your order history, payments, and dispatch statuses.
+          Your past orders and their delivery status.
         </p>
       </section>
 

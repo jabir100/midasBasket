@@ -54,7 +54,7 @@ export function AdminHomepageContactDetailsPage(): ReactNode {
       <div className="dashboard-pane-content">
         <HomepageSectionHeader
           title="Contact details"
-          description="Phone, WhatsApp, email, and address shown on the contact page and in the site footer. Leave a field empty to hide it."
+          description="Shown on the contact page and in the footer. Leave a field empty to hide it."
         />
 
         <Card className="dashboard-card" style={{ marginTop: "1.5rem", maxWidth: "720px" }}>

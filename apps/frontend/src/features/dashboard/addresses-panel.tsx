@@ -38,7 +38,7 @@ export function AddressesPanel({
     <div className="dashboard-pane-content">
       <div className="section-heading">
         <h3>Saved Addresses</h3>
-        <p>Manage your delivery and billing locations for faster checkout.</p>
+        <p>Addresses you can pick at checkout.</p>
       </div>
 
       <div className="dashboard-grid-two" style={{ marginTop: "1.5rem" }}>

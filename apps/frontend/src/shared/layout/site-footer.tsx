@@ -25,7 +25,7 @@ export function SiteFooter(): ReactNode {
             alt="Midas Basket"
           />
           <span>Midas Basket</span>
-          <p>Fast, secure, premium ecommerce foundation.</p>
+          <p>Groceries and everyday essentials, delivered.</p>
           <SocialLinkList
             links={contact?.socialLinks ?? []}
             className="site-footer-social"

@@ -62,10 +62,10 @@ const products = [
 export const homepagePreviewData: HomepagePayload = {
   carousel: [],
   hero: {
-    eyebrow: "Premium essentials, delivered fast",
-    title: "Modern shopping for everyday wins",
+    eyebrow: "Groceries and everyday essentials",
+    title: "Everything for your basket, delivered",
     description:
-      "A fast, secure, mobile-first ecommerce experience for curated products, trusted brands, and smooth checkout.",
+      "Shop groceries, home care, and beauty from brands you know. Pay cash on delivery.",
     primaryAction: { href: "/products", label: "Shop products" },
     secondaryAction: { href: "/offers", label: "View offers" },
     image: placeholderImage,
@@ -113,22 +113,22 @@ export const homepagePreviewData: HomepagePayload = {
   ],
   whyChooseUs: [
     {
-      id: "secure",
-      title: "Security-led platform",
+      id: "cash-on-delivery",
+      title: "Cash on delivery",
       description:
-        "Backend-first authorization, HTTP-only session strategy, strict validation, and audit-ready foundations.",
+        "Pay when your order arrives. No card needed.",
     },
     {
-      id: "fast",
-      title: "Built for speed",
+      id: "tracking",
+      title: "Order tracking",
       description:
-        "SSR-friendly sections, cache-backed homepage planning, lean interactions, and semantic HTML.",
+        "Follow every order from packing to your door with a tracking code.",
     },
     {
-      id: "curated",
-      title: "Curated buying experience",
+      id: "brands",
+      title: "Brands you know",
       description:
-        "Clear category paths, product highlights, trusted brands, and friction-light shopping journeys.",
+        "Products from established brands, sorted by category so they are easy to find.",
     },
   ],
   generatedAt: new Date(0).toISOString(),

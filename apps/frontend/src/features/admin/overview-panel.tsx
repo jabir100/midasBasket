@@ -27,8 +27,7 @@ export function OverviewPanel(): ReactNode {
               margin: "0.25rem 0 0",
             }}
           >
-            Operational analytics, account management, order lifecycle, and
-            homepage settings.
+            Sales, orders, and recent activity.
           </p>
         </div>
       </div>
