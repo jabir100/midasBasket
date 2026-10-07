@@ -1,11 +1,34 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseEnv } from "node:util";
+
+/*
+ * This script runs under plain Node before `vite build`, so Vite has not
+ * loaded the .env files yet. Mirror Vite's precedence: real environment
+ * variables (e.g. set in the hosting dashboard) win, then the more specific
+ * file wins.
+ */
+for (const file of [
+  ".env.production.local",
+  ".env.local",
+  ".env.production",
+  ".env",
+]) {
+  const path = join(process.cwd(), file);
+  if (!existsSync(path)) continue;
+
+  for (const [key, value] of Object.entries(
+    parseEnv(readFileSync(path, "utf8")),
+  )) {
+    process.env[key] ??= value;
+  }
+}
 
 const siteUrl = (
   process.env.VITE_PUBLIC_SITE_URL ?? "http://localhost:3000"
 ).replace(/\/+$/, "");
 
-const publicRoutes = ["/", "/products", "/categories", "/brands"];
+const publicRoutes = ["/", "/products", "/categories", "/brands", "/contact"];
 const lastModified = new Date().toISOString().slice(0, 10);
 
 const sitemapEntries = publicRoutes

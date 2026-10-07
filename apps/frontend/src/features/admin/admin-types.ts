@@ -11,7 +11,8 @@ export type AdminPanel =
   | "brands"
   | "homepage"
   | "users"
-  | "orders";
+  | "orders"
+  | "messages";
 
 export const orderStatuses = [
   "placed",

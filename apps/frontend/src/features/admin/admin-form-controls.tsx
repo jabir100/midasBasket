@@ -177,17 +177,20 @@ export function AdminSelect({
 export function AdminSwitch({
   children,
   className,
+  isDisabled,
   isSelected,
   onChange,
 }: Readonly<{
   children: ReactNode;
   className?: string;
+  isDisabled?: boolean;
   isSelected: boolean;
   onChange: (isSelected: boolean) => void;
 }>): ReactNode {
   return (
     <Switch
       className={["admin-switch", className].filter(Boolean).join(" ")}
+      {...(isDisabled !== undefined ? { isDisabled } : {})}
       isSelected={isSelected}
       onChange={onChange}
     >

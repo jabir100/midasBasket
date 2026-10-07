@@ -1,4 +1,8 @@
 import { apiClient } from "../../shared/http/api-client.js";
+import type {
+  ContactDetails,
+  SocialPlatform,
+} from "../contact/contact-api.js";
 
 export type AdminSummary = {
   users: {
@@ -483,6 +487,155 @@ export async function deleteAdminTestimonial(
   testimonialId: string,
 ): Promise<void> {
   await apiClient.delete(`/homepage/admin/testimonials/${testimonialId}`);
+}
+
+export type AdminSocialLink = {
+  id: string;
+  platform: SocialPlatform;
+  url: string;
+  label: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type AdminSocialLinkInput = {
+  platform: SocialPlatform;
+  url: string;
+  label?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+};
+
+export type ContactMessageStatus = "new" | "read" | "resolved";
+
+export type AdminContactMessageSummary = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string;
+  preview: string;
+  status: ContactMessageStatus;
+  createdAt?: string;
+};
+
+export type AdminContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string;
+  message: string;
+  status: ContactMessageStatus;
+  adminNote: string;
+  readAt: string | null;
+  userId: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type AdminContactMessagesPage = {
+  messages: AdminContactMessageSummary[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+    unread: number;
+  };
+};
+
+export async function getAdminContactDetails(): Promise<ContactDetails> {
+  const response = await apiClient.get<ApiSuccess<{ details: ContactDetails }>>(
+    "/contact/admin/details",
+  );
+  return response.data.data.details;
+}
+
+export async function updateAdminContactDetails(
+  input: ContactDetails,
+): Promise<ContactDetails> {
+  const response = await apiClient.put<ApiSuccess<{ details: ContactDetails }>>(
+    "/contact/admin/details",
+    input,
+  );
+  return response.data.data.details;
+}
+
+export async function listAdminSocialLinks(): Promise<AdminSocialLink[]> {
+  const response = await apiClient.get<
+    ApiSuccess<{ socialLinks: AdminSocialLink[] }>
+  >("/contact/admin/social-links");
+  return response.data.data.socialLinks;
+}
+
+export async function createAdminSocialLink(
+  input: AdminSocialLinkInput,
+): Promise<AdminSocialLink> {
+  const response = await apiClient.post<
+    ApiSuccess<{ socialLink: AdminSocialLink }>
+  >("/contact/admin/social-links", input);
+  return response.data.data.socialLink;
+}
+
+export async function updateAdminSocialLink(
+  linkId: string,
+  input: Partial<AdminSocialLinkInput>,
+): Promise<AdminSocialLink> {
+  const response = await apiClient.patch<
+    ApiSuccess<{ socialLink: AdminSocialLink }>
+  >(`/contact/admin/social-links/${linkId}`, input);
+  return response.data.data.socialLink;
+}
+
+export async function deleteAdminSocialLink(linkId: string): Promise<void> {
+  await apiClient.delete(`/contact/admin/social-links/${linkId}`);
+}
+
+export async function listAdminContactMessages(input?: {
+  page?: number;
+  limit?: number;
+  status?: ContactMessageStatus;
+  search?: string;
+}): Promise<AdminContactMessagesPage> {
+  const response = await apiClient.get<
+    ApiSuccess<{ messages: AdminContactMessageSummary[] }> & {
+      meta: AdminContactMessagesPage["meta"];
+    }
+  >("/contact/admin/messages", { params: input });
+  return {
+    messages: response.data.data.messages,
+    meta: response.data.meta,
+  };
+}
+
+export async function getAdminContactMessage(
+  messageId: string,
+): Promise<AdminContactMessage> {
+  const response = await apiClient.get<
+    ApiSuccess<{ message: AdminContactMessage }>
+  >(`/contact/admin/messages/${messageId}`);
+  return response.data.data.message;
+}
+
+export async function updateAdminContactMessage(
+  messageId: string,
+  input: { status?: ContactMessageStatus; adminNote?: string },
+): Promise<AdminContactMessage> {
+  const response = await apiClient.patch<
+    ApiSuccess<{ message: AdminContactMessage }>
+  >(`/contact/admin/messages/${messageId}`, input);
+  return response.data.data.message;
+}
+
+export async function deleteAdminContactMessage(
+  messageId: string,
+): Promise<void> {
+  await apiClient.delete(`/contact/admin/messages/${messageId}`);
 }
 
 function toMultipartPayload<T extends Record<string, unknown>>(

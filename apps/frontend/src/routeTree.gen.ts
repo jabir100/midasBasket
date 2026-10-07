@@ -16,11 +16,11 @@ import { Route as BrandsRouteImport } from './routes/brands'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OrdersRouteImport } from './routes/orders'
-import { Route as ProductsRouteImport } from './routes/products'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TrackRouteImport } from './routes/track'
@@ -28,6 +28,7 @@ import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminBrandsRouteImport } from './routes/admin_.brands'
 import { Route as AdminCategoriesRouteImport } from './routes/admin_.categories'
 import { Route as AdminHomepageRouteImport } from './routes/admin_.homepage'
+import { Route as AdminMessagesRouteImport } from './routes/admin_.messages'
 import { Route as AdminOrdersRouteImport } from './routes/admin_.orders'
 import { Route as AdminProductsRouteImport } from './routes/admin_.products'
 import { Route as AdminUsersRouteImport } from './routes/admin_.users'
@@ -36,6 +37,7 @@ import { Route as DashboardInvoicesRouteImport } from './routes/dashboard_.invoi
 import { Route as DashboardOrdersRouteImport } from './routes/dashboard_.orders'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard_.profile'
 import { Route as DashboardWishlistRouteImport } from './routes/dashboard_.wishlist'
+import { Route as ProductsIndexRouteImport } from './routes/products/index'
 import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
 import { Route as AdminBrandsBrandIdRouteImport } from './routes/admin_.brands_.$brandId'
 import { Route as AdminBrandsNewRouteImport } from './routes/admin_.brands_.new'
@@ -43,8 +45,11 @@ import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/admin_.c
 import { Route as AdminCategoriesNewRouteImport } from './routes/admin_.categories_.new'
 import { Route as AdminHomepageBestSellingRouteImport } from './routes/admin_.homepage_.best-selling'
 import { Route as AdminHomepageCarouselRouteImport } from './routes/admin_.homepage_.carousel'
+import { Route as AdminHomepageContactDetailsRouteImport } from './routes/admin_.homepage_.contact-details'
 import { Route as AdminHomepagePopularProductsRouteImport } from './routes/admin_.homepage_.popular-products'
+import { Route as AdminHomepageSocialLinksRouteImport } from './routes/admin_.homepage_.social-links'
 import { Route as AdminHomepageWhyChooseUsRouteImport } from './routes/admin_.homepage_.why-choose-us'
+import { Route as AdminMessagesMessageIdRouteImport } from './routes/admin_.messages_.$messageId'
 import { Route as AdminOrdersOrderIdRouteImport } from './routes/admin_.orders_.$orderId'
 import { Route as AdminProductsProductIdRouteImport } from './routes/admin_.products_.$productId'
 import { Route as AdminProductsNewRouteImport } from './routes/admin_.products_.new'
@@ -84,6 +89,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -102,11 +112,6 @@ const LoginRoute = LoginRouteImport.update({
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -142,6 +147,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
 const AdminHomepageRoute = AdminHomepageRouteImport.update({
   id: '/admin_/homepage',
   path: '/admin/homepage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMessagesRoute = AdminMessagesRouteImport.update({
+  id: '/admin_/messages',
+  path: '/admin/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
@@ -184,10 +194,15 @@ const DashboardWishlistRoute = DashboardWishlistRouteImport.update({
   path: '/dashboard/wishlist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ProductsRoute,
+  id: '/products/$slug',
+  path: '/products/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminBrandsBrandIdRoute = AdminBrandsBrandIdRouteImport.update({
   id: '/admin_/brands_/$brandId',
@@ -221,10 +236,22 @@ const AdminHomepageCarouselRoute = AdminHomepageCarouselRouteImport.update({
   path: '/admin/homepage/carousel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminHomepageContactDetailsRoute =
+  AdminHomepageContactDetailsRouteImport.update({
+    id: '/admin_/homepage_/contact-details',
+    path: '/admin/homepage/contact-details',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminHomepagePopularProductsRoute =
   AdminHomepagePopularProductsRouteImport.update({
     id: '/admin_/homepage_/popular-products',
     path: '/admin/homepage/popular-products',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminHomepageSocialLinksRoute =
+  AdminHomepageSocialLinksRouteImport.update({
+    id: '/admin_/homepage_/social-links',
+    path: '/admin/homepage/social-links',
     getParentRoute: () => rootRouteImport,
   } as any)
 const AdminHomepageWhyChooseUsRoute =
@@ -233,6 +260,11 @@ const AdminHomepageWhyChooseUsRoute =
     path: '/admin/homepage/why-choose-us',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminMessagesMessageIdRoute = AdminMessagesMessageIdRouteImport.update({
+  id: '/admin_/messages_/$messageId',
+  path: '/admin/messages/$messageId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminOrdersOrderIdRoute = AdminOrdersOrderIdRouteImport.update({
   id: '/admin_/orders_/$orderId',
   path: '/admin/orders/$orderId',
@@ -257,11 +289,11 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
-  '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
@@ -269,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -278,14 +311,18 @@ export interface FileRoutesByFullPath {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/wishlist': typeof DashboardWishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/products/': typeof ProductsIndexRoute
   '/admin/brands/$brandId': typeof AdminBrandsBrandIdRoute
   '/admin/brands/new': typeof AdminBrandsNewRoute
   '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
   '/admin/homepage/best-selling': typeof AdminHomepageBestSellingRoute
   '/admin/homepage/carousel': typeof AdminHomepageCarouselRoute
+  '/admin/homepage/contact-details': typeof AdminHomepageContactDetailsRoute
   '/admin/homepage/popular-products': typeof AdminHomepagePopularProductsRoute
+  '/admin/homepage/social-links': typeof AdminHomepageSocialLinksRoute
   '/admin/homepage/why-choose-us': typeof AdminHomepageWhyChooseUsRoute
+  '/admin/messages/$messageId': typeof AdminMessagesMessageIdRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
@@ -298,11 +335,11 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
-  '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
@@ -310,6 +347,7 @@ export interface FileRoutesByTo {
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/messages': typeof AdminMessagesRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -319,14 +357,18 @@ export interface FileRoutesByTo {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/wishlist': typeof DashboardWishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/products': typeof ProductsIndexRoute
   '/admin/brands/$brandId': typeof AdminBrandsBrandIdRoute
   '/admin/brands/new': typeof AdminBrandsNewRoute
   '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
   '/admin/homepage/best-selling': typeof AdminHomepageBestSellingRoute
   '/admin/homepage/carousel': typeof AdminHomepageCarouselRoute
+  '/admin/homepage/contact-details': typeof AdminHomepageContactDetailsRoute
   '/admin/homepage/popular-products': typeof AdminHomepagePopularProductsRoute
+  '/admin/homepage/social-links': typeof AdminHomepageSocialLinksRoute
   '/admin/homepage/why-choose-us': typeof AdminHomepageWhyChooseUsRoute
+  '/admin/messages/$messageId': typeof AdminMessagesMessageIdRoute
   '/admin/orders/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRoute
   '/admin/products/new': typeof AdminProductsNewRoute
@@ -340,11 +382,11 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRoute
-  '/products': typeof ProductsRouteWithChildren
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
@@ -352,6 +394,7 @@ export interface FileRoutesById {
   '/admin_/brands': typeof AdminBrandsRoute
   '/admin_/categories': typeof AdminCategoriesRoute
   '/admin_/homepage': typeof AdminHomepageRoute
+  '/admin_/messages': typeof AdminMessagesRoute
   '/admin_/orders': typeof AdminOrdersRoute
   '/admin_/products': typeof AdminProductsRoute
   '/admin_/users': typeof AdminUsersRoute
@@ -361,14 +404,18 @@ export interface FileRoutesById {
   '/dashboard_/profile': typeof DashboardProfileRoute
   '/dashboard_/wishlist': typeof DashboardWishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/products/': typeof ProductsIndexRoute
   '/admin_/brands_/$brandId': typeof AdminBrandsBrandIdRoute
   '/admin_/brands_/new': typeof AdminBrandsNewRoute
   '/admin_/categories_/$categoryId': typeof AdminCategoriesCategoryIdRoute
   '/admin_/categories_/new': typeof AdminCategoriesNewRoute
   '/admin_/homepage_/best-selling': typeof AdminHomepageBestSellingRoute
   '/admin_/homepage_/carousel': typeof AdminHomepageCarouselRoute
+  '/admin_/homepage_/contact-details': typeof AdminHomepageContactDetailsRoute
   '/admin_/homepage_/popular-products': typeof AdminHomepagePopularProductsRoute
+  '/admin_/homepage_/social-links': typeof AdminHomepageSocialLinksRoute
   '/admin_/homepage_/why-choose-us': typeof AdminHomepageWhyChooseUsRoute
+  '/admin_/messages_/$messageId': typeof AdminMessagesMessageIdRoute
   '/admin_/orders_/$orderId': typeof AdminOrdersOrderIdRoute
   '/admin_/products_/$productId': typeof AdminProductsProductIdRoute
   '/admin_/products_/new': typeof AdminProductsNewRoute
@@ -383,11 +430,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/checkout'
+    | '/contact'
     | '/dashboard'
     | '/forgot-password'
     | '/login'
     | '/orders'
-    | '/products'
     | '/register'
     | '/reset-password'
     | '/track'
@@ -395,6 +442,7 @@ export interface FileRouteTypes {
     | '/admin/brands'
     | '/admin/categories'
     | '/admin/homepage'
+    | '/admin/messages'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/users'
@@ -404,14 +452,18 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/wishlist'
     | '/products/$slug'
+    | '/products/'
     | '/admin/brands/$brandId'
     | '/admin/brands/new'
     | '/admin/categories/$categoryId'
     | '/admin/categories/new'
     | '/admin/homepage/best-selling'
     | '/admin/homepage/carousel'
+    | '/admin/homepage/contact-details'
     | '/admin/homepage/popular-products'
+    | '/admin/homepage/social-links'
     | '/admin/homepage/why-choose-us'
+    | '/admin/messages/$messageId'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
@@ -424,11 +476,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/checkout'
+    | '/contact'
     | '/dashboard'
     | '/forgot-password'
     | '/login'
     | '/orders'
-    | '/products'
     | '/register'
     | '/reset-password'
     | '/track'
@@ -436,6 +488,7 @@ export interface FileRouteTypes {
     | '/admin/brands'
     | '/admin/categories'
     | '/admin/homepage'
+    | '/admin/messages'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/users'
@@ -445,14 +498,18 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/wishlist'
     | '/products/$slug'
+    | '/products'
     | '/admin/brands/$brandId'
     | '/admin/brands/new'
     | '/admin/categories/$categoryId'
     | '/admin/categories/new'
     | '/admin/homepage/best-selling'
     | '/admin/homepage/carousel'
+    | '/admin/homepage/contact-details'
     | '/admin/homepage/popular-products'
+    | '/admin/homepage/social-links'
     | '/admin/homepage/why-choose-us'
+    | '/admin/messages/$messageId'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
     | '/admin/products/new'
@@ -465,11 +522,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/checkout'
+    | '/contact'
     | '/dashboard'
     | '/forgot-password'
     | '/login'
     | '/orders'
-    | '/products'
     | '/register'
     | '/reset-password'
     | '/track'
@@ -477,6 +534,7 @@ export interface FileRouteTypes {
     | '/admin_/brands'
     | '/admin_/categories'
     | '/admin_/homepage'
+    | '/admin_/messages'
     | '/admin_/orders'
     | '/admin_/products'
     | '/admin_/users'
@@ -486,14 +544,18 @@ export interface FileRouteTypes {
     | '/dashboard_/profile'
     | '/dashboard_/wishlist'
     | '/products/$slug'
+    | '/products/'
     | '/admin_/brands_/$brandId'
     | '/admin_/brands_/new'
     | '/admin_/categories_/$categoryId'
     | '/admin_/categories_/new'
     | '/admin_/homepage_/best-selling'
     | '/admin_/homepage_/carousel'
+    | '/admin_/homepage_/contact-details'
     | '/admin_/homepage_/popular-products'
+    | '/admin_/homepage_/social-links'
     | '/admin_/homepage_/why-choose-us'
+    | '/admin_/messages_/$messageId'
     | '/admin_/orders_/$orderId'
     | '/admin_/products_/$productId'
     | '/admin_/products_/new'
@@ -507,11 +569,11 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CategoriesRoute: typeof CategoriesRoute
   CheckoutRoute: typeof CheckoutRoute
+  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OrdersRoute: typeof OrdersRoute
-  ProductsRoute: typeof ProductsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TrackRoute: typeof TrackRoute
@@ -519,6 +581,7 @@ export interface RootRouteChildren {
   AdminBrandsRoute: typeof AdminBrandsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
+  AdminMessagesRoute: typeof AdminMessagesRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -527,14 +590,19 @@ export interface RootRouteChildren {
   DashboardOrdersRoute: typeof DashboardOrdersRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardWishlistRoute: typeof DashboardWishlistRoute
+  ProductsSlugRoute: typeof ProductsSlugRoute
+  ProductsIndexRoute: typeof ProductsIndexRoute
   AdminBrandsBrandIdRoute: typeof AdminBrandsBrandIdRoute
   AdminBrandsNewRoute: typeof AdminBrandsNewRoute
   AdminCategoriesCategoryIdRoute: typeof AdminCategoriesCategoryIdRoute
   AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
   AdminHomepageBestSellingRoute: typeof AdminHomepageBestSellingRoute
   AdminHomepageCarouselRoute: typeof AdminHomepageCarouselRoute
+  AdminHomepageContactDetailsRoute: typeof AdminHomepageContactDetailsRoute
   AdminHomepagePopularProductsRoute: typeof AdminHomepagePopularProductsRoute
+  AdminHomepageSocialLinksRoute: typeof AdminHomepageSocialLinksRoute
   AdminHomepageWhyChooseUsRoute: typeof AdminHomepageWhyChooseUsRoute
+  AdminMessagesMessageIdRoute: typeof AdminMessagesMessageIdRoute
   AdminOrdersOrderIdRoute: typeof AdminOrdersOrderIdRoute
   AdminProductsProductIdRoute: typeof AdminProductsProductIdRoute
   AdminProductsNewRoute: typeof AdminProductsNewRoute
@@ -591,6 +659,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -617,13 +692,6 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof OrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -673,6 +741,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/homepage'
       fullPath: '/admin/homepage'
       preLoaderRoute: typeof AdminHomepageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/messages': {
+      id: '/admin_/messages'
+      path: '/admin/messages'
+      fullPath: '/admin/messages'
+      preLoaderRoute: typeof AdminMessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/orders': {
@@ -731,12 +806,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardWishlistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/products/': {
+      id: '/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products/$slug': {
       id: '/products/$slug'
-      path: '/$slug'
+      path: '/products/$slug'
       fullPath: '/products/$slug'
       preLoaderRoute: typeof ProductsSlugRouteImport
-      parentRoute: typeof ProductsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin_/brands_/$brandId': {
       id: '/admin_/brands_/$brandId'
@@ -780,6 +862,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminHomepageCarouselRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/homepage_/contact-details': {
+      id: '/admin_/homepage_/contact-details'
+      path: '/admin/homepage/contact-details'
+      fullPath: '/admin/homepage/contact-details'
+      preLoaderRoute: typeof AdminHomepageContactDetailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/homepage_/popular-products': {
       id: '/admin_/homepage_/popular-products'
       path: '/admin/homepage/popular-products'
@@ -787,11 +876,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminHomepagePopularProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin_/homepage_/social-links': {
+      id: '/admin_/homepage_/social-links'
+      path: '/admin/homepage/social-links'
+      fullPath: '/admin/homepage/social-links'
+      preLoaderRoute: typeof AdminHomepageSocialLinksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin_/homepage_/why-choose-us': {
       id: '/admin_/homepage_/why-choose-us'
       path: '/admin/homepage/why-choose-us'
       fullPath: '/admin/homepage/why-choose-us'
       preLoaderRoute: typeof AdminHomepageWhyChooseUsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_/messages_/$messageId': {
+      id: '/admin_/messages_/$messageId'
+      path: '/admin/messages/$messageId'
+      fullPath: '/admin/messages/$messageId'
+      preLoaderRoute: typeof AdminMessagesMessageIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin_/orders_/$orderId': {
@@ -818,18 +921,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ProductsRouteChildren {
-  ProductsSlugRoute: typeof ProductsSlugRoute
-}
-
-const ProductsRouteChildren: ProductsRouteChildren = {
-  ProductsSlugRoute: ProductsSlugRoute,
-}
-
-const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
-  ProductsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
@@ -838,11 +929,11 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CategoriesRoute: CategoriesRoute,
   CheckoutRoute: CheckoutRoute,
+  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OrdersRoute: OrdersRoute,
-  ProductsRoute: ProductsRouteWithChildren,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TrackRoute: TrackRoute,
@@ -850,6 +941,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminBrandsRoute: AdminBrandsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminHomepageRoute: AdminHomepageRoute,
+  AdminMessagesRoute: AdminMessagesRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminUsersRoute: AdminUsersRoute,
@@ -858,14 +950,19 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardOrdersRoute: DashboardOrdersRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardWishlistRoute: DashboardWishlistRoute,
+  ProductsSlugRoute: ProductsSlugRoute,
+  ProductsIndexRoute: ProductsIndexRoute,
   AdminBrandsBrandIdRoute: AdminBrandsBrandIdRoute,
   AdminBrandsNewRoute: AdminBrandsNewRoute,
   AdminCategoriesCategoryIdRoute: AdminCategoriesCategoryIdRoute,
   AdminCategoriesNewRoute: AdminCategoriesNewRoute,
   AdminHomepageBestSellingRoute: AdminHomepageBestSellingRoute,
   AdminHomepageCarouselRoute: AdminHomepageCarouselRoute,
+  AdminHomepageContactDetailsRoute: AdminHomepageContactDetailsRoute,
   AdminHomepagePopularProductsRoute: AdminHomepagePopularProductsRoute,
+  AdminHomepageSocialLinksRoute: AdminHomepageSocialLinksRoute,
   AdminHomepageWhyChooseUsRoute: AdminHomepageWhyChooseUsRoute,
+  AdminMessagesMessageIdRoute: AdminMessagesMessageIdRoute,
   AdminOrdersOrderIdRoute: AdminOrdersOrderIdRoute,
   AdminProductsProductIdRoute: AdminProductsProductIdRoute,
   AdminProductsNewRoute: AdminProductsNewRoute,

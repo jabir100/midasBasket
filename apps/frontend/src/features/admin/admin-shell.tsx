@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Home,
+  Inbox,
   LayoutGrid,
   LogOut,
   Menu,
@@ -49,6 +50,7 @@ export function AdminShell({
     { id: "homepage", label: "Homepage", to: "/admin/homepage", icon: <Home size={18} /> },
     { id: "users", label: "Users", to: "/admin/users", icon: <Users size={18} /> },
     { id: "orders", label: "Orders", to: "/admin/orders", icon: <ShoppingCart size={18} /> },
+    { id: "messages", label: "Messages", to: "/admin/messages", icon: <Inbox size={18} /> },
   ];
 
   function isActive(itemPath: string): boolean {

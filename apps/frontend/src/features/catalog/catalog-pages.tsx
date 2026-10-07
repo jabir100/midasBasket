@@ -58,7 +58,7 @@ function TaxonomySkeletonGrid(): ReactNode {
 export function CatalogPage(): ReactNode {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const search = useSearch({ from: "/products" });
+  const search = useSearch({ from: "/products/" });
 
   const [availability, setAvailability] = useState<"all" | "in" | "out">("all");
   const [priceCap, setPriceCap] = useState(100000);
@@ -361,12 +361,16 @@ export function ProductDetailPage({
         name: product.name,
         sku: product.sku,
         description: product.shortDescription ?? product.description,
-        image: product.images.map((image) => image.url),
+        image: product.images.map((image) =>
+          image.url.startsWith("/") ? toAbsoluteUrl(image.url) : image.url,
+        ),
         offers: {
           "@type": "Offer",
           priceCurrency: "BDT",
           price: product.price.toFixed(2),
-          availability: "https://schema.org/InStock",
+          availability: isProductInStock
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
           url: toAbsoluteUrl(`/products/${slug}`),
         },
       }
@@ -537,9 +541,7 @@ export function CategoriesPage(): ReactNode {
               name={category.name}
               href={`/products?category=${category.slug}`}
               variant="category"
-              {...(category.image
-                ? { image: category.image }
-                : {})}
+              {...(category.image ? { image: category.image } : {})}
             />
           ))}
         </div>
@@ -739,16 +741,26 @@ function TaxonomyTile({
   return (
     <a className={cardClass} href={href}>
       {image ? (
-        <img className={imageClass} src={image.url} alt={image.alt} loading="lazy" />
+        <img
+          className={imageClass}
+          src={image.url}
+          alt={image.alt}
+          loading="lazy"
+        />
       ) : (
-        <span className={`${imageClass} taxonomy-tile-placeholder`} aria-hidden="true">
+        <span
+          className={`${imageClass} taxonomy-tile-placeholder`}
+          aria-hidden="true"
+        >
           {name.charAt(0)}
         </span>
       )}
       <span className={overlayClass} aria-hidden="true" />
       <div className={contentClass}>
         <span>{name}</span>
-        <strong>{variant === "category" ? "Shop category" : "Featured brand"}</strong>
+        <strong>
+          {variant === "category" ? "Shop category" : "Featured brand"}
+        </strong>
       </div>
       <span className={ctaClass}>View Products</span>
     </a>

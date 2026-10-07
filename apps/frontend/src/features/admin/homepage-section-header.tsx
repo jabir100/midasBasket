@@ -3,9 +3,14 @@ import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function HomepageSectionHeader({
+  action,
   title,
   description,
-}: Readonly<{ title: string; description: string }>): ReactNode {
+}: Readonly<{
+  action?: ReactNode;
+  title: string;
+  description: string;
+}>): ReactNode {
   return (
     <div className="section-heading">
       <div>
@@ -27,6 +32,7 @@ export function HomepageSectionHeader({
         <h3 className="admin-section-title">{title}</h3>
         <p className="admin-section-copy">{description}</p>
       </div>
+      {action}
     </div>
   );
 }
