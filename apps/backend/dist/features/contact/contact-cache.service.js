@@ -1,4 +1,4 @@
-import { getRedisClient } from "../../core/database/redis.js";
+import { getRedisClient, withRedisTimeout } from "../../core/database/redis.js";
 import { logger } from "../../core/logging/logger.js";
 const CONTACT_CACHE_KEY = "contact:v1:public";
 const CONTACT_CACHE_TTL = 3600;
@@ -8,7 +8,7 @@ export async function getContactCache() {
         return null;
     }
     try {
-        return await redis.get(CONTACT_CACHE_KEY);
+        return await withRedisTimeout(redis.get(CONTACT_CACHE_KEY));
     }
     catch (error) {
         logger.error({ error }, "Failed to read contact cache");
@@ -21,7 +21,7 @@ export async function setContactCache(payload) {
         return;
     }
     try {
-        await redis.set(CONTACT_CACHE_KEY, payload, { EX: CONTACT_CACHE_TTL });
+        await withRedisTimeout(redis.set(CONTACT_CACHE_KEY, payload, { EX: CONTACT_CACHE_TTL }));
     }
     catch (error) {
         logger.error({ error }, "Failed to write contact cache");
@@ -33,7 +33,7 @@ export async function invalidateContactCache(reason) {
         return;
     }
     try {
-        await redis.del(CONTACT_CACHE_KEY);
+        await withRedisTimeout(redis.del(CONTACT_CACHE_KEY));
         logger.info({ reason, key: CONTACT_CACHE_KEY }, "Contact cache invalidated");
     }
     catch (error) {

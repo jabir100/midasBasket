@@ -9,6 +9,9 @@ import { AppError } from "../errors/app-error.js";
 
 const corsOptions: CorsOptions = {
   credentials: true,
+  // Let browsers cache preflights (Chrome caps this at 2h) instead of sending
+  // an OPTIONS round trip before nearly every authenticated request.
+  maxAge: 600,
   origin(
     origin: string | undefined,
     callback: (error: Error | null, allow?: boolean) => void,

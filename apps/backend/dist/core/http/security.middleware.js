@@ -6,6 +6,9 @@ import { env } from "../config/env.js";
 import { AppError } from "../errors/app-error.js";
 const corsOptions = {
     credentials: true,
+    // Let browsers cache preflights (Chrome caps this at 2h) instead of sending
+    // an OPTIONS round trip before nearly every authenticated request.
+    maxAge: 600,
     origin(origin, callback) {
         if (!origin || env.CLIENT_ORIGINS.includes(origin)) {
             callback(null, true);
