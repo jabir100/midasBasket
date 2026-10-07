@@ -66,7 +66,7 @@ export function ConfirmDialogHost(): ReactNode {
       }}
     >
       <Modal.Backdrop>
-        <Modal.Container size="sm">
+        <Modal.Container size="sm" placement="center">
           <Modal.Dialog role="alertdialog" className="confirm-dialog">
             {request ? (
               <>

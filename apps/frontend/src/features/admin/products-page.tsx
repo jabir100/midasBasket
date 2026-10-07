@@ -42,6 +42,9 @@ export function AdminProductsPage(): ReactNode {
       await queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
       toast.success("Product visibility updated");
     },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not update visibility");
+    },
   });
 
   const deleteProductMutation = useMutation({
@@ -65,7 +68,11 @@ export function AdminProductsPage(): ReactNode {
         categories={categoriesQuery.data ?? []}
         brands={brandsQuery.data ?? []}
         isLoading={productsQuery.isLoading}
-        isTogglingPublish={toggleProductPublishMutation.isPending}
+        togglingProductId={
+          toggleProductPublishMutation.isPending
+            ? toggleProductPublishMutation.variables.productId
+            : null
+        }
         isDeleting={deleteProductMutation.isPending}
         search={productSearch}
         onSearchChange={setProductSearch}

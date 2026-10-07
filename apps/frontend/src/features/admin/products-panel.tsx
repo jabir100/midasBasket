@@ -5,8 +5,6 @@ import {
   Pencil,
   Plus,
   Search,
-  ToggleLeft,
-  ToggleRight,
   Trash2,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -17,30 +15,30 @@ import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { confirmDialog } from "../../shared/ui/confirm-dialog.js";
 import type { AdminProduct, AdminTaxonomy } from "./admin-api.js";
-import { AdminSearchInput } from "./admin-form-controls.js";
+import { AdminSearchInput, AdminSwitch } from "./admin-form-controls.js";
 
 export function ProductsPanel({
   brands,
   categories,
   isDeleting,
   isLoading,
-  isTogglingPublish,
   onDelete,
   onSearchChange,
   onTogglePublish,
   products,
   search,
+  togglingProductId,
 }: Readonly<{
   brands: AdminTaxonomy[];
   categories: AdminTaxonomy[];
   isDeleting: boolean;
   isLoading: boolean;
-  isTogglingPublish: boolean;
   onDelete: (product: AdminProduct) => void;
   onSearchChange: (value: string) => void;
   onTogglePublish: (product: AdminProduct) => void;
   products: AdminProduct[];
   search: string;
+  togglingProductId: string | null;
 }>): ReactNode {
   const [viewingProduct, setViewingProduct] = useState<AdminProduct | null>(
     null,
@@ -53,14 +51,7 @@ export function ProductsPanel({
 
   return (
     <div className="dashboard-pane-content">
-      <div
-        className="section-heading"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div className="section-heading admin-page-heading">
         <div>
           <h3 className="admin-section-title">Product management</h3>
           <p className="admin-section-copy">
@@ -115,7 +106,10 @@ export function ProductsPanel({
                 </thead>
                 <tbody>
                   {products.map((product) => (
-                    <tr key={product._id}>
+                    <tr
+                      key={product._id}
+                      className={product.isPublished ? undefined : "is-muted"}
+                    >
                       <td>
                         <div
                           style={{
@@ -158,11 +152,14 @@ export function ProductsPanel({
                         ) : null}
                       </td>
                       <td>
-                        <span
-                          className={`admin-pill ${product.isPublished ? "active" : "inactive"}`}
-                        >
-                          {product.isPublished ? "Published" : "Draft"}
-                        </span>
+                        <AdminSwitch
+                          aria-label={`Publish ${product.name}`}
+                          isSelected={product.isPublished}
+                          isDisabled={togglingProductId === product._id}
+                          onChange={() => {
+                            onTogglePublish(product);
+                          }}
+                        />
                       </td>
                       <td>
                         <div className="admin-row-actions">
@@ -190,26 +187,6 @@ export function ProductsPanel({
                               Edit
                             </Button>
                           </Link>
-                          <Button
-                            iconOnly
-                            tone={product.isPublished ? "secondary" : "ghost"}
-                            title={
-                              product.isPublished ? "Unpublish" : "Publish"
-                            }
-                            disabled={isTogglingPublish}
-                            onClick={() => {
-                              onTogglePublish(product);
-                            }}
-                            startContent={
-                              product.isPublished ? (
-                                <ToggleRight size={16} />
-                              ) : (
-                                <ToggleLeft size={16} />
-                              )
-                            }
-                          >
-                            Toggle publish
-                          </Button>
                           <Button
                             iconOnly
                             tone="ghost"

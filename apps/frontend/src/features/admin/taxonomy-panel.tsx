@@ -8,7 +8,9 @@ import { Button } from "../../shared/ui/button.js";
 import { Card, CardBody } from "../../shared/ui/card.js";
 import { confirmDialog } from "../../shared/ui/confirm-dialog.js";
 import type { AdminTaxonomy } from "./admin-api.js";
-import { AdminSearchInput } from "./admin-form-controls.js";
+
+export type TaxonomyToggleField = "isActive" | "isFeatured";
+import { AdminSearchInput, AdminSwitch } from "./admin-form-controls.js";
 
 export function TaxonomyPanel({
   description,
@@ -19,8 +21,10 @@ export function TaxonomyPanel({
   newRoute,
   onDelete,
   onSearchChange,
+  onToggle,
   search,
   title,
+  togglingId,
 }: Readonly<{
   description: string;
   imageLabel: string;
@@ -30,8 +34,14 @@ export function TaxonomyPanel({
   newRoute: string;
   onDelete: (item: AdminTaxonomy) => void;
   onSearchChange: (value: string) => void;
+  onToggle: (
+    item: AdminTaxonomy,
+    field: TaxonomyToggleField,
+    value: boolean,
+  ) => void;
   search: string;
   title: string;
+  togglingId: string | null;
 }>): ReactNode {
   const [viewingItem, setViewingItem] = useState<AdminTaxonomy | null>(null);
 
@@ -70,14 +80,7 @@ export function TaxonomyPanel({
 
   return (
     <div className="dashboard-pane-content">
-      <div
-        className="section-heading"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <div className="section-heading admin-page-heading">
         <div>
           <h3 className="admin-section-title">{title}</h3>
           <p className="admin-section-copy">{description}</p>
@@ -129,9 +132,15 @@ export function TaxonomyPanel({
                 <tbody>
                   {items.map((item) => {
                     const entryImage = resolveItemImage(item);
+                    const isActive = item.isActive ?? true;
+                    const isFeatured = item.isFeatured ?? false;
+                    const isToggling = togglingId === item._id;
 
                     return (
-                      <tr key={item._id}>
+                      <tr
+                        key={item._id}
+                        className={isActive ? undefined : "is-muted"}
+                      >
                         <td>
                           <strong>{item.name}</strong>
                         </td>
@@ -148,18 +157,26 @@ export function TaxonomyPanel({
                           )}
                         </td>
                         <td>
-                          <span
-                            className={`admin-pill ${(item.isActive ?? true) ? "active" : "inactive"}`}
+                          <AdminSwitch
+                            isSelected={isActive}
+                            isDisabled={isToggling}
+                            onChange={(value) => {
+                              onToggle(item, "isActive", value);
+                            }}
                           >
-                            {(item.isActive ?? true) ? "Active" : "Hidden"}
-                          </span>
+                            {isActive ? "Active" : "Hidden"}
+                          </AdminSwitch>
                         </td>
                         <td>
-                          <span
-                            className={`admin-pill ${item.isFeatured ? "featured" : "plain"}`}
+                          <AdminSwitch
+                            isSelected={isFeatured}
+                            isDisabled={isToggling}
+                            onChange={(value) => {
+                              onToggle(item, "isFeatured", value);
+                            }}
                           >
-                            {item.isFeatured ? "Featured" : "Standard"}
-                          </span>
+                            {isFeatured ? "Featured" : "Standard"}
+                          </AdminSwitch>
                         </td>
                         <td>
                           <div className="admin-row-actions">

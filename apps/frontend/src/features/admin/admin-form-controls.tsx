@@ -175,13 +175,16 @@ export function AdminSelect({
 }
 
 export function AdminSwitch({
+  "aria-label": ariaLabel,
   children,
   className,
   isDisabled,
   isSelected,
   onChange,
 }: Readonly<{
-  children: ReactNode;
+  /** Required when there is no visible label (`children`). */
+  "aria-label"?: string;
+  children?: ReactNode;
   className?: string;
   isDisabled?: boolean;
   isSelected: boolean;
@@ -190,6 +193,7 @@ export function AdminSwitch({
   return (
     <Switch
       className={["admin-switch", className].filter(Boolean).join(" ")}
+      {...(ariaLabel !== undefined ? { "aria-label": ariaLabel } : {})}
       {...(isDisabled !== undefined ? { isDisabled } : {})}
       isSelected={isSelected}
       onChange={onChange}
@@ -198,7 +202,7 @@ export function AdminSwitch({
         <Switch.Control>
           <Switch.Thumb />
         </Switch.Control>
-        <span>{children}</span>
+        {children ? <span>{children}</span> : null}
       </Switch.Content>
     </Switch>
   );

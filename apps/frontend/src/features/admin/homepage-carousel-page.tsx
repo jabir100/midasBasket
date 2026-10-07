@@ -227,6 +227,7 @@ export function AdminHomepageCarouselPage(): ReactNode {
                           </td>
                           <td>
                             <AdminSwitch
+                              aria-label={`Show ${slideTitle(slide)} on storefront`}
                               isSelected={slide.isActive}
                               isDisabled={isToggling}
                               onChange={(isActive) => {
@@ -235,9 +236,7 @@ export function AdminHomepageCarouselPage(): ReactNode {
                                   isActive,
                                 });
                               }}
-                            >
-                              {slide.isActive ? "Visible" : "Hidden"}
-                            </AdminSwitch>
+                            />
                           </td>
                           <td>
                             <div className="admin-row-actions">

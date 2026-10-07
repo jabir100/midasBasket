@@ -12,7 +12,7 @@ export function HomepageSectionHeader({
   description: string;
 }>): ReactNode {
   return (
-    <div className="section-heading">
+    <div className="section-heading admin-page-heading">
       <div>
         <Link
           to="/admin/homepage"
