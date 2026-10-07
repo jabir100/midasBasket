@@ -1,6 +1,7 @@
 import { Router, type Router as ExpressRouter } from "express";
 
 import { AppError } from "../../core/errors/app-error.js";
+import { runInBackground } from "../../core/runtime/background-task.js";
 import { getRequestId } from "../../core/http/request-id.middleware.js";
 import { sendSuccess } from "../../core/http/send-response.js";
 import { authenticateAccessToken } from "../auth/authentication.middleware.js";
@@ -211,19 +212,25 @@ adminRouter.patch("/dashboard/users/:id", async (req, res, next) => {
     });
 
     if (input.role) {
-      void notifyRoleChanged({
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      });
+      runInBackground(
+        "notifyRoleChanged",
+        notifyRoleChanged({
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        }),
+      );
     }
 
     if (input.status) {
-      void notifyAccountStatusChanged({
-        email: user.email,
-        name: user.name,
-        status: user.status,
-      });
+      runInBackground(
+        "notifyAccountStatusChanged",
+        notifyAccountStatusChanged({
+          email: user.email,
+          name: user.name,
+          status: user.status,
+        }),
+      );
     }
 
     sendSuccess(res, {
@@ -439,24 +446,27 @@ adminRouter.patch("/dashboard/orders/:id/status", async (req, res, next) => {
     });
 
     if (isStatusChanged) {
-      void notifyOrderStatusChanged(
-        {
-          orderNumber: order.orderNumber,
-          customerName: order.customerName,
-          customerEmail: order.customerEmail,
-          status: order.status,
-          total: order.total,
-          currency: order.currency,
-          items: order.items.map((item) => ({
-            title: item.title,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            lineTotal: item.lineTotal,
-            size: item.size ?? null,
-            color: item.color ?? null,
-          })),
-        },
-        order.userId?.toString(),
+      runInBackground(
+        "notifyOrderStatusChanged",
+        notifyOrderStatusChanged(
+          {
+            orderNumber: order.orderNumber,
+            customerName: order.customerName,
+            customerEmail: order.customerEmail,
+            status: order.status,
+            total: order.total,
+            currency: order.currency,
+            items: order.items.map((item) => ({
+              title: item.title,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              lineTotal: item.lineTotal,
+              size: item.size ?? null,
+              color: item.color ?? null,
+            })),
+          },
+          order.userId?.toString(),
+        ),
       );
     }
 

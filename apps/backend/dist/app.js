@@ -2,13 +2,30 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import express from "express";
 import { env } from "./core/config/env.js";
+import { AppError } from "./core/errors/app-error.js";
 import { errorHandler } from "./core/errors/error-handler.js";
 import { notFoundHandler } from "./core/errors/not-found-handler.js";
 import { requestIdMiddleware } from "./core/http/request-id.middleware.js";
 import { securityMiddleware } from "./core/http/security.middleware.js";
 import { httpLogger } from "./core/logging/http-logger.js";
+import { logger } from "./core/logging/logger.js";
 import { apiRouter } from "./routes/api.router.js";
-export function createApp() {
+function createConnectionGate(ensureConnections) {
+    return (_req, res, next) => {
+        ensureConnections().then(() => {
+            next();
+        }, (error) => {
+            logger.error({ error }, "Backend dependencies are unavailable");
+            res.setHeader("Retry-After", "2");
+            next(new AppError({
+                statusCode: 503,
+                code: "SERVICE_UNAVAILABLE",
+                message: "Service is temporarily unavailable. Please try again.",
+            }));
+        });
+    };
+}
+export function createApp(options = {}) {
     const app = express();
     app.set("trust proxy", env.NODE_ENV === "production" ? 1 : false);
     app.use(requestIdMiddleware);
@@ -25,6 +42,9 @@ export function createApp() {
         res.setHeader("X-Robots-Tag", "noindex, nofollow");
         next();
     });
+    if (options.ensureConnections) {
+        app.use(env.API_BASE_PATH, createConnectionGate(options.ensureConnections));
+    }
     app.use(env.API_BASE_PATH, apiRouter);
     app.use(notFoundHandler);
     app.use(errorHandler);

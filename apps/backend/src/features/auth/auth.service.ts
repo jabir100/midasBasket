@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 
 import { env } from "../../core/config/env.js";
 import { AppError } from "../../core/errors/app-error.js";
+import { runInBackground } from "../../core/runtime/background-task.js";
 import { UserModel } from "../users/user.model.js";
 import { createRefreshTokenCookieOptions } from "./auth-cookie.js";
 import { AuthSessionModel } from "./auth-session.model.js";
@@ -59,7 +60,10 @@ export async function registerCustomer(
     role: "customer",
   });
 
-  void notifyWelcome({ email: user.email, name: user.name });
+  runInBackground(
+    "notifyWelcome",
+    notifyWelcome({ email: user.email, name: user.name }),
+  );
 
   return createAuthResult({
     id: user._id.toString(),
@@ -187,11 +191,14 @@ export async function createPasswordReset(
     expiresAt: new Date(Date.now() + 60 * 60 * 1000),
   });
 
-  void notifyPasswordResetRequested({
-    email: user.email,
-    name: user.name,
-    resetToken,
-  });
+  runInBackground(
+    "notifyPasswordResetRequested",
+    notifyPasswordResetRequested({
+      email: user.email,
+      name: user.name,
+      resetToken,
+    }),
+  );
 
   return env.NODE_ENV === "production" ? {} : { resetToken };
 }
@@ -224,7 +231,10 @@ export async function resetPassword(input: ResetPasswordInput): Promise<void> {
   );
 
   if (user) {
-    void notifyPasswordChanged({ email: user.email, name: user.name });
+    runInBackground(
+      "notifyPasswordChanged",
+      notifyPasswordChanged({ email: user.email, name: user.name }),
+    );
   }
 }
 

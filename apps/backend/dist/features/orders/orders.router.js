@@ -2,6 +2,7 @@ import { Router } from "express";
 import { randomUUID } from "node:crypto";
 import { Types } from "mongoose";
 import { AppError } from "../../core/errors/app-error.js";
+import { runInBackground } from "../../core/runtime/background-task.js";
 import { getRequestId } from "../../core/http/request-id.middleware.js";
 import { sendSuccess } from "../../core/http/send-response.js";
 import { authenticateAccessToken, authenticateOptionalAccessToken, } from "../auth/authentication.middleware.js";
@@ -178,11 +179,11 @@ ordersRouter.post("/checkout", authenticateOptionalAccessToken, async (req, res,
             currency: orderObject.currency,
             items: orderObject.items,
         };
-        void notifyOrderPlaced(notifiableOrder, principal?.userId);
-        void notifyAdminsNewOrder({
+        runInBackground("notifyOrderPlaced", notifyOrderPlaced(notifiableOrder, principal?.userId));
+        runInBackground("notifyAdminsNewOrder", notifyAdminsNewOrder({
             ...notifiableOrder,
             id: String(orderObject._id),
-        });
+        }));
         sendSuccess(res, {
             statusCode: 201,
             data: {

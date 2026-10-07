@@ -1,4 +1,4 @@
-import { getRedisClient } from "../../core/database/redis.js";
+import { getRedisClient, withRedisTimeout } from "../../core/database/redis.js";
 import { logger } from "../../core/logging/logger.js";
 const HOMEPAGE_CACHE_KEY = "homepage:v2:payload";
 const HOMEPAGE_CACHE_TTL = 3600;
@@ -9,7 +9,7 @@ export async function getHomepageCache() {
         return null;
     }
     try {
-        return await redis.get(HOMEPAGE_CACHE_KEY);
+        return await withRedisTimeout(redis.get(HOMEPAGE_CACHE_KEY));
     }
     catch (error) {
         logger.error({ error }, "Failed to read homepage cache");
@@ -22,7 +22,7 @@ export async function setHomepageCache(payload) {
         return;
     }
     try {
-        await redis.set(HOMEPAGE_CACHE_KEY, payload, { EX: HOMEPAGE_CACHE_TTL });
+        await withRedisTimeout(redis.set(HOMEPAGE_CACHE_KEY, payload, { EX: HOMEPAGE_CACHE_TTL }));
         logger.info("Homepage cache updated");
     }
     catch (error) {
@@ -35,7 +35,7 @@ export async function invalidateHomepageCache(reason) {
         return;
     }
     try {
-        await redis.del([...homepageCacheKeys]);
+        await withRedisTimeout(redis.del([...homepageCacheKeys]));
         logger.info({ reason, keys: homepageCacheKeys }, "Homepage cache invalidated");
     }
     catch (error) {

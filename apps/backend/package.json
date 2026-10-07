@@ -10,6 +10,7 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "db:sync-indexes": "tsx src/scripts/sync-indexes.ts",
     "dev": "tsx watch src/server.ts",
     "lint": "eslint .",
     "start": "node dist/server.js",
@@ -17,6 +18,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@vercel/functions": "^3.9.11",
     "argon2": "^0.43.1",
     "cloudinary": "^2.10.0",
     "compression": "^1.8.0",

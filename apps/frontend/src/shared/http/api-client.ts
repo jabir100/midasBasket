@@ -34,7 +34,11 @@ type AuthPayload = {
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
+  _transientRetryCount?: number;
 };
+
+const maxTransientRetries = 2;
+const transientStatusCodes = new Set([502, 503, 504]);
 
 export class ApiError extends Error {
   readonly status: number;
@@ -75,6 +79,13 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const responseStatus = error.response?.status;
     const originalRequest = error.config as RetriableRequestConfig | undefined;
+
+    if (originalRequest && isTransientFailure(error, originalRequest)) {
+      originalRequest._transientRetryCount =
+        (originalRequest._transientRetryCount ?? 0) + 1;
+      await delay(getRetryDelayMs(error, originalRequest._transientRetryCount));
+      return apiClient(originalRequest);
+    }
 
     if (!originalRequest || responseStatus !== 401 || originalRequest._retry) {
       return Promise.reject(normalizeApiError(error));
@@ -142,6 +153,41 @@ async function requestNewAccessToken(): Promise<string> {
   const accessToken = response.data.data.accessToken;
   storeAccessToken(accessToken);
   return accessToken;
+}
+
+/*
+ * Backend cold starts can drop a request or answer 503. Only reads are retried:
+ * replaying a POST/PATCH/DELETE could duplicate an order or other write.
+ */
+function isTransientFailure(
+  error: AxiosError,
+  config: RetriableRequestConfig,
+): boolean {
+  const method = (config.method ?? "get").toLowerCase();
+  const isNetworkError = !error.response && error.code !== "ERR_CANCELED";
+  const isTransientStatus =
+    error.response !== undefined &&
+    transientStatusCodes.has(error.response.status);
+
+  return (
+    method === "get" &&
+    (config._transientRetryCount ?? 0) < maxTransientRetries &&
+    (isNetworkError || isTransientStatus)
+  );
+}
+
+function getRetryDelayMs(error: AxiosError, attempt: number): number {
+  const retryAfterSeconds = Number(error.response?.headers["retry-after"]);
+
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+    return Math.min(retryAfterSeconds, 5) * 1000;
+  }
+
+  return 500 * 2 ** (attempt - 1);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function isAuthEndpoint(url: string): boolean {

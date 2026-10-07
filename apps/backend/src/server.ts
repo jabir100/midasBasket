@@ -3,15 +3,23 @@ import { env } from "./core/config/env.js";
 import {
   connectDatabase,
   disconnectDatabase,
+  syncDatabaseIndexes,
 } from "./core/database/mongoose.js";
 import { connectRedis, disconnectRedis } from "./core/database/redis.js";
 import { logger } from "./core/logging/logger.js";
 
+/* Entry point for long-running Node hosts. Vercel uses ./vercel.ts instead. */
 async function bootstrap(): Promise<void> {
   const app = createApp();
 
   await connectDatabase();
-  await connectRedis();
+
+  if (env.NODE_ENV === "production") {
+    await syncDatabaseIndexes();
+  }
+
+  // Cache is optional: start serving without waiting for Redis.
+  void connectRedis();
 
   const server = app.listen(env.PORT, () => {
     logger.info(
