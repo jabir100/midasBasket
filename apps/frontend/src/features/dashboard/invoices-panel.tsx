@@ -17,7 +17,7 @@ export function InvoicesPanel({
     <div className="dashboard-pane-content">
       <div className="section-heading">
         <h3>Invoices</h3>
-        <p>View and download invoices for your completed purchases.</p>
+        <p>Download invoices for your past orders.</p>
       </div>
 
       <Card className="dashboard-card" style={{ marginTop: "1.5rem" }}>

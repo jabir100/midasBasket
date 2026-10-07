@@ -1,6 +1,7 @@
 import { createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree.gen.js";
+import { NotFoundPage, PageLoader } from "./shared/ui/status-pages.js";
 
 export function getRouter(): RouterInstance {
   return createRouter({
@@ -8,6 +9,8 @@ export function getRouter(): RouterInstance {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 30_000,
+    defaultNotFoundComponent: () => <NotFoundPage />,
+    defaultPendingComponent: PageLoader,
   });
 }
 

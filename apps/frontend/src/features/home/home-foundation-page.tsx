@@ -2,7 +2,6 @@ import {
   ArrowRight,
   BadgeCheck,
   Search,
-  Sparkles,
   Store,
   Truck,
 } from "lucide-react";
@@ -79,9 +78,7 @@ export function HomeFoundationPage({
       ) : (
         <section className="home-hero" aria-labelledby="home-title">
           <div className="home-hero-copy">
-            <Chip startContent={<Sparkles aria-hidden="true" size={16} />}>
-              {homepage.hero.eyebrow}
-            </Chip>
+            <Chip>{homepage.hero.eyebrow}</Chip>
             <h1 id="home-title">{homepage.hero.title}</h1>
             <p>{homepage.hero.description}</p>
             <div className="hero-actions">
@@ -135,8 +132,8 @@ export function HomeFoundationPage({
         aria-labelledby="featured-categories-title"
       >
         <SectionHeading
-          eyebrow="Shop by need"
-          title="Popular Categories"
+          id="featured-categories-title"
+          title="Popular categories"
           action={{ href: "/categories", label: "All categories" }}
         />
         <div className="category-grid">
@@ -165,8 +162,8 @@ export function HomeFoundationPage({
 
       <section className="home-section" aria-labelledby="brands-title">
         <SectionHeading
-          eyebrow="Featured brands"
-          title="Trusted names for every basket"
+          id="brands-title"
+          title="Shop by brand"
           action={{ href: "/brands", label: "All brands" }}
         />
         <div className="brand-grid">
@@ -199,7 +196,7 @@ export function HomeFoundationPage({
           aria-labelledby="popular-products-title"
         >
           <SectionHeading
-            eyebrow="Curated picks"
+            id="popular-products-title"
             title="Popular products"
             action={{ href: "/products", label: "More" }}
           />
@@ -213,7 +210,7 @@ export function HomeFoundationPage({
           aria-labelledby="best-selling-products-title"
         >
           <SectionHeading
-            eyebrow="Customer favorites"
+            id="best-selling-products-title"
             title="Most selling"
             action={{ href: "/products", label: "More" }}
           />
@@ -226,8 +223,7 @@ export function HomeFoundationPage({
         aria-labelledby="why-title"
       >
         <div>
-          <span className="section-eyebrow">Why choose us</span>
-          <h2 id="why-title">Premium shopping, engineered quietly</h2>
+          <h2 id="why-title">Why shop with us</h2>
         </div>
         <div className="value-grid">
           {homepage.whyChooseUs.map((item) => (
@@ -280,20 +276,17 @@ function HomePageSkeleton(): ReactNode {
 
 function SectionHeading({
   action,
-  eyebrow,
+  id,
   title,
 }: Readonly<{
   action?: { href: string; label: string };
-  eyebrow: string;
+  id: string;
   title: string;
 }>): ReactNode {
   return (
     <div className="section-heading">
       <div>
-        <span className="section-eyebrow">{eyebrow}</span>
-        <h3 id={`${title.toLowerCase().replaceAll(" ", "-")}-title`}>
-          {title}
-        </h3>
+        <h3 id={id}>{title}</h3>
       </div>
       {action ? <a href={action.href}>{action.label}</a> : null}
     </div>

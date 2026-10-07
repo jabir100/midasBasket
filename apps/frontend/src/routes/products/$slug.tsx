@@ -4,6 +4,7 @@ import { getProduct } from "../../features/catalog/catalog-api.js";
 import { ProductDetailPage } from "../../features/catalog/catalog-pages.js";
 import { isNotFoundError } from "../../shared/http/api-client.js";
 import { humanizeSlug, pageSeo, toSocialImage } from "../../shared/seo/seo.js";
+import { NotFoundPage } from "../../shared/ui/status-pages.js";
 
 const MAX_DESCRIPTION_LENGTH = 160;
 
@@ -100,8 +101,9 @@ function ProductRoute() {
 
 function ProductNotFound() {
   return (
-    <main className="page-shell">
-      <p className="form-error">Product was not found.</p>
-    </main>
+    <NotFoundPage
+      title="Product not found"
+      description="This product may have been removed or is no longer available."
+    />
   );
 }

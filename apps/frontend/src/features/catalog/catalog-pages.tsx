@@ -138,7 +138,7 @@ export function CatalogPage(): ReactNode {
     <main className="page-shell catalog-page">
       <CatalogHeader
         title="Products"
-        description="Browse our selection of premium quality groceries and everyday essentials."
+        description="Groceries and everyday essentials."
       />
 
       <section className="storefront-products-layout">
@@ -529,7 +529,7 @@ export function CategoriesPage(): ReactNode {
     <main className="page-shell catalog-page">
       <CatalogHeader
         title="Categories"
-        description="Explore our wide range of categories for a complete grocery solution."
+        description="Browse products by category."
       />
       {categoriesQuery.isLoading ? (
         <TaxonomySkeletonGrid />
@@ -563,7 +563,7 @@ export function BrandsPage(): ReactNode {
     <main className="page-shell catalog-page">
       <CatalogHeader
         title="Brands"
-        description="Choose premium groceries from our certified and trusted partner brands."
+        description="Browse products by brand."
       />
       {brandsQuery.isLoading ? (
         <TaxonomySkeletonGrid />

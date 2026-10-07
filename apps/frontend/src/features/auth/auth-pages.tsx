@@ -35,7 +35,7 @@ export function RegisterPage(): ReactNode {
     <AuthFrame
       eyebrow="Create account"
       title="Start your Midas Basket profile"
-      description="Use one customer account for checkout, wishlist, order history, and future dashboard features."
+      description="One account for checkout, your wishlist, and order history."
       icon={<UserPlus size={22} />}
       animationType="register"
     >
@@ -111,7 +111,7 @@ export function LoginPage(): ReactNode {
     <AuthFrame
       eyebrow="Welcome back"
       title="Log in to continue shopping"
-      description="Access your session with rotating refresh cookies and backend-enforced account permissions."
+      description="See your orders, wishlist, and saved addresses."
       icon={<ShieldCheck size={22} />}
       animationType="login"
     >
@@ -173,7 +173,7 @@ export function ForgotPasswordPage(): ReactNode {
       <AuthFrame
         eyebrow="Password help"
         title="Check your email"
-        description="If an active account exists, the backend accepts the request without exposing account presence."
+        description="We've sent you a link to reset your password."
         icon={<Mail size={22} />}
         animationType="forgot"
       >
@@ -205,7 +205,7 @@ export function ForgotPasswordPage(): ReactNode {
     <AuthFrame
       eyebrow="Password help"
       title="Request a reset link"
-      description="If an active account exists, the backend accepts the request without exposing account presence."
+      description="Enter your email and we'll send you a reset link."
       icon={<Mail size={22} />}
       animationType="forgot"
     >
@@ -265,7 +265,7 @@ export function ResetPasswordPage(): ReactNode {
       <AuthFrame
         eyebrow="New password"
         title="Password updated"
-        description="Password reset consumes the token and revokes active sessions for the account."
+        description="You can now log in with your new password."
         icon={<KeyRound size={22} />}
         animationType="reset"
       >
@@ -291,7 +291,7 @@ export function ResetPasswordPage(): ReactNode {
     <AuthFrame
       eyebrow="New password"
       title="Reset your password"
-      description="Password reset consumes the token and revokes active sessions for the account."
+      description="Choose a new password. You'll be signed out on other devices."
       icon={<KeyRound size={22} />}
       animationType="reset"
     >

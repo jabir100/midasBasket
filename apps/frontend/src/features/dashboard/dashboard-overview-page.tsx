@@ -41,10 +41,7 @@ export function DashboardOverviewPage(): ReactNode {
       <div className="dashboard-pane-content">
         <div className="section-heading">
           <h3>Overview</h3>
-          <p>
-            Hello, {profile?.user.name ?? "Customer"}. Here is your account
-            snapshot.
-          </p>
+          <p>Hello, {profile?.user.name ?? "Customer"}.</p>
         </div>
 
         <section

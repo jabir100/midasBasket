@@ -7,7 +7,7 @@
   --color-midas-black: #101010;
   --color-midas-gray: #667085;
   --color-midas-border: #eceff3;
-  --font-sans: "Aptos", "Segoe UI", sans-serif;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 
   /* Semantic status colors: shared by order status, payment status, and publish-state badges */
   --color-status-neutral: #667085;
@@ -277,8 +277,9 @@ a {
 }
 
 .home-hero-copy h1 {
-  font-size: clamp(3.25rem, 11vw, 6.75rem);
-  line-height: 0.93;
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
 .home-hero-copy p,
@@ -294,8 +295,8 @@ a {
 .home-hero-copy p {
   max-width: 39rem;
   margin: 0;
-  font-size: 1.08rem;
-  line-height: 1.8;
+  font-size: 1.05rem;
+  line-height: 1.65;
 }
 
 .home-metrics {
@@ -403,8 +404,8 @@ a {
 .two-column-section h2,
 .newsletter-section h2,
 .promo-band h2 {
-  font-size: clamp(1.7rem, 5vw, 3rem);
-  line-height: 1;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  line-height: 1.15;
 }
 
 .section-heading a,
@@ -777,9 +778,9 @@ a {
 
 .hero-copy h1 {
   margin: 0;
-  font-size: clamp(3rem, 12vw, 6.75rem);
-  line-height: 0.92;
-  letter-spacing: 0;
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
 .hero-copy p {
@@ -787,7 +788,7 @@ a {
   max-width: 38rem;
   color: var(--color-midas-gray);
   font-size: 1.05rem;
-  line-height: 1.8;
+  line-height: 1.65;
 }
 
 .hero-actions {
@@ -910,10 +911,10 @@ a {
 .product-detail-copy h3,
 .section-heading h3 {
   margin: 0;
-  font-size: clamp(1.85rem, 5vw, 2.35rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.5rem, 3vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
   color: var(--color-midas-black);
 }
 
@@ -1730,6 +1731,34 @@ a {
   margin: 0 0 0.85rem;
 }
 
+/* Dashboard and admin panes use a tighter scale than storefront pages. */
+.dashboard-pane-content .section-heading h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-pane-content .section-heading p {
+  max-width: 60ch;
+  margin: 0.25rem 0 0;
+  color: var(--color-midas-gray);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+:where(.dashboard-pane-content) h2 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+@media (max-width: 640px) {
+  .dashboard-pane-content .section-heading h3 {
+    font-size: 1.3rem;
+  }
+}
+
 .dashboard-metric-card small,
 .dashboard-helper-row,
 .dashboard-address-list small,
@@ -2198,7 +2227,7 @@ a {
 
 .admin-table-compact thead th {
   padding: 0.55rem 0.7rem;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
 }
 
 .admin-table-compact tbody td {
@@ -2207,7 +2236,7 @@ a {
 
 .admin-table-compact .admin-table-muted {
   margin-top: 0.1rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .admin-order-id-cell {
@@ -2225,7 +2254,7 @@ a {
 }
 
 .admin-table-compact .admin-order-customer small {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .admin-table-compact .admin-status-select-cell {
@@ -5052,10 +5081,10 @@ textarea {
 
 .contact-heading h1 {
   margin: 0;
-  font-size: clamp(1.85rem, 5vw, 2.35rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.5rem, 3vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
   color: var(--color-midas-black);
 }
 
@@ -5257,4 +5286,61 @@ textarea {
 .admin-message-user-agent {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+/* Not found and loading pages */
+.status-page {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  width: min(32rem, calc(100% - 2rem));
+  min-height: calc(100vh - 16rem);
+  margin: 0 auto;
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.status-page-code {
+  margin: 0;
+  color: var(--color-midas-red);
+  font-size: clamp(4.5rem, 14vw, 7rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.status-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 760;
+}
+
+.status-page-text {
+  margin: 0;
+  color: var(--color-midas-gray);
+  line-height: 1.6;
+}
+
+.status-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.status-loader {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--color-midas-red-soft);
+  border-top-color: var(--color-midas-red);
+  border-radius: 50%;
+  animation: spinRing 0.8s infinite linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-loader {
+    animation-duration: 2.4s;
+  }
 }
