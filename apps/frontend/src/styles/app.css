@@ -1977,6 +1977,40 @@ a {
   color: var(--color-midas-gray);
 }
 
+/* Admin page header: title block on the left, primary action on the right.
+   The action never wraps its label; on phones it drops under the copy and
+   spans the full width so it stays an easy tap target. */
+.admin-page-heading {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-page-heading > div:first-child {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.admin-page-heading .ui-button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .admin-page-heading {
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .admin-page-heading > :not(:first-child) {
+    flex: 1 1 100%;
+  }
+
+  .admin-page-heading > :not(:first-child) .ui-button,
+  .admin-page-heading > .ui-button {
+    width: 100%;
+  }
+}
+
 .admin-skeleton-stack {
   display: grid;
   gap: 0.5rem;
@@ -2065,7 +2099,10 @@ a {
   background: var(--color-midas-red-soft);
 }
 
+/* Positioned so the switch's visually-hidden <input> (position: absolute)
+   stays inside the table's scroll box instead of anchoring to the page. */
 .admin-switch {
+  position: relative;
   display: inline-flex;
   align-items: center;
   width: fit-content;
@@ -2184,6 +2221,7 @@ a {
 }
 
 .admin-table-shell {
+  position: relative;
   width: 100%;
   overflow-x: auto;
   border: 1px solid var(--color-midas-border);
@@ -2282,6 +2320,11 @@ a {
 
 .admin-table-compact tbody td:last-child {
   white-space: nowrap;
+}
+
+.admin-table .admin-switch {
+  white-space: nowrap;
+  font-size: 0.85rem;
 }
 
 .admin-taxonomy-thumb {
@@ -2782,7 +2825,8 @@ a {
   font-weight: 600;
 }
 
-.admin-table tbody tr.is-muted .admin-carousel-thumb img {
+.admin-table tbody tr.is-muted .admin-carousel-thumb img,
+.admin-table tbody tr.is-muted .admin-taxonomy-thumb {
   opacity: 0.45;
   filter: grayscale(0.6);
 }
@@ -3500,22 +3544,33 @@ a {
 }
 
 /* Dashboard Sidebar Layout Styles */
+/* 100dvh tracks the visible viewport on iOS Safari; plain 100vh is taller than
+   the screen while the toolbar is shown, which offsets taps on fixed elements. */
 body:has(.dashboard-layout-root) {
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
+/* `overflow: clip` (not just hidden) so the shell can never be scrolled
+   sideways: a hidden element can still be scrolled by focus(), and on phones a
+   focused control inside a wide table would otherwise slide the whole page
+   off-screen. */
 .dashboard-layout-root {
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
+  overflow: clip;
 }
 
 .dashboard-wrapper {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   width: 100%;
   background: #f8fafc;
   overflow: hidden;
+  overflow: clip;
 }
 
 .dashboard-sidebar {
@@ -3846,6 +3901,8 @@ body:has(.dashboard-layout-root) {
     padding: 1.25rem 1rem !important;
     align-items: stretch !important;
     box-shadow: 0 20px 60px rgba(16, 16, 16, 0.25);
+    overflow-y: auto;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important;
     transform: translateX(-100%);
     transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   }
