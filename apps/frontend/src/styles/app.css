@@ -2090,6 +2090,7 @@ a {
   border-radius: 999px;
   background: var(--color-midas-border);
   padding: 0.15rem;
+  box-sizing: border-box;
   transition: background 150ms ease;
 }
 
@@ -2097,10 +2098,15 @@ a {
   background: var(--color-midas-red);
 }
 
+/* HeroUI slides the thumb with margin-inline-start; reset it so only our
+   transform moves the thumb, otherwise the two offsets stack and the thumb
+   is clipped out of the track. */
 .admin-switch [data-slot="switch-thumb"] {
   display: block;
+  flex-shrink: 0;
   width: 1.15rem;
   height: 1.15rem;
+  margin: 0;
   border-radius: 50%;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(16, 16, 16, 0.18);
@@ -2109,7 +2115,8 @@ a {
 }
 
 .admin-switch[data-selected] [data-slot="switch-thumb"] {
-  transform: translateX(1.15rem);
+  /* track 2.65rem - 2 × 0.15rem padding - 1.15rem thumb */
+  transform: translateX(1.2rem);
 }
 
 .admin-repeater {

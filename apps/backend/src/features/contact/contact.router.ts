@@ -32,8 +32,10 @@ import {
 export const contactRouter: ExpressRouter = Router();
 const adminRouter = Router();
 
-const contactCacheControl =
-  "public, max-age=120, s-maxage=600, stale-while-revalidate=1800";
+// Redis already absorbs the read load. Edge/browser caching here kept admin
+// edits (new social links, contact details) invisible for up to 10+ minutes,
+// so clients revalidate every time and get a cheap 304 via the ETag.
+const contactCacheControl = "no-cache";
 
 const contactSubmissionLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
