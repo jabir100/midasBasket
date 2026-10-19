@@ -203,7 +203,7 @@ export function AdminProductFormPage({
     return {
       name: source.name,
       slug: source.slug,
-      sku: source.sku,
+      sku: source.sku.trim() || generateSkuFromName(source.name),
       price: source.price,
       ...(source.compareAtPrice ? { compareAtPrice: source.compareAtPrice } : {}),
       stockQuantity: source.stockQuantity,
@@ -379,11 +379,18 @@ export function AdminProductFormPage({
               </div>
 
               <div className="admin-form-grid three">
-                <AdminField label="SKU*">
+                <AdminField
+                  label="SKU (unique product code)"
+                  hint={
+                    <span className="admin-field-hint">
+                      Not a quantity. Leave empty to auto-generate.
+                    </span>
+                  }
+                >
                   <div className="admin-field-with-action">
                     <Input
                       className="admin-heroui-input"
-                      required
+                      placeholder="Auto-generated if empty"
                       value={form.sku}
                       onChange={(event) => {
                         setForm({ ...form, sku: event.target.value.toUpperCase() });

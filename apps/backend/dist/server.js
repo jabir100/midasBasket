@@ -1,3 +1,4 @@
+import dns from "node:dns";
 import { createApp } from "./app.js";
 import { env } from "./core/config/env.js";
 import { connectDatabase, disconnectDatabase, syncDatabaseIndexes, } from "./core/database/mongoose.js";
@@ -5,6 +6,9 @@ import { connectRedis, disconnectRedis } from "./core/database/redis.js";
 import { logger } from "./core/logging/logger.js";
 /* Entry point for long-running Node hosts. Vercel uses ./vercel.ts instead. */
 async function bootstrap() {
+    // Some local/ISP resolvers fail the SRV lookup for mongodb+srv:// URIs,
+    // so use public resolvers before connecting.
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
     const app = createApp();
     await connectDatabase();
     if (env.NODE_ENV === "production") {

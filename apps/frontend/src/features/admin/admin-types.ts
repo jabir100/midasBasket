@@ -105,10 +105,14 @@ export function generateSkuFromName(value: string): string {
     .split(/\s+/)
     .filter(Boolean);
 
-  return words
-    .slice(0, 4)
-    .map((word) => word.slice(0, 5))
-    .join("-");
+  // Similar product names ("Toast Napkin Set", "Toast Napkin Set 2") truncate
+  // to the same prefix, so add a short random suffix to keep SKUs unique.
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+
+  return [
+    ...words.slice(0, 4).map((word) => word.slice(0, 5)),
+    suffix,
+  ].join("-");
 }
 
 export function toTaxonomyPayload(form: TaxonomyForm): Partial<AdminTaxonomy> {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { KeyRound, LogOut, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import { House, LogOut } from "lucide-react";
 import type { ReactNode, SyntheticEvent } from "react";
 import { useState } from "react";
 import { Skeleton } from "@heroui/react";
@@ -36,8 +36,6 @@ export function RegisterPage(): ReactNode {
       eyebrow="Create account"
       title="Start your Midas Basket profile"
       description="One account for checkout, your wishlist, and order history."
-      icon={<UserPlus size={22} />}
-      animationType="register"
     >
       <form
         className="auth-form"
@@ -52,6 +50,7 @@ export function RegisterPage(): ReactNode {
           <input
             required
             minLength={2}
+            autoComplete="name"
             value={form.name}
             onChange={(event) => {
               setForm({ ...form, name: event.target.value });
@@ -63,6 +62,7 @@ export function RegisterPage(): ReactNode {
           <input
             required
             type="email"
+            autoComplete="email"
             value={form.email}
             onChange={(event) => {
               setForm({ ...form, email: event.target.value });
@@ -86,7 +86,7 @@ export function RegisterPage(): ReactNode {
         </Button>
         <FormStatus error={mutation.error} pending={mutation.isPending} />
         <p className="form-link">
-          Already registered? <Link to="/login">Log in</Link>
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
       </form>
     </AuthFrame>
@@ -112,8 +112,6 @@ export function LoginPage(): ReactNode {
       eyebrow="Welcome back"
       title="Log in to continue shopping"
       description="See your orders, wishlist, and saved addresses."
-      icon={<ShieldCheck size={22} />}
-      animationType="login"
     >
       <form
         className="auth-form"
@@ -128,6 +126,7 @@ export function LoginPage(): ReactNode {
           <input
             required
             type="email"
+            autoComplete="email"
             value={form.email}
             onChange={(event) => {
               setForm({ ...form, email: event.target.value });
@@ -135,7 +134,12 @@ export function LoginPage(): ReactNode {
           />
         </label>
         <label>
-          <span>Password</span>
+          <span className="auth-label-row">
+            <span>Password</span>
+            <Link to="/forgot-password" className="auth-inline-link">
+              Forgot password?
+            </Link>
+          </span>
           <PasswordInput
             required
             autoComplete="current-password"
@@ -150,8 +154,7 @@ export function LoginPage(): ReactNode {
         </Button>
         <FormStatus error={mutation.error} pending={mutation.isPending} />
         <p className="form-link">
-          <Link to="/forgot-password">Forgot password?</Link> ·{" "}
-          <Link to="/register">Create account</Link>
+          New to Midas Basket? <Link to="/register">Create account</Link>
         </p>
       </form>
     </AuthFrame>
@@ -174,8 +177,6 @@ export function ForgotPasswordPage(): ReactNode {
         eyebrow="Password help"
         title="Check your email"
         description="We've sent you a link to reset your password."
-        icon={<Mail size={22} />}
-        animationType="forgot"
       >
         <div className="auth-form">
           <p className="form-success">
@@ -206,8 +207,6 @@ export function ForgotPasswordPage(): ReactNode {
       eyebrow="Password help"
       title="Request a reset link"
       description="Enter your email and we'll send you a reset link."
-      icon={<Mail size={22} />}
-      animationType="forgot"
     >
       <form
         className="auth-form"
@@ -222,6 +221,7 @@ export function ForgotPasswordPage(): ReactNode {
           <input
             required
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(event) => {
               setEmail(event.target.value);
@@ -266,8 +266,6 @@ export function ResetPasswordPage(): ReactNode {
         eyebrow="New password"
         title="Password updated"
         description="You can now log in with your new password."
-        icon={<KeyRound size={22} />}
-        animationType="reset"
       >
         <div className="auth-form">
           <p className="form-success">
@@ -292,8 +290,6 @@ export function ResetPasswordPage(): ReactNode {
       eyebrow="New password"
       title="Reset your password"
       description="Choose a new password. You'll be signed out on other devices."
-      icon={<KeyRound size={22} />}
-      animationType="reset"
     >
       <form
         className="auth-form"
@@ -439,72 +435,40 @@ export function AccountPage(): ReactNode {
 
 function AuthFrame({
   children,
-  description: _description,
-  eyebrow: _eyebrow,
-  icon,
+  description,
+  eyebrow,
   title,
-  animationType = "login",
 }: Readonly<{
   children: ReactNode;
   description: string;
   eyebrow: string;
-  icon: ReactNode;
   title: string;
-  animationType?: "login" | "register" | "forgot" | "reset";
 }>): ReactNode {
   return (
     <main className="auth-page">
-      <section className="auth-panel">
-        <div className="auth-copy">
-          <div className="auth-header-info">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.75rem",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <span
-                className="auth-icon"
-                style={{
-                  width: "2.5rem",
-                  height: "2.5rem",
-                  borderRadius: "0.75rem",
-                }}
-              >
-                {icon}
-              </span>
-              <h3 style={{ margin: 0, fontSize: "1.75rem", fontWeight: 600 }}>
-                {title}
-              </h3>
-            </div>
-          </div>
-          <div className="auth-visual-container">
-            <div className={`auth-animation-graphic type-${animationType}`}>
-              <div className="graphic-circle-bg">
-                {animationType === "login" && (
-                  <ShieldCheck className="animated-icon-main" size={54} />
-                )}
-                {animationType === "register" && (
-                  <UserPlus className="animated-icon-main" size={54} />
-                )}
-                {animationType === "forgot" && (
-                  <Mail className="animated-icon-main" size={54} />
-                )}
-                {animationType === "reset" && (
-                  <KeyRound className="animated-icon-main" size={54} />
-                )}
-              </div>
-              <div className="decorative-ring ring-1"></div>
-              <div className="decorative-ring ring-2"></div>
-            </div>
-          </div>
-        </div>
-        <Card className="auth-card">
-          <CardBody>{children}</CardBody>
-        </Card>
-      </section>
+      <nav className="auth-navigation" aria-label="Home navigation">
+        <Link
+          className="auth-home-link"
+          to="/"
+          aria-label="Back to home"
+          title="Back to home"
+        >
+          <House size={18} aria-hidden="true" />
+        </Link>
+        <Link className="auth-logo" to="/" aria-label="Midas Basket home">
+          <img src="/logo_v2.png" alt="Midas Basket" />
+        </Link>
+      </nav>
+      <Card className="auth-card">
+        <CardBody>
+          <header className="auth-card-header">
+            <p className="auth-eyebrow">{eyebrow}</p>
+            <h1 className="auth-title">{title}</h1>
+            <p className="auth-description">{description}</p>
+          </header>
+          {children}
+        </CardBody>
+      </Card>
     </main>
   );
 }

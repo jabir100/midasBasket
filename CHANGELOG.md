@@ -2,6 +2,13 @@
 
 All notable changes to Midas Basket will be documented in this file.
 
+## 2026-10-19
+
+### Changed
+
+- Added a compact, accessible Back to home icon link to login, sign-up, and password recovery pages, with the logo centered above the form.
+- Made auth-page spacing adapt to shorter desktop viewports so login fits at 100% zoom, while allowing scrolling when small screens or enlarged text require it.
+
 ## 2026-09-24
 
 ### Security

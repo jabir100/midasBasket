@@ -22,6 +22,49 @@ function setCatalogCacheHeader(res, value) {
 function toStringValue(value) {
     return typeof value === "string" ? value : undefined;
 }
+// Products have two unique keys (slug, sku). Check them up front so the admin
+// gets a message naming the conflicting field and product, and so we fail
+// before uploading images to Cloudinary (which would otherwise be orphaned).
+async function assertProductIdentifiersAvailable(identifiers, excludeProductId) {
+    const slug = identifiers.slug?.trim().toLowerCase();
+    const sku = identifiers.sku?.trim().toUpperCase();
+    const conditions = [
+        ...(slug ? [{ slug }] : []),
+        ...(sku ? [{ sku }] : []),
+    ];
+    if (conditions.length === 0) {
+        return;
+    }
+    const conflicts = await ProductModel.find({
+        $or: conditions,
+        ...(excludeProductId ? { _id: { $ne: excludeProductId } } : {}),
+    }, { name: 1, slug: 1, sku: 1 }).lean();
+    if (conflicts.length === 0) {
+        return;
+    }
+    const fieldErrors = {};
+    const messages = [];
+    const slugConflict = slug
+        ? conflicts.find((product) => product.slug === slug)
+        : undefined;
+    const skuConflict = sku
+        ? conflicts.find((product) => product.sku === sku)
+        : undefined;
+    if (slugConflict) {
+        fieldErrors.slug = ["Already exists"];
+        messages.push(`Slug "${slugConflict.slug}" is already used by product "${slugConflict.name}"`);
+    }
+    if (skuConflict) {
+        fieldErrors.sku = ["Already exists"];
+        messages.push(`SKU "${skuConflict.sku}" is already used by product "${skuConflict.name}"`);
+    }
+    throw new AppError({
+        statusCode: 409,
+        code: "PRODUCT_IDENTIFIER_TAKEN",
+        message: `${messages.join(". ")}. Please use a different value.`,
+        details: { fieldErrors },
+    });
+}
 function toBooleanValue(value) {
     if (typeof value === "boolean") {
         return value;
@@ -481,6 +524,7 @@ adminRouter.delete("/brands/:id", async (req, res, next) => {
 adminRouter.post("/products", uploadMiddleware.array("images", MAX_PRODUCT_IMAGES), async (req, res, next) => {
     try {
         const input = productSchema.parse(parseProductInput(req.body));
+        await assertProductIdentifiersAvailable(input);
         const files = req.files ?? [];
         const newImageColors = (parseJsonArrayValue(req.body.newImageColors, "INVALID_IMAGE_COLORS_PAYLOAD") ??
             []).filter((value) => value === null || typeof value === "string");
@@ -526,6 +570,7 @@ adminRouter.patch("/products/:id", uploadMiddleware.array("images", MAX_PRODUCT_
                 message: "Product was not found",
             });
         }
+        await assertProductIdentifiersAvailable(parsedInput, product.id);
         const patchPayload = { ...parsedInput };
         const files = req.files ?? [];
         const removeImagePublicIds = (parseJsonArrayValue(req.body.removeImagePublicIds, "INVALID_REMOVE_IMAGES_PAYLOAD") ?? []).filter((value) => typeof value === "string");
