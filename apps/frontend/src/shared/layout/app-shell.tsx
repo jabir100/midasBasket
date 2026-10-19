@@ -20,6 +20,14 @@ import { getCart } from "../../features/cart/cart-api.js";
 import { MobileDrawer } from "../ui/mobile-drawer.js";
 import { SiteFooter } from "./site-footer.js";
 
+// Auth screens render as a standalone card, without the site header and footer.
+const AUTH_PATHS = new Set([
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+]);
+
 export function AppShell({
   children,
 }: Readonly<{ children: ReactNode }>): ReactNode {
@@ -112,6 +120,10 @@ export function AppShell({
         {children}
       </div>
     );
+  }
+
+  if (AUTH_PATHS.has(pathname)) {
+    return <div className="app-root">{children}</div>;
   }
 
   const handleSearchSubmit = (e: SyntheticEvent<HTMLFormElement>) => {

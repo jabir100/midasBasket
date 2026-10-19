@@ -287,7 +287,13 @@ function formatReadableMessage(
   }
 
   if (apiCode === "DUPLICATE_KEY_ERROR") {
-    return "This value already exists. Please use a different one.";
+    const fields = Object.keys(validationDetails?.fieldErrors ?? {}).map(
+      (field) => (field === "sku" ? "SKU" : formatFieldLabel(field)),
+    );
+
+    return fields.length > 0
+      ? `${fields.join(", ")} already exists. Please use a different one.`
+      : "This value already exists. Please use a different one.";
   }
 
   return apiMessage;

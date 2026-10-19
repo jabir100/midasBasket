@@ -43,6 +43,67 @@ function toStringValue(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+// Products have two unique keys (slug, sku). Check them up front so the admin
+// gets a message naming the conflicting field and product, and so we fail
+// before uploading images to Cloudinary (which would otherwise be orphaned).
+async function assertProductIdentifiersAvailable(
+  identifiers: { slug?: string | undefined; sku?: string | undefined },
+  excludeProductId?: string,
+): Promise<void> {
+  const slug = identifiers.slug?.trim().toLowerCase();
+  const sku = identifiers.sku?.trim().toUpperCase();
+  const conditions = [
+    ...(slug ? [{ slug }] : []),
+    ...(sku ? [{ sku }] : []),
+  ];
+
+  if (conditions.length === 0) {
+    return;
+  }
+
+  const conflicts = await ProductModel.find(
+    {
+      $or: conditions,
+      ...(excludeProductId ? { _id: { $ne: excludeProductId } } : {}),
+    },
+    { name: 1, slug: 1, sku: 1 },
+  ).lean();
+
+  if (conflicts.length === 0) {
+    return;
+  }
+
+  const fieldErrors: Record<string, string[]> = {};
+  const messages: string[] = [];
+  const slugConflict = slug
+    ? conflicts.find((product) => product.slug === slug)
+    : undefined;
+  const skuConflict = sku
+    ? conflicts.find((product) => product.sku === sku)
+    : undefined;
+
+  if (slugConflict) {
+    fieldErrors.slug = ["Already exists"];
+    messages.push(
+      `Slug "${slugConflict.slug}" is already used by product "${slugConflict.name}"`,
+    );
+  }
+
+  if (skuConflict) {
+    fieldErrors.sku = ["Already exists"];
+    messages.push(
+      `SKU "${skuConflict.sku}" is already used by product "${skuConflict.name}"`,
+    );
+  }
+
+  throw new AppError({
+    statusCode: 409,
+    code: "PRODUCT_IDENTIFIER_TAKEN",
+    message: `${messages.join(". ")}. Please use a different value.`,
+    details: { fieldErrors },
+  });
+}
+
 function toBooleanValue(value: unknown): boolean | undefined {
   if (typeof value === "boolean") {
     return value;
@@ -613,6 +674,7 @@ adminRouter.post(
       const input = productSchema.parse(
         parseProductInput(req.body as Record<string, unknown>),
       );
+      await assertProductIdentifiersAvailable(input);
       const files = (req.files as Express.Multer.File[] | undefined) ?? [];
       const newImageColors = (
         parseJsonArrayValue(req.body.newImageColors, "INVALID_IMAGE_COLORS_PAYLOAD") ??
@@ -670,6 +732,8 @@ adminRouter.patch(
           message: "Product was not found",
         });
       }
+
+      await assertProductIdentifiersAvailable(parsedInput, product.id);
 
       const patchPayload: Record<string, unknown> = { ...parsedInput };
       const files = (req.files as Express.Multer.File[] | undefined) ?? [];
