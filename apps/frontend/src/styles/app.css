@@ -164,10 +164,18 @@ a {
   cursor: pointer;
 }
 
+.ui-button > span {
+  color: inherit;
+}
+
 .ui-button-primary {
   color: #ffffff;
   background: var(--color-midas-red);
   box-shadow: 0 12px 30px rgba(139, 16, 24, 0.22);
+}
+
+.ui-button-primary > span {
+  color: #ffffff;
 }
 
 .ui-button-secondary {
@@ -188,6 +196,11 @@ a {
 
 .ui-button:hover {
   border-color: rgba(139, 16, 24, 0.28);
+}
+
+.ui-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .ui-badge,
@@ -288,7 +301,7 @@ a {
 .value-card p,
 .blog-card p,
 .product-content small,
-.product-content span {
+.product-content > span {
   color: var(--color-midas-gray);
 }
 
@@ -1286,8 +1299,9 @@ a {
 
 .cart-summary-list {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin: 0 0 1rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .cart-summary-list div {
@@ -1308,6 +1322,32 @@ a {
 
 .cart-summary-list dd {
   font-weight: 760;
+  color: var(--color-midas-black);
+  white-space: nowrap;
+}
+
+.cart-summary-total-row {
+  margin-top: 0.35rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--color-midas-border);
+}
+
+.cart-summary-total-row dt {
+  color: var(--color-midas-black);
+  font-size: 1rem;
+  font-weight: 760;
+}
+
+.cart-summary-total-row dd {
+  color: var(--color-midas-red);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.field-required-star {
+  color: #dc2626;
+  font-weight: 700;
+  margin-left: 0.2rem;
 }
 
 .cart-coupon-form,
@@ -1361,16 +1401,149 @@ a {
   color: var(--color-midas-green, #16a34a);
 }
 
-.checkout-payment-method {
+.checkout-form-card .ui-card-body,
+.checkout-summary-card .ui-card-body {
+  padding: 1.5rem;
+}
+
+.checkout-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-midas-border);
+}
+
+.checkout-card-title-row {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 0.9rem;
+  color: var(--color-midas-red);
+}
+
+.checkout-card-title-row h2 {
+  margin: 0;
+  color: var(--color-midas-black);
+  font-size: 1.15rem;
+  font-weight: 760;
+  letter-spacing: -0.01em;
+}
+
+.checkout-required-note {
+  margin: 0;
+  color: var(--color-midas-gray);
+  font-size: 0.82rem;
+}
+
+.checkout-saved-addresses {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.15rem;
+}
+
+.checkout-saved-addresses-label {
+  color: var(--color-midas-gray);
+  font-size: 0.82rem;
+  font-weight: 680;
+}
+
+.checkout-saved-address-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.checkout-saved-address-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--color-midas-border);
   border-radius: 0.75rem;
+  background: #ffffff;
+  color: var(--color-midas-black);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.checkout-saved-address-pill strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.checkout-saved-address-pill span {
+  font-size: 0.76rem;
+  color: var(--color-midas-gray);
+}
+
+.checkout-saved-address-pill:hover {
+  border-color: rgba(139, 16, 24, 0.35);
+}
+
+.checkout-saved-address-pill.is-selected {
+  border-color: var(--color-midas-red);
+  background: var(--color-midas-red-soft);
+}
+
+.checkout-form-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-midas-border);
+}
+
+.checkout-payment-method {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid rgba(139, 16, 24, 0.14);
+  border-radius: 0.85rem;
   background: var(--color-midas-red-soft);
   color: var(--color-midas-red);
-  font-weight: 700;
-  width: fit-content;
+}
+
+.checkout-payment-method > svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.checkout-payment-method div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.checkout-payment-method strong {
+  font-size: 0.9rem;
+  font-weight: 740;
+}
+
+.checkout-payment-method small {
+  color: var(--color-midas-gray);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.checkout-submit-actions {
+  margin-top: 0;
+}
+
+.checkout-submit-btn {
+  min-height: 2.9rem;
+  min-width: 11.5rem;
+  border-radius: 0.85rem;
+  font-weight: 740;
 }
 
 .checkout-item-preview-list {
@@ -1405,13 +1578,58 @@ a {
   color: var(--color-midas-gray);
 }
 
+.checkout-line-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.checkout-shipping-note {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.7rem;
+  background: #f8fafc;
+  border: 1px solid var(--color-midas-border);
+  color: var(--color-midas-gray);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .checkout-trust-row {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  margin-top: 0.25rem;
   color: var(--color-midas-gray);
   font-size: 0.85rem;
+}
+
+@media (min-width: 760px) {
+  .checkout-summary-card {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .checkout-form-card .ui-card-body,
+  .checkout-summary-card .ui-card-body {
+    padding: 1.15rem;
+  }
+
+  .checkout-form-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .checkout-payment-method {
+    width: 100%;
+  }
+
+  .checkout-submit-actions,
+  .checkout-submit-actions .ui-button {
+    width: 100%;
+  }
 }
 
 .checkout-buy-now-controls {
@@ -4845,6 +5063,10 @@ textarea {
   box-shadow: none;
 }
 
+.storefront-buy-now-button > span {
+  color: var(--color-midas-red);
+}
+
 .storefront-buy-now-button:hover {
   background: var(--color-midas-red-soft);
   border-color: var(--color-midas-red);
@@ -5181,6 +5403,10 @@ textarea {
 .product-detail-buy-btn {
   color: var(--color-midas-red);
   border-color: var(--color-midas-red);
+}
+
+.product-detail-buy-btn > span {
+  color: var(--color-midas-red);
 }
 
 .product-detail-buy-btn:hover:not(:disabled) {

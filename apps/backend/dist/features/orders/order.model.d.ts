@@ -6,7 +6,6 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -72,13 +71,13 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps, import("mongoose").Document<unknown, {}, import("mongoose").FlatRecord<{
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -144,6 +143,7 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps>, {}, import("mongoose").MergeType<import("mongoose").DefaultSchemaOptions, {
@@ -152,7 +152,6 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -218,6 +217,7 @@ declare const orderSchema: Schema<any, import("mongoose").Model<any, any, any, a
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps> & {
@@ -231,7 +231,6 @@ export declare const OrderModel: import("mongoose").Model<{
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -297,13 +296,13 @@ export declare const OrderModel: import("mongoose").Model<{
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps, {}, {}, {}, import("mongoose").Document<unknown, {}, {
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -369,6 +368,7 @@ export declare const OrderModel: import("mongoose").Model<{
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps, {}, {
@@ -377,7 +377,6 @@ export declare const OrderModel: import("mongoose").Model<{
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -443,6 +442,7 @@ export declare const OrderModel: import("mongoose").Model<{
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps & {
@@ -455,7 +455,6 @@ export declare const OrderModel: import("mongoose").Model<{
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -521,13 +520,13 @@ export declare const OrderModel: import("mongoose").Model<{
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps, import("mongoose").Document<unknown, {}, import("mongoose").FlatRecord<{
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -593,6 +592,7 @@ export declare const OrderModel: import("mongoose").Model<{
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps>, {}, import("mongoose").MergeType<import("mongoose").DefaultSchemaOptions, {
@@ -601,7 +601,6 @@ export declare const OrderModel: import("mongoose").Model<{
     status: "shipped" | "out-for-delivery" | "delivered" | "cancelled" | "placed" | "confirmed" | "packed";
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -667,6 +666,7 @@ export declare const OrderModel: import("mongoose").Model<{
     total: number;
     userId?: import("mongoose").Types.ObjectId | null;
     guestCartId?: string | null;
+    customerEmail?: string | null;
     notes?: string | null;
     couponCode?: string | null;
 } & import("mongoose").DefaultTimestampProps> & {

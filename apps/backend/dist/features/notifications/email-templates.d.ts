@@ -13,7 +13,7 @@ export type NotifiableOrderItem = {
 export type NotifiableOrder = {
     orderNumber: string;
     customerName: string;
-    customerEmail: string;
+    customerEmail?: string | null | undefined;
     status: string;
     total: number;
     currency: string;

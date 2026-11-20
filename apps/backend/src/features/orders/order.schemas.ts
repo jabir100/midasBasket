@@ -24,7 +24,11 @@ export const checkoutSchema = z.object({
     .optional(),
   buyNowItem: buyNowItemSchema.optional(),
   customerName: z.string().trim().min(2).max(140),
-  customerEmail: z.string().trim().toLowerCase().email().max(180),
+  customerEmail: z.preprocess(
+    (value) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().trim().toLowerCase().email().max(180).optional(),
+  ),
   customerPhone: z.string().trim().min(6).max(40),
   shippingAddress: z.object({
     line1: z.string().trim().min(2).max(220),
@@ -32,7 +36,7 @@ export const checkoutSchema = z.object({
     area: z.string().trim().min(2).max(140),
     city: z.string().trim().min(2).max(120),
     postalCode: z.string().trim().max(24).optional(),
-    country: z.string().trim().min(2).max(80),
+    country: z.string().trim().min(2).max(80).default("Bangladesh"),
   }),
   notes: z.string().trim().max(500).optional(),
   paymentMethod: z.literal("cod").default("cod"),

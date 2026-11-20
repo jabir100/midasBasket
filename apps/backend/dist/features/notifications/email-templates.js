@@ -132,9 +132,12 @@ const orderStatusCopy = {
     },
 };
 export function adminNewOrderTemplate(order) {
+    const customerLabel = order.customerEmail
+        ? `${order.customerName} (${order.customerEmail})`
+        : order.customerName;
     return {
         subject: `New order placed - ${order.orderNumber}`,
-        html: layout("New order received", `${text(`${order.customerName} (${order.customerEmail}) just placed a new order.`)}
+        html: layout("New order received", `${text(`${customerLabel} just placed a new order.`)}
        ${strongLine(`Order ${order.orderNumber}`)}
        ${itemsTable(order.items, order.currency)}
        ${strongLine(`Total: ${formatMoney(order.total, order.currency)}`)}
@@ -142,6 +145,9 @@ export function adminNewOrderTemplate(order) {
     };
 }
 export function orderConfirmationTemplate(order) {
+    const trackingNote = order.customerEmail
+        ? `Use order number ${order.orderNumber} and email ${order.customerEmail} to track this order.`
+        : `Use order number ${order.orderNumber} to track this order.`;
     return {
         subject: `Order confirmed - ${order.orderNumber}`,
         html: layout("Thank you for your order!", `${text(`Hi ${order.customerName}, we've received your order and it's being prepared.`)}
@@ -149,7 +155,7 @@ export function orderConfirmationTemplate(order) {
        ${itemsTable(order.items, order.currency)}
        ${strongLine(`Total: ${formatMoney(order.total, order.currency)}`)}
        ${button("Track your order", `${CLIENT_BASE_URL}/track`)}
-       ${muted(`Use order number ${order.orderNumber} and email ${order.customerEmail} to track this order.`)}`),
+       ${muted(trackingNote)}`),
     };
 }
 export function orderStatusUpdateTemplate(order) {

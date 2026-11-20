@@ -56,7 +56,7 @@ export function printInvoice(order: AdminOrderDetail): void {
 
         <div class="section">
           <h2>Customer</h2>
-          <p>${escapeHtml(order.customerName)}<br />${escapeHtml(order.customerEmail)}<br />${escapeHtml(order.customerPhone)}</p>
+          <p>${escapeHtml(order.customerName)}<br />${order.customerEmail ? `${escapeHtml(order.customerEmail)}<br />` : ""}${escapeHtml(order.customerPhone)}</p>
         </div>
 
         <div class="section">

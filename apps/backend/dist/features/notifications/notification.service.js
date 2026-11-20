@@ -18,14 +18,14 @@ async function isOrderEmailAllowed(userId) {
     return user?.notificationPreferences?.emailOrders !== false;
 }
 export async function notifyOrderPlaced(order, userId) {
-    if (!(await isOrderEmailAllowed(userId))) {
+    if (!order.customerEmail || !(await isOrderEmailAllowed(userId))) {
         return;
     }
     const { subject, html } = orderConfirmationTemplate(order);
     await sendMail({ to: order.customerEmail, subject, html });
 }
 export async function notifyOrderStatusChanged(order, userId) {
-    if (!orderStatusNotificationList.has(order.status)) {
+    if (!order.customerEmail || !orderStatusNotificationList.has(order.status)) {
         return;
     }
     if (!(await isOrderEmailAllowed(userId))) {

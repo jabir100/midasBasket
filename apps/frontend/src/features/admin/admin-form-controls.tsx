@@ -103,15 +103,24 @@ export function AdminField({
   children,
   hint,
   label,
+  required = false,
 }: Readonly<{
   children: ReactNode;
   hint?: ReactNode;
   label: string;
+  required?: boolean;
 }>): ReactNode {
   return (
     <label className="admin-field">
       <span className="admin-field-label-row">
-        <span>{label}</span>
+        <span>
+          {label}
+          {required ? (
+            <span className="field-required-star" aria-hidden="true">
+              *
+            </span>
+          ) : null}
+        </span>
         {hint}
       </span>
       {children}

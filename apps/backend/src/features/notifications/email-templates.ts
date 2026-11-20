@@ -24,7 +24,7 @@ export type NotifiableOrderItem = {
 export type NotifiableOrder = {
   orderNumber: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string | null | undefined;
   status: string;
   total: number;
   currency: string;
@@ -174,11 +174,15 @@ const orderStatusCopy: Record<string, { subject: string; message: string }> =
 export function adminNewOrderTemplate(
   order: NotifiableOrder & { id: string },
 ): EmailTemplate {
+  const customerLabel = order.customerEmail
+    ? `${order.customerName} (${order.customerEmail})`
+    : order.customerName;
+
   return {
     subject: `New order placed - ${order.orderNumber}`,
     html: layout(
       "New order received",
-      `${text(`${order.customerName} (${order.customerEmail}) just placed a new order.`)}
+      `${text(`${customerLabel} just placed a new order.`)}
        ${strongLine(`Order ${order.orderNumber}`)}
        ${itemsTable(order.items, order.currency)}
        ${strongLine(`Total: ${formatMoney(order.total, order.currency)}`)}
@@ -188,6 +192,10 @@ export function adminNewOrderTemplate(
 }
 
 export function orderConfirmationTemplate(order: NotifiableOrder): EmailTemplate {
+  const trackingNote = order.customerEmail
+    ? `Use order number ${order.orderNumber} and email ${order.customerEmail} to track this order.`
+    : `Use order number ${order.orderNumber} to track this order.`;
+
   return {
     subject: `Order confirmed - ${order.orderNumber}`,
     html: layout(
@@ -197,7 +205,7 @@ export function orderConfirmationTemplate(order: NotifiableOrder): EmailTemplate
        ${itemsTable(order.items, order.currency)}
        ${strongLine(`Total: ${formatMoney(order.total, order.currency)}`)}
        ${button("Track your order", `${CLIENT_BASE_URL}/track`)}
-       ${muted(`Use order number ${order.orderNumber} and email ${order.customerEmail} to track this order.`)}`,
+       ${muted(trackingNote)}`,
     ),
   };
 }

@@ -35,7 +35,7 @@ export declare const checkoutSchema: z.ZodObject<{
         color?: string | undefined;
     }>>;
     customerName: z.ZodString;
-    customerEmail: z.ZodString;
+    customerEmail: z.ZodEffects<z.ZodOptional<z.ZodString>, string | undefined, unknown>;
     customerPhone: z.ZodString;
     shippingAddress: z.ZodObject<{
         line1: z.ZodString;
@@ -43,7 +43,7 @@ export declare const checkoutSchema: z.ZodObject<{
         area: z.ZodString;
         city: z.ZodString;
         postalCode: z.ZodOptional<z.ZodString>;
-        country: z.ZodString;
+        country: z.ZodDefault<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         line1: string;
         area: string;
@@ -55,15 +55,14 @@ export declare const checkoutSchema: z.ZodObject<{
         line1: string;
         area: string;
         city: string;
-        country: string;
         line2?: string | undefined;
         postalCode?: string | undefined;
+        country?: string | undefined;
     }>;
     notes: z.ZodOptional<z.ZodString>;
     paymentMethod: z.ZodDefault<z.ZodLiteral<"cod">>;
 }, "strip", z.ZodTypeAny, {
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
@@ -75,6 +74,7 @@ export declare const checkoutSchema: z.ZodObject<{
     };
     paymentMethod: "cod";
     guestCartId?: string | undefined;
+    customerEmail?: string | undefined;
     notes?: string | undefined;
     buyNowItem?: {
         productId: string;
@@ -84,17 +84,17 @@ export declare const checkoutSchema: z.ZodObject<{
     } | undefined;
 }, {
     customerName: string;
-    customerEmail: string;
     customerPhone: string;
     shippingAddress: {
         line1: string;
         area: string;
         city: string;
-        country: string;
         line2?: string | undefined;
         postalCode?: string | undefined;
+        country?: string | undefined;
     };
     guestCartId?: string | undefined;
+    customerEmail?: unknown;
     notes?: string | undefined;
     paymentMethod?: "cod" | undefined;
     buyNowItem?: {

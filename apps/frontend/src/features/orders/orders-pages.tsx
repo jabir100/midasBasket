@@ -4,13 +4,15 @@ import {
   Banknote,
   ChevronDown,
   ChevronUp,
+  MapPin,
   Minus,
   PackageSearch,
   Plus,
+  ShoppingBag,
   Truck,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Input, Skeleton } from "@heroui/react";
 
 import { Button } from "../../shared/ui/button.js";
@@ -18,6 +20,11 @@ import { Card, CardBody } from "../../shared/ui/card.js";
 import { getCurrentUser, getStoredAccessToken } from "../auth/auth-api.js";
 import { getCart } from "../cart/cart-api.js";
 import { getProduct } from "../catalog/catalog-api.js";
+import {
+  getDashboardProfile,
+  listUserAddresses,
+  type UserAddress,
+} from "../dashboard/dashboard-api.js";
 import { AdminField } from "../admin/admin-form-controls.js";
 import { OrderStatusBadge } from "../admin/status-badge.js";
 import { OrderItemsDetail } from "./order-items-detail.js";
@@ -25,6 +32,12 @@ import { checkoutOrder, listMyOrders, type CheckoutInput } from "./orders-api.js
 import { toast } from "../../shared/ui/toaster.js";
 
 const LOW_STOCK_THRESHOLD = 10;
+const FREE_SHIPPING_THRESHOLD = 2000;
+const STANDARD_SHIPPING_FEE = 120;
+
+function formatTaka(amount: number): string {
+  return `৳ ${amount.toLocaleString("en-BD")}`;
+}
 
 const initialCheckoutState: CheckoutInput = {
   customerName: "",
@@ -48,6 +61,9 @@ export function CheckoutPage(): ReactNode {
   const isBuyNowMode = Boolean(buyNowSlug);
 
   const [form, setForm] = useState<CheckoutInput>(initialCheckoutState);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
   const [buyNowQuantity, setBuyNowQuantity] = useState(search.quantity ?? 1);
   const [buyNowSize, setBuyNowSize] = useState<string | null>(
     search.size?.trim() || null,
@@ -55,6 +71,10 @@ export function CheckoutPage(): ReactNode {
   const [buyNowColor, setBuyNowColor] = useState<string | null>(
     search.color?.trim() || null,
   );
+
+  const hasHydratedNameEmailRef = useRef(false);
+  const hasHydratedPhoneRef = useRef(false);
+  const hasHydratedAddressRef = useRef(false);
 
   useEffect(() => {
     setBuyNowQuantity(search.quantity ?? 1);
@@ -74,6 +94,103 @@ export function CheckoutPage(): ReactNode {
     retry: false,
     enabled: Boolean(token),
   });
+  const dashboardProfileQuery = useQuery({
+    queryKey: ["dashboard", "profile"],
+    queryFn: getDashboardProfile,
+    retry: false,
+    enabled: Boolean(token) && Boolean(profileQuery.data),
+  });
+  const addressesQuery = useQuery({
+    queryKey: ["dashboard", "addresses"],
+    queryFn: listUserAddresses,
+    retry: false,
+    enabled: Boolean(token) && Boolean(profileQuery.data),
+  });
+
+  useEffect(() => {
+    const authUser = profileQuery.data;
+    if (!authUser || hasHydratedNameEmailRef.current) {
+      return;
+    }
+
+    hasHydratedNameEmailRef.current = true;
+    setForm((current) => ({
+      ...current,
+      customerName: current.customerName || authUser.name,
+      customerEmail:
+        (current.customerEmail?.trim() ? current.customerEmail : null) ??
+        authUser.email,
+    }));
+  }, [profileQuery.data]);
+
+  useEffect(() => {
+    const phone = dashboardProfileQuery.data?.user.phone?.trim();
+    if (!phone || hasHydratedPhoneRef.current) {
+      return;
+    }
+
+    hasHydratedPhoneRef.current = true;
+    setForm((current) => ({
+      ...current,
+      customerPhone: current.customerPhone || phone,
+    }));
+  }, [dashboardProfileQuery.data?.user.phone]);
+
+  useEffect(() => {
+    const addresses = addressesQuery.data;
+    if (!addresses || addresses.length === 0 || hasHydratedAddressRef.current) {
+      return;
+    }
+
+    hasHydratedAddressRef.current = true;
+    const preferred =
+      addresses.find((address) => address.isDefault) ?? addresses[0];
+    if (!preferred) {
+      return;
+    }
+
+    setSelectedAddressId(preferred.id);
+    setForm((current) => {
+      const hasTypedAddress =
+        current.shippingAddress.line1.trim().length > 0 ||
+        current.shippingAddress.area.trim().length > 0 ||
+        current.shippingAddress.city.trim().length > 0;
+
+      if (hasTypedAddress) {
+        return current;
+      }
+
+      return {
+        ...current,
+        shippingAddress: {
+          ...current.shippingAddress,
+          line1: preferred.line1,
+          area: preferred.area,
+          city: preferred.city,
+          ...(preferred.line2 ? { line2: preferred.line2 } : {}),
+          ...(preferred.postalCode
+            ? { postalCode: preferred.postalCode }
+            : {}),
+          country: "Bangladesh",
+        },
+      };
+    });
+  }, [addressesQuery.data]);
+
+  function applySavedAddress(address: UserAddress): void {
+    setSelectedAddressId(address.id);
+    setForm((current) => ({
+      ...current,
+      shippingAddress: {
+        line1: address.line1,
+        area: address.area,
+        city: address.city,
+        ...(address.line2 ? { line2: address.line2 } : {}),
+        ...(address.postalCode ? { postalCode: address.postalCode } : {}),
+        country: "Bangladesh",
+      },
+    }));
+  }
 
   const buyNowProduct = buyNowProductQuery.data;
   const hasBuyNowVariants = (buyNowProduct?.variants.length ?? 0) > 0;
@@ -205,8 +322,31 @@ export function CheckoutPage(): ReactNode {
   const buyNowItemCount = buyNowProduct ? buyNowQuantity : 0;
   const buyNowSubTotal = (buyNowProduct?.price ?? 0) * buyNowQuantity;
   const buyNowShippingFee =
-    buyNowSubTotal > 0 ? (buyNowSubTotal >= 2000 ? 0 : 120) : 0;
+    buyNowSubTotal > 0
+      ? buyNowSubTotal >= FREE_SHIPPING_THRESHOLD
+        ? 0
+        : STANDARD_SHIPPING_FEE
+      : 0;
   const buyNowTotal = buyNowSubTotal + buyNowShippingFee;
+
+  const cartItemCount = cartQuery.data?.summary.itemCount ?? 0;
+  const cartSubTotal = cartQuery.data?.summary.subTotal ?? 0;
+  const cartDiscountTotal = cartQuery.data?.summary.discountTotal ?? 0;
+  const cartShippingFee =
+    cartSubTotal > 0
+      ? cartSubTotal >= FREE_SHIPPING_THRESHOLD
+        ? 0
+        : STANDARD_SHIPPING_FEE
+      : 0;
+  const cartGrandTotal = Math.max(
+    0,
+    cartSubTotal + cartShippingFee - cartDiscountTotal,
+  );
+  const activeSubTotal = isBuyNowMode ? buyNowSubTotal : cartSubTotal;
+  const remainingForFreeShipping = Math.max(
+    0,
+    FREE_SHIPPING_THRESHOLD - activeSubTotal,
+  );
 
   const buyNowImage = useMemo(() => {
     const images = buyNowProduct?.images ?? [];
@@ -218,18 +358,6 @@ export function CheckoutPage(): ReactNode {
     }
     return images[0];
   }, [buyNowColor, buyNowProduct?.images]);
-
-  const hydratedForm = useMemo(() => {
-    if (!profileQuery.data) {
-      return form;
-    }
-
-    return {
-      ...form,
-      customerName: form.customerName || profileQuery.data.name,
-      customerEmail: form.customerEmail || profileQuery.data.email,
-    };
-  }, [form, profileQuery.data]);
 
   const checkoutMutation = useMutation({
     mutationFn: checkoutOrder,
@@ -243,7 +371,9 @@ export function CheckoutPage(): ReactNode {
         to: "/track",
         search: {
           orderNumber: order.orderNumber,
-          email: variables.customerEmail,
+          ...(variables.customerEmail?.trim()
+            ? { email: variables.customerEmail.trim() }
+            : {}),
         },
       });
     },
@@ -253,12 +383,15 @@ export function CheckoutPage(): ReactNode {
     ? !buyNowProduct || !isBuyNowInStock || checkoutMutation.isPending
     : checkoutMutation.isPending || (cartQuery.data?.items.length ?? 0) === 0;
 
+  const savedAddresses = addressesQuery.data ?? [];
+
   return (
     <main className="page-shell checkout-page">
       <section className="section-heading catalog-heading">
         <h3 style={{ margin: 0 }}>Checkout</h3>
         <p style={{ color: "var(--color-midas-gray)", margin: "0.25rem 0 0" }}>
-          Confirm your details and place your order using Cash on Delivery.
+          Enter your delivery address in Bangladesh to place a Cash on Delivery
+          order.
         </p>
       </section>
 
@@ -271,17 +404,72 @@ export function CheckoutPage(): ReactNode {
       <section className="checkout-layout">
         <Card className="checkout-form-card">
           <CardBody>
-            <h2>Delivery details</h2>
+            <div className="checkout-card-header">
+              <div className="checkout-card-title-row">
+                <MapPin size={18} aria-hidden="true" />
+                <h2>Delivery details</h2>
+              </div>
+              <p className="checkout-required-note">
+                Fields marked with{" "}
+                <span className="field-required-star" aria-hidden="true">
+                  *
+                </span>{" "}
+                are required
+              </p>
+            </div>
+
+            {savedAddresses.length > 0 ? (
+              <div className="checkout-saved-addresses">
+                <span className="checkout-saved-addresses-label">
+                  Saved addresses
+                </span>
+                <div className="checkout-saved-address-list">
+                  {savedAddresses.map((address) => (
+                    <button
+                      key={address.id}
+                      type="button"
+                      className={`checkout-saved-address-pill ${
+                        selectedAddressId === address.id ? "is-selected" : ""
+                      }`}
+                      onClick={() => {
+                        applySavedAddress(address);
+                      }}
+                    >
+                      <strong>{address.label}</strong>
+                      <span>
+                        {address.area}, {address.city}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <form
               className="admin-modern-form"
               onSubmit={(event) => {
                 event.preventDefault();
+                const trimmedEmail = form.customerEmail?.trim() ?? "";
+                const basePayload: CheckoutInput = {
+                  customerName: form.customerName.trim(),
+                  customerPhone: form.customerPhone.trim(),
+                  ...(trimmedEmail ? { customerEmail: trimmedEmail } : {}),
+                  paymentMethod: "cod",
+                  shippingAddress: {
+                    ...form.shippingAddress,
+                    line1: form.shippingAddress.line1.trim(),
+                    area: form.shippingAddress.area.trim(),
+                    city: form.shippingAddress.city.trim(),
+                    country: "Bangladesh",
+                  },
+                };
+
                 if (isBuyNowMode) {
                   if (!buyNowProduct || !isBuyNowInStock) {
                     return;
                   }
                   checkoutMutation.mutate({
-                    ...hydratedForm,
+                    ...basePayload,
                     buyNowItem: {
                       productId: buyNowProduct._id,
                       quantity: buyNowQuantity,
@@ -291,15 +479,17 @@ export function CheckoutPage(): ReactNode {
                   });
                   return;
                 }
-                checkoutMutation.mutate(hydratedForm);
+                checkoutMutation.mutate(basePayload);
               }}
             >
               <div className="admin-form-grid two">
-                <AdminField label="Full name">
+                <AdminField label="Full name" required>
                   <Input
                     className="admin-heroui-input"
+                    autoComplete="name"
+                    placeholder="e.g. Rahim Uddin"
                     required
-                    value={hydratedForm.customerName}
+                    value={form.customerName}
                     onChange={(event) => {
                       setForm((current) => ({
                         ...current,
@@ -308,11 +498,14 @@ export function CheckoutPage(): ReactNode {
                     }}
                   />
                 </AdminField>
-                <AdminField label="Phone">
+                <AdminField label="Phone" required>
                   <Input
                     className="admin-heroui-input"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="e.g. 017XXXXXXXX"
                     required
-                    value={hydratedForm.customerPhone}
+                    value={form.customerPhone}
                     onChange={(event) => {
                       setForm((current) => ({
                         ...current,
@@ -323,12 +516,16 @@ export function CheckoutPage(): ReactNode {
                 </AdminField>
               </div>
 
-              <AdminField label="Email">
+              <AdminField
+                label="Email"
+                hint={<span className="admin-field-hint">Optional</span>}
+              >
                 <Input
                   className="admin-heroui-input"
-                  required
                   type="email"
-                  value={hydratedForm.customerEmail}
+                  autoComplete="email"
+                  placeholder="you@example.com (optional)"
+                  value={form.customerEmail ?? ""}
                   onChange={(event) => {
                     setForm((current) => ({
                       ...current,
@@ -338,12 +535,15 @@ export function CheckoutPage(): ReactNode {
                 />
               </AdminField>
 
-              <AdminField label="Address line 1">
+              <AdminField label="Address line 1" required>
                 <Input
                   className="admin-heroui-input"
+                  autoComplete="street-address"
+                  placeholder="House, road, block, or apartment"
                   required
-                  value={hydratedForm.shippingAddress.line1}
+                  value={form.shippingAddress.line1}
                   onChange={(event) => {
+                    setSelectedAddressId(null);
                     setForm((current) => ({
                       ...current,
                       shippingAddress: {
@@ -356,12 +556,15 @@ export function CheckoutPage(): ReactNode {
               </AdminField>
 
               <div className="admin-form-grid two">
-                <AdminField label="Area">
+                <AdminField label="Area" required>
                   <Input
                     className="admin-heroui-input"
+                    autoComplete="address-level3"
+                    placeholder="e.g. Dhanmondi, Mirpur"
                     required
-                    value={hydratedForm.shippingAddress.area}
+                    value={form.shippingAddress.area}
                     onChange={(event) => {
+                      setSelectedAddressId(null);
                       setForm((current) => ({
                         ...current,
                         shippingAddress: {
@@ -372,12 +575,15 @@ export function CheckoutPage(): ReactNode {
                     }}
                   />
                 </AdminField>
-                <AdminField label="City">
+                <AdminField label="City" required>
                   <Input
                     className="admin-heroui-input"
+                    autoComplete="address-level2"
+                    placeholder="e.g. Dhaka, Chattogram"
                     required
-                    value={hydratedForm.shippingAddress.city}
+                    value={form.shippingAddress.city}
                     onChange={(event) => {
+                      setSelectedAddressId(null);
                       setForm((current) => ({
                         ...current,
                         shippingAddress: {
@@ -390,42 +596,33 @@ export function CheckoutPage(): ReactNode {
                 </AdminField>
               </div>
 
-              <AdminField label="Country">
-                <Input
-                  className="admin-heroui-input"
-                  required
-                  value={hydratedForm.shippingAddress.country}
-                  onChange={(event) => {
-                    setForm((current) => ({
-                      ...current,
-                      shippingAddress: {
-                        ...current.shippingAddress,
-                        country: event.target.value,
-                      },
-                    }));
-                  }}
-                />
-              </AdminField>
-
-              <div className="checkout-payment-method">
-                <Banknote size={18} />
-                <span>Payment method: Cash on Delivery</span>
-              </div>
-
               {checkoutMutation.error ? (
                 <p className="form-error">{checkoutMutation.error.message}</p>
               ) : null}
 
-              <div className="admin-form-actions">
-                <Button
-                  type="submit"
-                  tone="primary"
-                  disabled={isSubmitDisabled}
-                >
-                  {checkoutMutation.isPending
-                    ? "Placing order..."
-                    : "Place COD order"}
-                </Button>
+              <div className="checkout-form-footer">
+                <div className="checkout-payment-method">
+                  <Banknote size={18} aria-hidden="true" />
+                  <div>
+                    <strong>Cash on Delivery</strong>
+                    <small>
+                      Pay in cash when your order arrives anywhere in Bangladesh
+                    </small>
+                  </div>
+                </div>
+
+                <div className="admin-form-actions checkout-submit-actions">
+                  <Button
+                    type="submit"
+                    tone="primary"
+                    className="checkout-submit-btn"
+                    disabled={isSubmitDisabled}
+                  >
+                    {checkoutMutation.isPending
+                      ? "Placing order..."
+                      : "Place order"}
+                  </Button>
+                </div>
               </div>
             </form>
           </CardBody>
@@ -433,12 +630,23 @@ export function CheckoutPage(): ReactNode {
 
         <Card className="checkout-summary-card">
           <CardBody>
-            <h2>Order summary</h2>
+            <div className="checkout-card-header">
+              <div className="checkout-card-title-row">
+                <ShoppingBag size={18} aria-hidden="true" />
+                <h2>Order summary</h2>
+              </div>
+            </div>
 
             {isBuyNowMode ? (
               <>
                 {buyNowProductQuery.isLoading ? (
-                  <div style={{ display: "grid", gap: "0.75rem", marginBottom: "1rem" }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "0.75rem",
+                      marginBottom: "1rem",
+                    }}
+                  >
                     <Skeleton className="h-16 w-full rounded-lg" />
                     <Skeleton className="h-10 w-full rounded-lg" />
                   </div>
@@ -478,7 +686,7 @@ export function CheckoutPage(): ReactNode {
                             <strong>{buyNowProduct.name}</strong>
                           </Link>
                           <small className="admin-table-muted">
-                            ৳{buyNowProduct.price.toLocaleString("en-BD")}
+                            {formatTaka(buyNowProduct.price)}
                             {buyNowSize && buyNowColor
                               ? ` · ${buyNowSize} / ${buyNowColor}`
                               : buyNowSize
@@ -488,7 +696,9 @@ export function CheckoutPage(): ReactNode {
                                   : ""}
                           </small>
                         </div>
-                        <span>৳{buyNowSubTotal.toLocaleString("en-BD")}</span>
+                        <span className="checkout-line-price">
+                          {formatTaka(buyNowSubTotal)}
+                        </span>
                       </li>
                     </ul>
 
@@ -591,29 +801,29 @@ export function CheckoutPage(): ReactNode {
                   </div>
                   <div>
                     <dt>Subtotal</dt>
-                    <dd>৳{buyNowSubTotal.toLocaleString("en-BD")}</dd>
+                    <dd>{formatTaka(buyNowSubTotal)}</dd>
                   </div>
                   <div>
                     <dt>Shipping</dt>
                     <dd>
                       {buyNowSubTotal === 0
-                        ? "৳0"
+                        ? formatTaka(0)
                         : buyNowShippingFee === 0
                           ? "Free"
-                          : `৳${buyNowShippingFee.toLocaleString("en-BD")}`}
+                          : formatTaka(buyNowShippingFee)}
                     </dd>
                   </div>
-                  <div>
+                  <div className="cart-summary-total-row">
                     <dt>Total</dt>
-                    <dd>৳{buyNowTotal.toLocaleString("en-BD")}</dd>
+                    <dd>{formatTaka(buyNowTotal)}</dd>
                   </div>
                 </dl>
 
-                {(cartQuery.data?.items.length ?? 0) > 0 ? (
+                {cartItemCount > 0 ? (
                   <p className="checkout-mode-switch">
                     <Link to="/checkout">
-                      Checkout full cart ({cartQuery.data?.summary.itemCount}{" "}
-                      items) instead
+                      Checkout full cart ({cartItemCount}{" "}
+                      {cartItemCount === 1 ? "item" : "items"}) instead
                     </Link>
                   </p>
                 ) : null}
@@ -644,10 +854,16 @@ export function CheckoutPage(): ReactNode {
                             Qty {item.quantity}
                             {item.size && item.color
                               ? ` · ${item.size} / ${item.color}`
-                              : ""}
+                              : item.size
+                                ? ` · ${item.size}`
+                                : item.color
+                                  ? ` · ${item.color}`
+                                  : ""}
                           </small>
                         </div>
-                        <span>৳{item.lineTotal.toLocaleString("en-BD")}</span>
+                        <span className="checkout-line-price">
+                          {formatTaka(item.lineTotal)}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -656,32 +872,47 @@ export function CheckoutPage(): ReactNode {
                 <dl className="cart-summary-list">
                   <div>
                     <dt>Items</dt>
-                    <dd>{cartQuery.data?.summary.itemCount ?? 0}</dd>
+                    <dd>{cartItemCount}</dd>
                   </div>
                   <div>
                     <dt>Subtotal</dt>
+                    <dd>{formatTaka(cartSubTotal)}</dd>
+                  </div>
+                  {cartDiscountTotal > 0 ? (
+                    <div>
+                      <dt>Discount</dt>
+                      <dd>-{formatTaka(cartDiscountTotal)}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>Shipping</dt>
                     <dd>
-                      ৳
-                      {(cartQuery.data?.summary.subTotal ?? 0).toLocaleString(
-                        "en-BD",
-                      )}
+                      {cartSubTotal === 0
+                        ? formatTaka(0)
+                        : cartShippingFee === 0
+                          ? "Free"
+                          : formatTaka(cartShippingFee)}
                     </dd>
                   </div>
-                  <div>
+                  <div className="cart-summary-total-row">
                     <dt>Total</dt>
-                    <dd>
-                      ৳
-                      {(cartQuery.data?.summary.total ?? 0).toLocaleString(
-                        "en-BD",
-                      )}
-                    </dd>
+                    <dd>{formatTaka(cartGrandTotal)}</dd>
                   </div>
                 </dl>
               </>
             )}
 
+            {activeSubTotal > 0 ? (
+              <p className="checkout-shipping-note">
+                {remainingForFreeShipping === 0
+                  ? "Free delivery applied on this order."
+                  : `Add ${formatTaka(remainingForFreeShipping)} more for free delivery (orders ${formatTaka(FREE_SHIPPING_THRESHOLD)}+).`}
+              </p>
+            ) : null}
+
             <div className="checkout-trust-row">
-              <Truck size={16} /> Cash on delivery, pay when it arrives
+              <Truck size={16} aria-hidden="true" />
+              <span>Cash on delivery, pay when it arrives</span>
             </div>
           </CardBody>
         </Card>
