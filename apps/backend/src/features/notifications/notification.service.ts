@@ -36,7 +36,7 @@ export async function notifyOrderPlaced(
   order: NotifiableOrder,
   userId?: string,
 ): Promise<void> {
-  if (!(await isOrderEmailAllowed(userId))) {
+  if (!order.customerEmail || !(await isOrderEmailAllowed(userId))) {
     return;
   }
 
@@ -48,7 +48,7 @@ export async function notifyOrderStatusChanged(
   order: NotifiableOrder,
   userId?: string,
 ): Promise<void> {
-  if (!orderStatusNotificationList.has(order.status)) {
+  if (!order.customerEmail || !orderStatusNotificationList.has(order.status)) {
     return;
   }
 

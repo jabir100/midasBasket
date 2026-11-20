@@ -38,7 +38,7 @@ export type AdminOrder = {
   id: string;
   orderNumber: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string | null;
   customerPhone?: string;
   paymentMethod?: string;
   status: string;
@@ -79,7 +79,7 @@ export type AdminOrderDetail = {
   id: string;
   orderNumber: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string | null;
   customerPhone: string;
   shippingAddress: OrderAddress;
   notes: string | null;

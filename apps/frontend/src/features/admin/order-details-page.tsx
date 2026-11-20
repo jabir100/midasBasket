@@ -159,7 +159,7 @@ export function AdminOrderDetailsPage({
                   <p>
                     <strong>{order.customerName}</strong>
                   </p>
-                  <p>{order.customerEmail}</p>
+                  {order.customerEmail ? <p>{order.customerEmail}</p> : null}
                   <p>{order.customerPhone}</p>
                 </div>
               </CardBody>

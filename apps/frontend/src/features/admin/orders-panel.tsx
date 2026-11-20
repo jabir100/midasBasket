@@ -171,7 +171,15 @@ export function OrdersPanel({
                       <td>
                         <div className="admin-order-customer">
                           <strong>{order.customerName}</strong>
-                          <small>{order.customerEmail}</small>
+                          <small>
+                            {(order.customerEmail?.trim()
+                              ? order.customerEmail
+                              : null) ??
+                              (order.customerPhone?.trim()
+                                ? order.customerPhone
+                                : null) ??
+                              "No email"}
+                          </small>
                         </div>
                       </td>
                       <td>

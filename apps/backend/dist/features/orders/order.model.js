@@ -14,7 +14,13 @@ const addressSchema = new Schema({
     area: { type: String, required: true, trim: true, maxlength: 140 },
     city: { type: String, required: true, trim: true, maxlength: 120 },
     postalCode: { type: String, trim: true, maxlength: 24 },
-    country: { type: String, required: true, trim: true, maxlength: 80 },
+    country: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 80,
+        default: "Bangladesh",
+    },
 }, { _id: false });
 const orderItemSchema = new Schema({
     productId: {
@@ -57,11 +63,11 @@ const orderSchema = new Schema({
     customerName: { type: String, required: true, trim: true, maxlength: 140 },
     customerEmail: {
         type: String,
-        required: true,
         trim: true,
         lowercase: true,
         maxlength: 180,
         index: true,
+        sparse: true,
     },
     customerPhone: { type: String, required: true, trim: true, maxlength: 40 },
     shippingAddress: { type: addressSchema, required: true },

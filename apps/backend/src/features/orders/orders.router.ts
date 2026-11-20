@@ -262,9 +262,12 @@ ordersRouter.post(
             ? { guestCartId: cart?.guestCartId ?? input.guestCartId }
             : {}),
         customerName: input.customerName,
-        customerEmail: input.customerEmail,
+        ...(input.customerEmail ? { customerEmail: input.customerEmail } : {}),
         customerPhone: input.customerPhone,
-        shippingAddress: input.shippingAddress,
+        shippingAddress: {
+          ...input.shippingAddress,
+          country: input.shippingAddress.country || "Bangladesh",
+        },
         notes: input.notes,
         paymentMethod: input.paymentMethod,
         paymentStatus: "pending",

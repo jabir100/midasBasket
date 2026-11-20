@@ -45,7 +45,7 @@ export type BuyNowCheckoutItem = {
 export type CheckoutInput = {
   buyNowItem?: BuyNowCheckoutItem;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string;
   customerPhone: string;
   shippingAddress: {
     line1: string;
