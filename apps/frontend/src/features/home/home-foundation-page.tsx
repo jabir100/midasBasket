@@ -160,6 +160,20 @@ export function HomeFoundationPage({
         </div>
       </section>
 
+      {homepage.products.length > 0 ? (
+        <section
+          className="home-section"
+          aria-labelledby="home-products-title"
+        >
+          <SectionHeading
+            id="home-products-title"
+            title="Products"
+            action={{ href: "/products", label: "All products" }}
+          />
+          <ProductSlider products={homepage.products} />
+        </section>
+      ) : null}
+
       <section className="home-section" aria-labelledby="brands-title">
         <SectionHeading
           id="brands-title"

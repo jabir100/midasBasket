@@ -19,12 +19,16 @@ const image = z.object({
   publicId: z.string().trim().min(1).optional(),
   color: z.string().trim().min(1).max(40).optional(),
 });
-const variant = z.object({
-  size: z.string().trim().min(1).max(20),
-  color: z.string().trim().min(1).max(40),
-  stockQuantity: z.number().int().nonnegative(),
-  sku: z.string().trim().max(80).optional(),
-});
+const variant = z
+  .object({
+    size: z.string().trim().max(20).optional().default(""),
+    color: z.string().trim().max(40).optional().default(""),
+    stockQuantity: z.number().int().nonnegative(),
+    sku: z.string().trim().max(80).optional(),
+  })
+  .refine((v) => v.size.length > 0 || v.color.length > 0, {
+    message: "Each variant must specify at least a size or a color",
+  });
 
 export const MAX_PRODUCT_IMAGES = 8;
 

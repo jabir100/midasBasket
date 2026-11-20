@@ -158,9 +158,9 @@ export declare const productSchema: z.ZodObject<{
     price: z.ZodNumber;
     compareAtPrice: z.ZodOptional<z.ZodNumber>;
     stockQuantity: z.ZodOptional<z.ZodNumber>;
-    variants: z.ZodEffects<z.ZodOptional<z.ZodArray<z.ZodObject<{
-        size: z.ZodString;
-        color: z.ZodString;
+    variants: z.ZodEffects<z.ZodOptional<z.ZodArray<z.ZodEffects<z.ZodObject<{
+        size: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        color: z.ZodDefault<z.ZodOptional<z.ZodString>>;
         stockQuantity: z.ZodNumber;
         sku: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
@@ -169,9 +169,19 @@ export declare const productSchema: z.ZodObject<{
         stockQuantity: number;
         sku?: string | undefined;
     }, {
+        stockQuantity: number;
+        size?: string | undefined;
+        color?: string | undefined;
+        sku?: string | undefined;
+    }>, {
         size: string;
         color: string;
         stockQuantity: number;
+        sku?: string | undefined;
+    }, {
+        stockQuantity: number;
+        size?: string | undefined;
+        color?: string | undefined;
         sku?: string | undefined;
     }>, "many">>, {
         size: string;
@@ -179,9 +189,9 @@ export declare const productSchema: z.ZodObject<{
         stockQuantity: number;
         sku?: string | undefined;
     }[] | undefined, {
-        size: string;
-        color: string;
         stockQuantity: number;
+        size?: string | undefined;
+        color?: string | undefined;
         sku?: string | undefined;
     }[] | undefined>;
     images: z.ZodOptional<z.ZodArray<z.ZodObject<{
@@ -260,9 +270,9 @@ export declare const productSchema: z.ZodObject<{
     shortDescription?: string | undefined;
     compareAtPrice?: number | undefined;
     variants?: {
-        size: string;
-        color: string;
         stockQuantity: number;
+        size?: string | undefined;
+        color?: string | undefined;
         sku?: string | undefined;
     }[] | undefined;
     images?: {

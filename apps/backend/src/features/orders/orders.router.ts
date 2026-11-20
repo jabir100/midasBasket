@@ -34,9 +34,23 @@ ordersRouter.post(
       const input = checkoutSchema.parse(req.body);
       const principal = getPrincipal(res);
 
-      const cart = await getCheckoutCart(principal?.userId, input.guestCartId);
+      const isBuyNow = Boolean(input.buyNowItem);
+      const cart = input.buyNowItem
+        ? null
+        : await getCheckoutCart(principal?.userId, input.guestCartId);
 
-      if (!cart || cart.items.length === 0) {
+      const sourceItems = input.buyNowItem
+        ? [
+            {
+              productId: new Types.ObjectId(input.buyNowItem.productId),
+              quantity: input.buyNowItem.quantity,
+              size: input.buyNowItem.size,
+              color: input.buyNowItem.color,
+            },
+          ]
+        : (cart?.items ?? []);
+
+      if (sourceItems.length === 0) {
         throw new AppError({
           statusCode: 422,
           code: "CART_EMPTY",
@@ -44,7 +58,7 @@ ordersRouter.post(
         });
       }
 
-      const productIds = cart.items.map((item) => item.productId.toString());
+      const productIds = sourceItems.map((item) => item.productId.toString());
       const products = await ProductModel.find({
         _id: { $in: productIds },
         isPublished: true,
@@ -53,26 +67,72 @@ ordersRouter.post(
       const productsById = new Map(
         products.map((product) => [String(product._id), product]),
       );
-      const orderItems = cart.items.map((item) => {
+      const orderItems = sourceItems.map((item) => {
         const product = productsById.get(item.productId.toString());
 
         if (!product) {
           throw new AppError({
             statusCode: 422,
             code: "PRODUCT_UNAVAILABLE",
-            message: "One or more cart items are unavailable",
+            message: isBuyNow
+              ? "Selected product is unavailable"
+              : "One or more cart items are unavailable",
           });
         }
 
-        const variant =
-          item.size && item.color
-            ? product.variants?.find(
-                (v) => v.size === item.size && v.color === item.color,
-              )
-            : undefined;
-        const availableStock = variant
-          ? variant.stockQuantity
-          : product.stockQuantity;
+        let resolvedSize =
+          product.variants.length > 0 ? (item.size ?? undefined) : undefined;
+        let resolvedColor =
+          product.variants.length > 0 ? (item.color ?? undefined) : undefined;
+        let availableStock = product.stockQuantity;
+
+        if (product.variants.length > 0) {
+          if (isBuyNow) {
+            const normalizedSize = (item.size ?? "").trim().toUpperCase();
+            const normalizedColor = (item.color ?? "").trim();
+
+            if (!normalizedSize && !normalizedColor) {
+              const preferred =
+                product.variants.find(
+                  (v) => v.stockQuantity >= item.quantity,
+                ) ?? product.variants[0];
+              if (preferred) {
+                resolvedSize = preferred.size || undefined;
+                resolvedColor = preferred.color || undefined;
+                availableStock = preferred.stockQuantity;
+              }
+            } else {
+              const variant = product.variants.find(
+                (v) =>
+                  (v.size ?? "").trim().toUpperCase() === normalizedSize &&
+                  (v.color ?? "").trim() === normalizedColor,
+              );
+              if (!variant) {
+                throw new AppError({
+                  statusCode: 422,
+                  code: "PRODUCT_UNAVAILABLE",
+                  message: "Selected product option is unavailable",
+                });
+              }
+              resolvedSize = variant.size || undefined;
+              resolvedColor = variant.color || undefined;
+              availableStock = variant.stockQuantity;
+            }
+          } else {
+            const hasVariantSelection =
+              Boolean(item.size) || Boolean(item.color);
+            const variant = hasVariantSelection
+              ? product.variants.find(
+                  (v) =>
+                    v.size === (item.size ?? "") &&
+                    v.color === (item.color ?? ""),
+                )
+              : undefined;
+            availableStock = variant
+              ? variant.stockQuantity
+              : product.stockQuantity;
+          }
+        }
 
         if (availableStock < item.quantity) {
           throw new AppError({
@@ -90,8 +150,8 @@ ordersRouter.post(
           quantity: item.quantity,
           unitPrice: product.price,
           lineTotal: product.price * item.quantity,
-          size: item.size ?? undefined,
-          color: item.color ?? undefined,
+          size: resolvedSize,
+          color: resolvedColor,
         };
       });
 
@@ -111,37 +171,41 @@ ordersRouter.post(
       const appliedDecrements: (typeof orderItems)[number][] = [];
       try {
         for (const item of orderItems) {
-          const filter: Record<string, unknown> =
-            item.size && item.color
-              ? {
-                  _id: item.productId,
-                  variants: {
-                    $elemMatch: {
-                      size: item.size,
-                      color: item.color,
-                      stockQuantity: { $gte: item.quantity },
-                    },
+          const product = productsById.get(item.productId.toString());
+          const hasVariantSelection =
+            (Boolean(item.size) || Boolean(item.color)) &&
+            (product?.variants.length ?? 0) > 0;
+          const filter: Record<string, unknown> = hasVariantSelection
+            ? {
+                _id: item.productId,
+                variants: {
+                  $elemMatch: {
+                    size: item.size ?? "",
+                    color: item.color ?? "",
+                    stockQuantity: { $gte: item.quantity },
                   },
-                }
-              : { _id: item.productId, stockQuantity: { $gte: item.quantity } };
+                },
+              }
+            : { _id: item.productId, stockQuantity: { $gte: item.quantity } };
 
-          const update =
-            item.size && item.color
-              ? {
-                  $inc: {
-                    "variants.$[v].stockQuantity": -item.quantity,
-                    stockQuantity: -item.quantity,
+          const update = hasVariantSelection
+            ? {
+                $inc: {
+                  "variants.$[v].stockQuantity": -item.quantity,
+                  stockQuantity: -item.quantity,
+                },
+              }
+            : { $inc: { stockQuantity: -item.quantity } };
+          const options = hasVariantSelection
+            ? {
+                arrayFilters: [
+                  {
+                    "v.size": item.size ?? "",
+                    "v.color": item.color ?? "",
                   },
-                }
-              : { $inc: { stockQuantity: -item.quantity } };
-          const options =
-            item.size && item.color
-              ? {
-                  arrayFilters: [
-                    { "v.size": item.size, "v.color": item.color },
-                  ],
-                }
-              : {};
+                ],
+              }
+            : {};
 
           const result = await ProductModel.updateOne(filter, update, options);
 
@@ -158,23 +222,28 @@ ordersRouter.post(
       } catch (error) {
         await Promise.all(
           appliedDecrements.map((item) => {
-            const update =
-              item.size && item.color
-                ? {
-                    $inc: {
-                      "variants.$[v].stockQuantity": item.quantity,
-                      stockQuantity: item.quantity,
+            const product = productsById.get(item.productId.toString());
+            const hasVariantSelection =
+              (Boolean(item.size) || Boolean(item.color)) &&
+              (product?.variants.length ?? 0) > 0;
+            const update = hasVariantSelection
+              ? {
+                  $inc: {
+                    "variants.$[v].stockQuantity": item.quantity,
+                    stockQuantity: item.quantity,
+                  },
+                }
+              : { $inc: { stockQuantity: item.quantity } };
+            const options = hasVariantSelection
+              ? {
+                  arrayFilters: [
+                    {
+                      "v.size": item.size ?? "",
+                      "v.color": item.color ?? "",
                     },
-                  }
-                : { $inc: { stockQuantity: item.quantity } };
-            const options =
-              item.size && item.color
-                ? {
-                    arrayFilters: [
-                      { "v.size": item.size, "v.color": item.color },
-                    ],
-                  }
-                : {};
+                  ],
+                }
+              : {};
             return ProductModel.updateOne(
               { _id: item.productId },
               update,
@@ -189,7 +258,9 @@ ordersRouter.post(
         orderNumber,
         ...(principal?.userId
           ? { userId: new Types.ObjectId(principal.userId) }
-          : { guestCartId: cart.guestCartId }),
+          : (cart?.guestCartId ?? input.guestCartId)
+            ? { guestCartId: cart?.guestCartId ?? input.guestCartId }
+            : {}),
         customerName: input.customerName,
         customerEmail: input.customerEmail,
         customerPhone: input.customerPhone,
@@ -207,21 +278,23 @@ ordersRouter.post(
           },
         ],
         items: orderItems,
-        currency: cart.currency ? cart.currency : "BDT",
-        couponCode: cart.couponCode,
+        currency: cart?.currency ? cart.currency : "BDT",
+        couponCode: cart?.couponCode,
         subTotal,
         shippingFee,
         discountTotal,
         total,
       });
 
-      await CartModel.updateOne(
-        { _id: cart._id },
-        {
-          $set: { items: [] },
-          $unset: { couponCode: "" },
-        },
-      );
+      if (!isBuyNow && cart) {
+        await CartModel.updateOne(
+          { _id: cart._id },
+          {
+            $set: { items: [] },
+            $unset: { couponCode: "" },
+          },
+        );
+      }
 
       const orderObject = order.toObject();
 

@@ -25,10 +25,17 @@ cartRouter.get("/", async (req, res, next) => {
     }
 });
 function resolveVariantStock(product, size, color) {
-    if (!size || !color) {
+    const variants = product.variants ?? [];
+    if (variants.length === 0) {
         return product.stockQuantity;
     }
-    const variant = product.variants?.find((v) => v.size === size.toUpperCase() && v.color === color);
+    const normalizedSize = (size ?? "").trim().toUpperCase();
+    const normalizedColor = (color ?? "").trim();
+    if (!normalizedSize && !normalizedColor) {
+        return product.stockQuantity;
+    }
+    const variant = variants.find((v) => (v.size ?? "").trim().toUpperCase() === normalizedSize &&
+        (v.color ?? "").trim() === normalizedColor);
     if (!variant) {
         throw new AppError({
             statusCode: 404,

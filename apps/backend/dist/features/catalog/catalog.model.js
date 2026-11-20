@@ -44,8 +44,8 @@ const brandSchema = new Schema({
     isActive: { type: Boolean, default: true, index: true },
 }, { timestamps: true });
 const variantSchema = new Schema({
-    size: { type: String, required: true, trim: true, uppercase: true, maxlength: 20 },
-    color: { type: String, required: true, trim: true, maxlength: 40 },
+    size: { type: String, trim: true, uppercase: true, maxlength: 20, default: "" },
+    color: { type: String, trim: true, maxlength: 40, default: "" },
     stockQuantity: { type: Number, required: true, min: 0, default: 0 },
     sku: { type: String, trim: true, maxlength: 80 },
 }, { _id: false });

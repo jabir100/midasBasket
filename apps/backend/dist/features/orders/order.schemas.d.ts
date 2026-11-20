@@ -1,7 +1,39 @@
 import { z } from "zod";
 export declare const objectIdSchema: z.ZodString;
+export declare const buyNowItemSchema: z.ZodObject<{
+    productId: z.ZodString;
+    quantity: z.ZodDefault<z.ZodNumber>;
+    size: z.ZodOptional<z.ZodString>;
+    color: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    productId: string;
+    quantity: number;
+    size?: string | undefined;
+    color?: string | undefined;
+}, {
+    productId: string;
+    quantity?: number | undefined;
+    size?: string | undefined;
+    color?: string | undefined;
+}>;
 export declare const checkoutSchema: z.ZodObject<{
     guestCartId: z.ZodOptional<z.ZodString>;
+    buyNowItem: z.ZodOptional<z.ZodObject<{
+        productId: z.ZodString;
+        quantity: z.ZodDefault<z.ZodNumber>;
+        size: z.ZodOptional<z.ZodString>;
+        color: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        productId: string;
+        quantity: number;
+        size?: string | undefined;
+        color?: string | undefined;
+    }, {
+        productId: string;
+        quantity?: number | undefined;
+        size?: string | undefined;
+        color?: string | undefined;
+    }>>;
     customerName: z.ZodString;
     customerEmail: z.ZodString;
     customerPhone: z.ZodString;
@@ -44,6 +76,12 @@ export declare const checkoutSchema: z.ZodObject<{
     paymentMethod: "cod";
     guestCartId?: string | undefined;
     notes?: string | undefined;
+    buyNowItem?: {
+        productId: string;
+        quantity: number;
+        size?: string | undefined;
+        color?: string | undefined;
+    } | undefined;
 }, {
     customerName: string;
     customerEmail: string;
@@ -59,6 +97,12 @@ export declare const checkoutSchema: z.ZodObject<{
     guestCartId?: string | undefined;
     notes?: string | undefined;
     paymentMethod?: "cod" | undefined;
+    buyNowItem?: {
+        productId: string;
+        quantity?: number | undefined;
+        size?: string | undefined;
+        color?: string | undefined;
+    } | undefined;
 }>;
 export declare const trackOrderQuerySchema: z.ZodObject<{
     email: z.ZodOptional<z.ZodString>;
