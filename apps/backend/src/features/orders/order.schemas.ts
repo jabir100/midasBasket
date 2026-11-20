@@ -7,6 +7,13 @@ export const objectIdSchema = z
   .trim()
   .regex(/^[a-f\d]{24}$/i, "Expected a MongoDB object id");
 
+export const buyNowItemSchema = z.object({
+  productId: objectIdSchema,
+  quantity: z.coerce.number().int().min(1).max(99).default(1),
+  size: z.string().trim().max(20).optional(),
+  color: z.string().trim().max(40).optional(),
+});
+
 export const checkoutSchema = z.object({
   guestCartId: z
     .string()
@@ -15,6 +22,7 @@ export const checkoutSchema = z.object({
     .max(64)
     .regex(/^[a-zA-Z0-9_-]+$/)
     .optional(),
+  buyNowItem: buyNowItemSchema.optional(),
   customerName: z.string().trim().min(2).max(140),
   customerEmail: z.string().trim().toLowerCase().email().max(180),
   customerPhone: z.string().trim().min(6).max(40),

@@ -53,21 +53,30 @@ homepageRouter.get("/", async (_req, res, next) => {
       return;
     }
 
-    const [settings, featuredCategories, featuredBrands, carouselSlides] =
-      await Promise.all([
-        HomepageSettingsModel.findOne().lean(),
-        CategoryModel.find({ isFeatured: true, isActive: true })
-          .sort({ name: 1 })
-          .limit(6)
-          .lean(),
-        BrandModel.find({ isFeatured: true, isActive: true })
-          .sort({ name: 1 })
-          .limit(8)
-          .lean(),
-        CarouselSlideModel.find({ isActive: true })
-          .sort({ sortOrder: 1 })
-          .lean(),
-      ]);
+    const [
+      settings,
+      featuredCategories,
+      featuredBrands,
+      carouselSlides,
+      latestProducts,
+    ] = await Promise.all([
+      HomepageSettingsModel.findOne().lean(),
+      CategoryModel.find({ isFeatured: true, isActive: true })
+        .sort({ name: 1 })
+        .limit(6)
+        .lean(),
+      BrandModel.find({ isFeatured: true, isActive: true })
+        .sort({ name: 1 })
+        .limit(8)
+        .lean(),
+      CarouselSlideModel.find({ isActive: true })
+        .sort({ sortOrder: 1 })
+        .lean(),
+      ProductModel.find({ isPublished: true })
+        .sort({ createdAt: -1 })
+        .limit(16)
+        .lean(),
+    ]);
 
     /* Resolve admin-picked product lists, preserving admin-chosen order */
     const popularProductIds = settings?.popularProductIds ?? [];
@@ -126,6 +135,7 @@ homepageRouter.get("/", async (_req, res, next) => {
         ? { compareAtPrice: product.compareAtPrice }
         : {}),
       stockQuantity: toPublicStock(product.stockQuantity),
+      hasVariants: (product.variants?.length ?? 0) > 0,
       currency: "BDT" as const,
       rating: 0,
       reviewCount: 0,
@@ -197,6 +207,7 @@ homepageRouter.get("/", async (_req, res, next) => {
           },
           productCount: countMap.get(String(category._id)) ?? 0,
         })),
+        products: latestProducts.map(mapProduct),
         popularProducts: popularProducts.map(mapProduct),
         bestSellingProducts: bestSellingProducts.map(mapProduct),
         featuredBrands: featuredBrands.map((brand) => ({

@@ -35,7 +35,15 @@ export type OrderSummary = {
   }[];
 };
 
+export type BuyNowCheckoutItem = {
+  productId: string;
+  quantity: number;
+  size?: string;
+  color?: string;
+};
+
 export type CheckoutInput = {
+  buyNowItem?: BuyNowCheckoutItem;
   customerName: string;
   customerEmail: string;
   customerPhone: string;

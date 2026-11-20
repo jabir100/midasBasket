@@ -40,17 +40,32 @@ cartRouter.get("/", async (req, res, next) => {
 function resolveVariantStock(
   product: {
     stockQuantity: number;
-    variants?: { size: string; color: string; stockQuantity: number }[];
+    variants?: {
+      size?: string | null;
+      color?: string | null;
+      stockQuantity: number;
+    }[];
   },
   size: string | undefined,
   color: string | undefined,
 ): number {
-  if (!size || !color) {
+  const variants = product.variants ?? [];
+
+  if (variants.length === 0) {
     return product.stockQuantity;
   }
 
-  const variant = product.variants?.find(
-    (v) => v.size === size.toUpperCase() && v.color === color,
+  const normalizedSize = (size ?? "").trim().toUpperCase();
+  const normalizedColor = (color ?? "").trim();
+
+  if (!normalizedSize && !normalizedColor) {
+    return product.stockQuantity;
+  }
+
+  const variant = variants.find(
+    (v) =>
+      (v.size ?? "").trim().toUpperCase() === normalizedSize &&
+      (v.color ?? "").trim() === normalizedColor,
   );
 
   if (!variant) {

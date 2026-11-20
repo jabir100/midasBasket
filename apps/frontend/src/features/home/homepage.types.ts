@@ -42,6 +42,7 @@ export type HomepageProduct = {
   price: number;
   compareAtPrice?: number;
   stockQuantity: number;
+  hasVariants?: boolean;
   currency: "BDT";
   rating: number;
   reviewCount: number;
@@ -67,6 +68,7 @@ export type HomepagePayload = {
   carousel: HomepageCarouselSlide[];
   hero: HomepageHeroBanner;
   featuredCategories: HomepageCategory[];
+  products: HomepageProduct[];
   popularProducts: HomepageProduct[];
   bestSellingProducts: HomepageProduct[];
   featuredBrands: HomepageBrand[];

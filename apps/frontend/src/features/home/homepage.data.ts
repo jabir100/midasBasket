@@ -93,6 +93,7 @@ export const homepagePreviewData: HomepagePayload = {
       productCount: 56,
     },
   ],
+  products: [...products],
   popularProducts: [...products],
   bestSellingProducts: [products[0], products[2], products[1]],
   featuredBrands: [
